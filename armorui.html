@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armor UI</title>
+<link rel="icon" href="armoricon.png">
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    color:white;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#3a0834,#102617);
+}
+.main{
+    width:92%;
+    height:88vh;
+    background:linear-gradient(90deg,#171824,#10151f);
+    border-radius:28px;
+    padding:22px;
+    display:grid;
+    grid-template-columns: 380px 1fr 420px;
+    gap:24px;
+    box-shadow:0 0 35px rgba(0,0,0,.45);
+}
+.panel{
+    background:#0d1018;
+    border-radius:24px;
+    padding:20px;
+    box-shadow:inset 0 0 25px rgba(255,255,255,.03);
+}
+h2,h3{
+    margin:0 0 16px;
+}
+
+/* LEFT */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+}
+.item{
+    height:88px;
+    border-radius:16px;
+    background:#262838;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    transition:.18s;
+    position:relative;
+}
+.item:hover{
+    transform:translateY(-2px);
+}
+.item.selected{
+    border:2px solid #35ff7f;
+    box-shadow:0 0 12px #35ff7f,0 0 26px rgba(53,255,127,.45);
+}
+.item img{
+    width:56px;
+    height:56px;
+    object-fit:contain;
+}
+.section-title{
+    color:#7bffae;
+    text-shadow:0 0 14px #35ff7f;
+    margin-bottom:18px;
+}
+
+/* MID */
+.info{
+    position:relative;
+    overflow:hidden;
+}
+.particles{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+}
+.spark{
+    position:absolute;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#35ff7f;
+    box-shadow:0 0 10px #35ff7f,0 0 18px #35ff7f;
+    animation:float 3s linear infinite;
+}
+@keyframes float{
+    from{transform:translateY(30px);opacity:0}
+    30%{opacity:1}
+    to{transform:translateY(-90px);opacity:0}
+}
+.preview-icon{
+    position:absolute;
+    right:26px;
+    top:22px;
+    width:62px;
+    height:62px;
+    object-fit:contain;
+    filter:drop-shadow(0 0 12px #35ff7f);
+}
+.title{
+    font-size:28px;
+    font-weight:bold;
+    color:#7bffae;
+    text-shadow:0 0 16px #35ff7f;
+    margin-bottom:28px;
+}
+.stat{
+    font-size:20px;
+    margin:30px 0;
+    display:flex;
+    gap:14px;
+    align-items:center;
+}
+.stat-label{color:#cfcfcf}
+.green{color:#35ff7f;text-shadow:0 0 10px #35ff7f}
+.gold{color:#ffb300;text-shadow:0 0 10px #ffb300}
+.enchant-box{
+    margin-top:40px;
+}
+.enchant-line{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+    font-size:20px;
+}
+select,button{
+    border:none;
+    border-radius:10px;
+    padding:12px 16px;
+    font-size:18px;
+    color:white;
+    background:#31344b;
+}
+button{
+    cursor:pointer;
+    transition:.18s;
+}
+button:hover{
+    box-shadow:0 0 12px #35ff7f;
+}
+
+/* RIGHT */
+.portal-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+.portal{
+    background:#262838;
+    border-radius:18px;
+    padding:18px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    cursor:pointer;
+    transition:.18s;
+    font-size:18px;
+    font-weight:bold;
+}
+.portal:hover{
+    transform:translateY(-2px);
+}
+.portal img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+}
+.cyan:hover{box-shadow:0 0 14px #00eaff}
+.greenhover:hover{box-shadow:0 0 14px #35ff7f}
+.purple:hover{box-shadow:0 0 14px #ff00ea}
+.pink:hover{box-shadow:0 0 14px #ff6bd6}
+</style>
+</head>
+<body>
+
+<div class="main">
+
+    <!-- LEFT -->
+    <div class="panel">
+        <h2 class="section-title">Armor Inventory</h2>
+
+        <div class="grid">
+            <div class="item selected" onclick="showArmor('Emerald Armor',350,'Unique',40,'emeraldarmor.png')"><img src="emeraldarmor.png"></div>
+            <div class="item" onclick="showArmor('Wither Armor',500,'Unique',35,'witherarmor.png')"><img src="witherarmor.png"></div>
+            <div class="item" onclick="showArmor('Fox Armor',280,'Rare',20,'foxarmor.png')"><img src="foxarmor.png"></div>
+            <div class="item" onclick="showArmor('Hero Armor',600,'Unique',50,'heroarmor.png')"><img src="heroarmor.png"></div>
+
+            <div class="item" onclick="showArmor('Mystery Armor',420,'Epic',28,'mysteryarmor.png')"><img src="mysteryarmor.png"></div>
+            <div class="item" onclick="showArmor('Spider Armor',300,'Rare',18,'spiderarmor.png')"><img src="spiderarmor.png"></div>
+            <div class="item" onclick="showArmor('Titan Shroud',750,'Void',60,'titanshroud.png')"><img src="titanshroud.png"></div>
+            <div class="item" onclick="showArmor('Stalwart Armor',520,'Unique',42,'stalwartarmor.png')"><img src="stalwartarmor.png"></div>
+        </div>
+    </div>
+
+    <!-- MID -->
+    <div class="panel info">
+        <div class="particles" id="particles"></div>
+        <img id="previewIcon" class="preview-icon" src="emeraldarmor.png">
+
+        <div id="armorTitle" class="title">Emerald Armor</div>
+
+        <div class="stat"><span>❤</span><span class="stat-label">Health:</span> <span id="health" class="gold">350</span></div>
+        <div class="stat"><span>🛡</span><span class="stat-label">Rarity:</span> <span id="rarity" class="green">Unique</span></div>
+        <div class="stat"><span>✦</span><span class="stat-label">Defense:</span> <span id="defense" class="green">40%</span></div>
+
+        <div class="enchant-box">
+            <div class="enchant-line"><span style="color:#35ff7f">✦ +3</span> <span>Protection</span></div>
+            <div class="enchant-line"><span style="color:#35ff7f">✦ +2</span> <span>Potion Barrier</span></div>
+
+            <select>
+                <option>Select Enchant</option>
+                <option>Protection</option>
+                <option>Snowball</option>
+                <option>Chilling</option>
+                <option>Deflect</option>
+            </select>
+
+            <button>Apply</button>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel">
+        <h3 class="section-title">Other Inventory UIs</h3>
+
+        <div class="portal-wrap">
+            <div class="portal cyan" onclick="window.open('weaponmaker.html','_blank')">
+                <img src="wmfavicon.png">
+                <span>Weapon Maker</span>
+            </div>
+
+            <div class="portal purple" onclick="window.open('artifactui.html','_blank')">
+                <span style="font-size:28px">🔮</span>
+                <span>Artifact UI</span>
+            </div>
+
+            <div class="portal purple" onclick="window.open('index.html','_blank')">
+                <img src="panelui.png">
+                <span>Weapons UI</span>
+            </div>
+
+            <div class="portal pink" onclick="window.open('websitehub.html','_blank')">
+                <img src="favicon.png">
+                <span>Amethyst Hub</span>
+            </div>
+
+            <div class="portal greenhover">
+                <span style="font-size:28px">🛡</span>
+                <span>Armor Maker (Soon)</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showArmor(name,health,rarity,defense,img){
+    document.getElementById("armorTitle").textContent = name;
+    document.getElementById("health").textContent = health;
+    document.getElementById("rarity").textContent = rarity;
+    document.getElementById("defense").textContent = defense + "%";
+    document.getElementById("previewIcon").src = img;
+
+    document.querySelectorAll(".item").forEach(x=>x.classList.remove("selected"));
+    event.currentTarget.classList.add("selected");
+}
+
+function makeSpark(){
+    const s=document.createElement("div");
+    s.className="spark";
+    s.style.left=Math.random()*100+"%";
+    s.style.top=(70+Math.random()*30)+"%";
+    s.style.animationDuration=(2+Math.random()*2)+"s";
+    document.getElementById("particles").appendChild(s);
+    setTimeout(()=>s.remove(),3800);
+}
+setInterval(makeSpark,220);
+</script>
+
+</body>
+</html>

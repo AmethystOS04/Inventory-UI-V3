@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PNG Physics Playground</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+#ui {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 100;
+    background: rgba(20,20,20,0.92);
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #333;
+    width: 280px;
+}
+
+#ui h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.row {
+    margin-bottom: 12px;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+button {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    background: #2b2b2b;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #3a3a3a;
+}
+
+.tiny {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+canvas {
+    display: block;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+    <h2>PNG Physics Playground</h2>
+
+    <div class="row">
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="row">
+        <label>Object Size</label>
+        <input type="range" id="sizeSlider" min="30" max="400" value="120">
+    </div>
+
+    <div class="row">
+        <label>Spawn Count</label>
+        <input type="range" id="countSlider" min="1" max="25" value="1">
+    </div>
+
+    <button id="spawnBtn">Spawn Object</button>
+    <button id="rainBtn">RAIN MODE</button>
+    <button id="gravityBtn">Flip Gravity</button>
+    <button id="clearBtn">Clear Objects</button>
+
+    <p class="tiny">
+        Drag objects around<br>
+        Click anywhere to launch objects
+    </p>
+</div>
+
+<script>
+const {
+    Engine,
+    Render,
+    Runner,
+    Bodies,
+    Composite,
+    Mouse,
+    MouseConstraint,
+    Body
+} = Matter;
+
+// ENGINE
+const engine = Engine.create();
+
+engine.positionIterations = 10;
+engine.velocityIterations = 10;
+
+const world = engine.world;
+
+// RENDER
+const render = Render.create({
+    element: document.body,
+    engine: engine,
+    options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: "#111"
+    }
+});
+
+Render.run(render);
+
+const runner = Runner.create();
+Runner.run(runner, engine);
+
+// WALLS
+const walls = [
+    Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 30, window.innerWidth, 60, {
+        isStatic: true
+    }),
+
+    Bodies.rectangle(window.innerWidth / 2, -30, window.innerWidth, 60, {
+        isStatic: true
+    }),
+
+    Bodies.rectangle(-30, window.innerHeight / 2, 60, window.innerHeight, {
+        isStatic: true
+    }),
+
+    Bodies.rectangle(window.innerWidth + 30, window.innerHeight / 2, 60, window.innerHeight, {
+        isStatic: true
+    })
+];
+
+Composite.add(world, walls);
+
+// MOUSE
+const mouse = Mouse.create(render.canvas);
+
+const mouseConstraint = MouseConstraint.create(engine, {
+    mouse: mouse,
+    constraint: {
+        stiffness: 0.2,
+        render: {
+            visible: false
+        }
+    }
+});
+
+Composite.add(world, mouseConstraint);
+render.mouse = mouse;
+
+// IMAGE DATA
+let uploadedTexture = null;
+let uploadedWidth = 256;
+let uploadedHeight = 256;
+
+// UI
+const fileInput = document.getElementById("fileInput");
+const sizeSlider = document.getElementById("sizeSlider");
+const countSlider = document.getElementById("countSlider");
+
+// LOAD IMAGE
+fileInput.addEventListener("change", function(e) {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+
+        uploadedTexture = event.target.result;
+
+        const img = new Image();
+
+        img.onload = function() {
+            uploadedWidth = img.width;
+            uploadedHeight = img.height;
+        };
+
+        img.src = uploadedTexture;
+    };
+
+    reader.readAsDataURL(file);
+});
+
+// CREATE OBJECT
+function createBody(x, y) {
+
+    const size = Number(sizeSlider.value);
+
+    // preserve image aspect ratio
+    const aspect = uploadedWidth / uploadedHeight;
+
+    const renderWidth = size;
+    const renderHeight = size / aspect;
+
+    // slightly smaller hitbox
+    const bodyWidth = renderWidth * 0.82;
+    const bodyHeight = renderHeight * 0.82;
+
+    const body = Bodies.rectangle(
+        x,
+        y,
+        bodyWidth,
+        bodyHeight,
+        {
+            restitution: 0.35,
+            friction: 0.02,
+            frictionAir: 0.02,
+            density: 0.002,
+
+            render: {
+
+                sprite: uploadedTexture ? {
+                    texture: uploadedTexture,
+
+                    xScale: renderWidth / uploadedWidth,
+                    yScale: renderHeight / uploadedHeight
+
+                } : undefined,
+
+                fillStyle: uploadedTexture ? "transparent" : "#7c5cff"
+            }
+        }
+    );
+
+    Composite.add(world, body);
+
+    Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.25);
+
+    Body.setVelocity(body, {
+        x: (Math.random() - 0.5) * 6,
+        y: Math.random() * 3
+    });
+
+    return body;
+}
+// SPAWN BUTTON
+document.getElementById("spawnBtn").addEventListener("click", function() {
+
+    const count = Number(countSlider.value);
+
+    for (let i = 0; i < count; i++) {
+
+        createBody(
+            150 + Math.random() * 200,
+            50 + Math.random() * 100
+        );
+    }
+});
+
+// RAIN MODE
+let rainInterval = null;
+
+function toggleRain() {
+
+    if (rainInterval) {
+
+        clearInterval(rainInterval);
+        rainInterval = null;
+        return;
+    }
+
+    rainInterval = setInterval(function() {
+
+        createBody(
+            Math.random() * window.innerWidth,
+            -50
+        );
+
+    }, 250);
+}
+
+document.getElementById("rainBtn").addEventListener("click", toggleRain);
+
+// FLIP GRAVITY
+document.getElementById("gravityBtn").addEventListener("click", function() {
+
+    engine.world.gravity.y *= -1;
+});
+
+// CLEAR
+document.getElementById("clearBtn").addEventListener("click", function() {
+
+    const bodies = Composite.allBodies(world);
+
+    for (const body of bodies) {
+
+        if (!body.isStatic) {
+            Composite.remove(world, body);
+        }
+    }
+});
+
+// CLICK TO LAUNCH
+window.addEventListener("click", function(e) {
+
+    if (
+        e.target.tagName === "BUTTON" ||
+        e.target.tagName === "INPUT"
+    ) return;
+
+    const body = createBody(
+        e.clientX,
+        e.clientY
+    );
+
+    Body.setVelocity(body, {
+        x: (Math.random() - 0.5) * 18,
+        y: (Math.random() - 0.5) * 18
+    });
+});
+
+// RESIZE
+window.addEventListener("resize", function() {
+
+    render.canvas.width = window.innerWidth;
+    render.canvas.height = window.innerHeight;
+
+    render.options.width = window.innerWidth;
+    render.options.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>

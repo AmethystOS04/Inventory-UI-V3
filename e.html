@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bored</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #111 0%, #1f1f1f 100%);
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        .panel {
+            width: 320px;
+            padding: 24px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h3 {
+            margin: 0 0 12px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .panel input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .panel button {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4f8cff, #2d5fe6);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .panel button:hover {
+            transform: translateY(-1px);
+        }
+
+        .answer {
+            margin-top: 14px;
+            text-align: center;
+            font-weight: bold;
+            color: #8fd6ff;
+        }
+
+        .loader {
+            margin-top: 14px;
+            height: 8px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .loader-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4f8cff, #8fd6ff);
+            transition: width 0.2s ease;
+        }
+
+        .status {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #b8d8ff;
+            min-height: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h3>Are you bored?</h3>
+        <input type="text" id="inputField" placeholder="Type something..." />
+        <button id="submitButton">Submit</button>
+        <div class="loader" id="loader">
+            <div class="loader-bar" id="loaderBar"></div>
+        </div>
+        <div class="status" id="status">Waiting for your answer...</div>
+        <p class="answer" id="answer">Waiting for your answer...</p>
+    </div>
+
+    <script>
+        document.getElementById('submitButton').addEventListener('click', function () {
+            const loader = document.getElementById('loader');
+            const loaderBar = document.getElementById('loaderBar');
+            const answer = document.getElementById('answer');
+            const status = document.getElementById('status');
+            const inputValue = document.getElementById('inputField').value.trim();
+
+            loader.style.display = 'block';
+            answer.textContent = 'Evaluating your input...';
+            status.textContent = 'Analyzing response pattern...';
+            loaderBar.style.width = '0%';
+
+            const steps = [
+                'Parsing your input...',
+                'Checking for intent...',
+                'Comparing signals...',
+                'Finalizing response...'
+            ];
+
+            let progress = 0;
+            let stepIndex = 0;
+            const interval = setInterval(function () {
+                progress += 10;
+                loaderBar.style.width = progress + '%';
+
+                if (progress % 25 === 0 && stepIndex < steps.length) {
+                    status.textContent = steps[stepIndex];
+                    stepIndex++;
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+
+                    const suspiciousInput = 'im literally having the best day ever';
+                    if (inputValue.toLowerCase() === suspiciousInput) {
+                        answer.innerHTML = "That's suspicious.<br><br>Re-running analysis...<br><br>Yes.";
+                    } else {
+                        answer.textContent = 'Yes';
+                    }
+
+                    status.textContent = 'Evaluation complete.';
+                    loader.style.display = 'none';
+                }
+            }, 140);
+        });
+    </script>
+</body>
+</html>

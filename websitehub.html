@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="favicon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amethyst Hub</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 40px;
+
+    background: radial-gradient(circle at top, #2a003f, #0a0014);
+    color: white;
+}
+
+.hub-panel {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 24px;
+
+    background:  conic-gradient(#441d32, #0f114d, #441d32);
+    backdrop-filter: blur(12px);
+
+    box-shadow:
+        0 0 30px rgba(0,0,0,.4),
+        inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.title {
+    font-size: 42px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    text-shadow: 0 0 18px rgb(255, 4, 255);
+}
+
+.hub-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.hub-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    background:  conic-gradient(
+    from 120deg,
+    #2b0a48,
+    #4b0d68,
+    #5e1248,
+    #351056,
+    #2b0a48
+);
+    border: 2px solid #3a3a55;
+    border-radius: 18px;
+    padding: 18px;
+
+    text-decoration: none;
+    color: white;
+    transition: .2s ease;
+}
+
+.hub-card:hover {
+    transform: translateY(-3px);
+}
+
+.hub-card img {
+    width: 72px;
+    height: 72px;
+
+    object-fit: cover;
+    object-position: center;
+
+    border-radius: 12px;
+    flex-shrink: 0;
+
+    display: block;
+}
+
+.card-info {
+    flex: 1;
+}
+
+.card-info h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.card-info p {
+    margin: 0;
+    opacity: .85;
+    line-height: 1.5;
+    font-size: 16px;
+    color:rgb(255, 255, 255);
+    
+}
+
+/* glow colors */
+.inv:hover {
+    border-color: conic-gradient(#dd2c8a, #9b5050, #362169);;
+    box-shadow: 0 0 18px conic-gradient(#dd2c8a, #9b5050, #362169);;
+}
+
+.weapon:hover {
+    border-color: conic-gradient(#ff00e2, #ff00e2, #ff00e2);;
+    box-shadow: 0 0 18px conic-gradient(#ff00e2, #ff00e2, #ff00e2);;
+}
+
+.bg:hover {
+    border-color: conic-gradient(#9832be, #72f1df, #9832be);;
+    box-shadow: 0 0 18px conic-gradient(#9832be, #72f1df, #9832be);;
+}
+
+.more:hover {
+    border-color: conic-gradient(#3c0e62, #4a082a, #3c0e62);;
+    box-shadow: 0 0 18px conic-gradient(#3c0e62, #4a082a, #3c0e62);;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    opacity: .45;
+    font-size: 14px;
+}
+
+.hub-card{
+    display:flex;
+    align-items:center;
+    gap:18px;
+
+    width:100%;
+    padding:18px;
+    margin-bottom:16px;
+
+    text-decoration:none;
+    color:white;
+
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+}
+
+.site-thumb{
+    width:72px;
+    height:72px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+
+.site-info{
+    flex:1;
+}
+
+.site-info h2{
+    margin:0 0 6px;
+}
+
+.site-info p{
+    margin:0;
+    opacity:.75;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="hub-panel">
+    <div class="title">⚒ Amethyst Hub</div>
+
+    <div class="hub-grid">
+
+    <a href="index.html" target="_blank" rel="noopener" class="hub-card">
+        <img src="v1arc.png" class="site-thumb">
+        <div class="site-info">
+            <h2>Inventory</h2>
+            <p>Weapon viewer, enchants, rarity system, and inventory testing</p>
+        </div>
+    
+        <a href="Inventory UI V2.html" target="_blank" rel="noopener" class="hub-card">
+        <img src="v2arc.png" class="site-thumb">
+        <div class="site-info">
+            <h2>Inventory V2</h2>
+            <p>A updated version of the inventory UI made in the V2 Conical Arc</p>
+        </div>
+    
+</a>
+       <a href="weaponmaker.html" target="_blank" rel="noopener" class="hub-card">
+    <img src="weaponmaker.png" class="site-thumb">
+    <div class="site-info">
+        <h2>Weapon Maker</h2>
+        <p>Create custom weapons, preview stats, generate code, and copy instantly</p>
+    </div>
+</a>
+
+        <a href="bggen.html" target="_blank" rel="noopener" class="hub-card bg">
+            <img src="bggen.png" alt="">
+            <div class="card-info">
+                <h2>Background Generator</h2>
+                <p>Create custom gradients, glow effects, and copy CSS for your sites</p>
+            </div>
+        </a>
+
+        <a href=""
+         target="_blank" rel="noopener" class="hub-card more">
+            <img src="soon.png" alt="">
+            <div class="card-info">
+                <h2>More Soon</h2>
+                <p>Future tools, experiments, and cursed inventions 😈</p>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        your little dev studio hub 😭
+    </div>
+</div>
+
+</body>
+</html>

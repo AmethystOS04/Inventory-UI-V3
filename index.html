@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inventory UI</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+background:  conic-gradient(#3c0e62, #4a082a, #3c0e62);
+    color: white;
+    font-family: Arial;
+}
+
+/* panel */
+.panel {
+   
+    width: 1352px;
+    height: 640px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+/* items */
+.items {
+  display: grid !important;
+  grid-template-columns: repeat(4, 70px) !important;
+  gap: 12px;
+
+  align-content: start !important; /* 🔥 KEY FIX */
+}
+
+.item {
+  width: 70px;
+  height: 70px;
+
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+    
+
+
+.item img {
+    width: 80%;
+    height: 80%;
+}
+
+/* info panel */
+.info-panel {
+    flex: 1;
+    background: #14141c;
+    border-radius: 15px;
+    border-color:#aca9bd;
+    padding: 15px;
+    height: 620px;
+    width: 100px;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.info-panel p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#itemIcon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 60px;
+  
+}
+
+
+#particleContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: floatUp 1.2s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-80px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.item.selected {
+    border: 2px solid;
+}
+
+/* icons */
+.stat-icon {
+    width: 50px;
+    height: 50px;
+}
+
+/* labels */
+.label {
+    color: #aaa;
+}
+
+/* name */
+#name {
+    font-size: 22px;
+    font-weight: bold;
+    padding-right: 90px !important;
+}
+
+/* enchant box */
+.enchant-box {
+    
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.enchant-box select {
+    background: #2b071f;
+    color: rgb(255, 0, 93);
+    text-shadow: #a3148d 0 0 10px;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.enchant-box button {
+   background: linear-gradient(135deg, #190a11, #29001e);
+    color: rgb(166, 0, 255);
+    text-shadow: #4d0e48 0 0 10px;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+/* enchant display */
+#enchantDisplay {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#enchantIcon {
+    width: 50px;
+    height: 50px;
+}
+#enchantDescBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#enchantDesc {
+    opacity: 0.8;
+    text-align: center;
+}
+
+#enchantTitle {
+    font-weight: bold;
+
+}
+.enchant-box {
+   
+    margin-top: 15px;
+    display: flex;
+    justify-content: center; /* 👈 centers it */
+    gap: 10px;
+}
+.weaponmaker-slot{
+    cursor:pointer;
+    transition:.2s;
+}
+
+.weaponmaker-slot:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 15px #00d9ff;
+}
+
+.weaponmaker-slot{
+    position:relative;
+}
+
+.corner-badge{
+    position:absolute;
+    top:6px;
+    right:6px;
+
+    width:18px;
+    height:18px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:11px;
+    border-radius:50%;
+
+    background:#111;
+    color:#00eaff;
+
+    box-shadow:
+        0 0 6px #00eaff,
+        0 0 12px #00eaff;
+
+    opacity:1;          /* always visible */
+    visibility:visible; /* always visible */
+    z-index:5;
+}
+
+.portal-panel{
+    margin-top:24px;
+    padding:18px;
+    border-radius:18px;
+    background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.portal-panel h3{
+    margin:0 0 14px;
+    color:#fff;
+    text-shadow:0 0 10px #ff00ea;
+}
+
+.portal-grid{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.portal-card{
+    min-width:97px;
+    padding:14px;
+    border-radius:14px;
+    background:#252536;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.portal-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 14px #00eaff;
+}
+
+.portal-card img{
+    width:34px;
+    height:34px;
+    object-fit:contain;
+}
+
+.portal-icon{
+    font-size:28px;
+}
+
+.portal-card span:last-child{
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+
+    <!-- ITEMS -->
+    <div class="items">
+        <div class="item" onclick="showItem('Flame Sword', 60, 'Magma', 150, 'HOT HOT HOT AHHHH')">
+            <img src="flame.png">
+        </div>
+
+        <div class="item" onclick="showItem('Bow', 25, 'Common', 90, 'pew HEADSHOT')">
+            <img src="bow.png">
+        </div>
+
+        <div class="item" onclick="showItem('Axe', 40, 'Rare', 120, 'CHOP CHOP')">
+            <img src="axe.png">
+        </div>
+
+        <div class="item" onclick="showItem('Fangs of Frost', 10, 'Epic', 50, 'FREEZE FREEZE')">
+            <img src="fof.png">
+        </div>
+
+        <div class="item" onclick="showItem('Daggers', 30, 'Rare', 90, 'STAB STAB')">
+            <img src="dagger.png">
+        </div>
+
+         <div class="item" onclick="showItem('Staff', 100, 'Terror', 200, 'STAFF STAFF')">
+            <img src="staff.png">
+        </div>
+
+         <div class="item" onclick="showItem('Obsidian Claymore', 100, 'Void', 200, 'OBSIDIAN OBSIDIAN')">
+            <img src="obsitian claymore.png">
+        </div>
+
+        <div class="item" onclick="showItem('Cursed Axe', 59, 'Unique', 200, 'CURSED CURSED')">
+            <img src="cursedaxe.png">
+        </div>
+     <div class="item" onclick="showItem('Electric Hammer', 300, 'Electric', 344, 'ELECTRIC ELECTRIC')">
+    <img src="electrichammer.png">
+</div>
+     <div class="item" onclick="showItem('Dark Katana', 100, 'Dark', 200, 0, 0, 'shadowed and made in the dark for some reason')">
+            <img src="dark-katana.png">
+        </div>
+     <div class="item" onclick="showItem('Electric Hammer V2', 300, 'Electric', 344, 0, 0, 'bzzzzzzz')">
+    <img src="elechammerv2.png">
+    </div>
+    <div class="item" onclick="showItem('Great Hammer', 50, 'Rare', 120, 0, 0, '*CLANG* bro what the hell was that sound')">
+    <img src="great-hammer.png">
+    </div>
+     <div class="item" onclick="showItem('Hammer of Gravity', 150, 'Gravity', 800, 0, 0, 'uhhhhh where tf did gravity go- AHHHHHHHHHHH')">
+    <img src="hammer-of-gravity.png">
+     </div>
+  <div class="item" onclick="showItem('Stormlander', 299, 'Electric', 800, 0, 0, '*electric crackle* uhh idk if i wanna use th- *BZZZZZZZZ* OWWWWWWWWWWWWW')">
+    <img src="stormlander.png">
+     </div>
+
+    
+
+<div class="item" onclick="showItem('Void Stabilizer', 0, 'Void+', '∞', 0, 0, 'stabilizes the void')">
+    <img src="void-stabilizer-v2.png">
+</div>
+<div class="item" onclick="showItem('Pixel Diamond Pickaxe', 40, 'Pixel', '50', 0, 0, 'bro why is this pixelated')">
+    <img src="diamond-pick.png">
+</div>
+<div class="item" onclick="showItem('Forgotten Beacon', 0, 'Forgotten', '0', 0, 0, 'uhh what is this')">
+    <img src="forgotten-beacon.gif">
+</div>
+
+          <div class="item" onclick="showItem('Orb of Dominance', '∞', 'Dominance', '∞', 0, 0, 'used by the arch illiager')">
+            <img src="orb-of-dominance.gif">
+        </div>
+
+            <div class="item" onclick="showItem('Gold Crown', 56, 'Unique', 53, 40, 0, 'worn by the arch illiager')">
+                <img src="crown.png">
+
+        </div>
+<div class="item"
+     onclick="showItem('Flaming Quiver', 0, 'Flamed', 888, 0, 22, 'makes your arrows catch aflame')">
+    <img src="flaming-quiver.png">
+</div>
+<div class="item"
+     onclick="showItem('Ghost Cloak', 0, 'Shadow', 653, 0, 43, 'I AM SPEED ITSELF')">
+    <img src="ghost-cloak.png">
+</div>
+<div class="item"
+     onclick="showItem('Thundering Quiver', 0, 'Electric', 600, 0, 60, 'arrows are now electric i... BZZZZZZZZZZZZZZZZ AHH SHI-')">
+    <img src="thundering-quiver.png">
+</div>
+<div class="item"
+     onclick="showItem('Updraft Tome', 0, 'Rare', 600, 0, 353, 'r/whoosh')">
+    <img src="updraft-tome.png">
+</div>
+
+<div class="item"
+     onclick="showItem('Vine Whip', 44, 'Unique', 777, 0, 0, 'NATURE WHIP ATTACKKKKKKKKK')">
+    <img src="vine-whip.png">
+</div>
+
+
+
+<div class="item" onclick="showItem('Weapon Maker Hammer', 50, 'Electric', 70, 'WEAPON MAKER WEAPON MAKER')">
+    <img src="wmhammercut.png">
+</div>
+
+<div class="item" onclick="showItem('Void Shuriken', 150, 'Void', 300, 'VOID SHURIKEN')">
+    <img src="vsurican.png">
+</div>
+
+<div class="item"
+     onclick="showItem('Winter\'s Touch', 300, 'Unique', 600, 'WINTER\'S TOUCH')">
+    <img src="winterstouch.png">
+</div>
+
+<div class="item"
+     onclick="showItem('Sponge Striker', 31, 'Unique', 46, 0, 0, 'somewhat better than the Coral Blade')">
+    <img src="sponge-striker.png">
+</div>
+
+</div>
+       
+    
+    <!-- INFO -->
+    <div class="info-panel">
+        <h2 id="name">Select Item</h2>
+<img id="itemIcon">
+<div id="particleContainer"></div>
+ <span id="itemQuote">
+        select an item to view its story
+    </span>
+        <p>
+            <img class="stat-icon" src="damage.png">
+            <span class="label">Damage:</span>
+            <span id="damage"></span>
+        </p>
+
+        <p>
+            <img class="stat-icon" src="rarity.png">
+            <span class="label">Rarity:</span>
+            <span id="rarity"></span>
+        </p>
+
+        <p>
+            <img class="stat-icon" src="poweer.png">
+            <span class="label">Max LVL:</span>
+            <span id="max power lvl"></span>
+        </p>
+  <p>
+            <img class="stat-icon" src="protection.png">
+            <span class="label">Protection:</span>
+            <span id="prot"></span>
+        </p>
+
+         <p>
+            <img class="stat-icon" src="artifact-effect-power.png">
+            <span class="label">A-Effect Power:</span>
+            <span id="artifactEffectPower"></span>
+        </p>
+<!-- archive soon-->
+        <!-- ENCHANT DISPLAY -->
+        <div id="enchantDisplay">
+            <img id="enchantIcon" src="enchant.png">
+            <span id="enchantName"></span>
+        </div>
+        <p id="enchantDescBox">
+    <span id="enchantTitle"></span>
+    <span id="enchantDesc"></span>
+</p>
+
+
+
+        <!-- ENCHANT SELECT -->
+        <div class="enchant-box">
+            <select id="enchantSelect">
+                <option value="na">Select Enchant</option>
+                <option value="5">Frost (+5)</option>
+                <option value="1">+1</option>
+                <option value="10">Fire (+10)</option>
+                <option value="15">Shock (+15)</option>
+                <option value="loot">Loot+</option>
+                <option value="4">Exploding (+4)</option>
+            </select>
+
+            <button onclick="applyEnchant()">Apply</button>
+        </div>
+
+    </div>
+<div class="portal-panel">
+    <h3>Other Inventory UIs</h3>
+
+    <div class="portal-grid">
+        <div class="portal-card"
+             onclick="window.open('weaponmaker.html','_blank')">
+            <img src="wmfavicon.png">
+            <span>Weapon Maker</span>
+        </div>
+ <div class="portal-card"
+             onclick="window.open('Inventory UI V2.html','_blank')">
+            <img src="v2arc.png">
+            <span>V2</span>
+        </div>
+<div class="portal-grid">
+        <div class="portal-card"
+             onclick="window.open('inv v3.html','_blank')">
+            <img src="v3seasonal.png">
+            <span>V3</span>
+        </div>
+        <div class="portal-card"
+             onclick="window.open('bggen.html','_blank')">
+            <img src="bggen.png">
+            <span>CSS BG Gen</span>
+        </div>
+
+    </div>
+</div>
+</div>
+<script src="script.js"></script>
+
+
+</div>
+
+</body>
+</html>

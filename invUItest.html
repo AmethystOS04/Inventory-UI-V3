@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory UI - UI test</title>
+    <style>
+        body {
+    margin: 0;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #000;
+    font-family: Arial, sans-serif;
+    color: #fff;
+}
+
+/* panel */
+.panel {
+   
+    width: 1352px;
+    height: 640px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    border: 1px solid #00f7ff;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(1, 247, 255, 0.5);
+}
+.bg{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-1;
+
+    background:
+        url("waves_stroke.svg") top center / 100% auto no-repeat,
+        url("DLCMap/DLC_End_Stars.png") center / 100% auto no-repeat,
+        url("DLCMap/End_Whisp_All.png") center / 100% auto no-repeat,
+        url("waves_stroke.svg") bottom center / 100% auto no-repeat;
+}
+.ui-icon{
+    width: 64px;
+    height: 64px;
+}
+.h3{
+    font-size: 15px;
+    font-weight: bold;
+    color: #f700ff;
+    text-shadow: 0 0 5px #f700ff;
+}
+.login{
+    width: 50px;
+    height: 14px;
+    padding: 10px 20px;
+    background: #063d3f;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 1px solid #00f7ff;
+}
+.pfp{
+    width: 64px;
+    height: 64px;
+}
+.pfp-holder{
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid #00f7ff;
+    background: #000;
+}
+.login img{
+    width:28px;
+    height:28px;
+}
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+<div class="panel">
+   <a href="https://discord.com/oauth2/authorize?client_id=1503119981997592798&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2FinvUItest.html&scope=identify"
+   class="login">
+
+    <img src="icons-ui/discord.svg" alt="Discord">
+
+</a>
+
+</div>
+    <script>
+    </script>
+</body>
+</html>

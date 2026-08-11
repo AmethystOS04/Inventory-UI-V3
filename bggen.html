@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Universal Gradient Tool</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at center, #0b081a 0%, #020207 90%);
+  color: #e6e6ff;
+}
+
+.topbar {
+  padding: 12px;
+  background: #0e0d19;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.workspace {
+  display: flex;
+  height: calc(100vh - 54px);
+}
+
+.sidebar {
+  width: 280px;
+  background: #141523;
+  padding: 18px;
+  overflow-y: auto;
+  border-radius: 18px;
+  margin: 10px;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.25);
+}
+
+.preview {
+  flex: 1;
+  position: relative;
+  cursor: crosshair;
+  border-radius: 18px;
+  margin: 10px;
+  overflow: hidden;
+  background: #090a12;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.45);
+}
+
+.point {
+  width: 14px;
+  height: 14px;
+  background: white;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+}
+
+.point.selected {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.9);
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  background: #0f111d;
+  color: #c9d3ff;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  font-family: monospace;
+}
+
+.point-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.point-control label {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.point-control input {
+  width: 42px;
+  padding: 0;
+}
+
+.topbar button {
+  padding: 10px 18px;
+  border-radius: 16px;
+  background: #1f2130;
+  color: #e6e6ff;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(159, 133, 255, 0.15);
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.3s ease, transform 0.1s ease;
+}
+
+.topbar button:hover {
+  background: #2f3150;
+  box-shadow: 0 0 14px rgba(159, 133, 255, 0.25);
+}
+
+.topbar button:active {
+  transform: translateY(1px);
+}
+
+label {
+  display: block;
+  margin: 10px 0 5px 0;
+  font-weight: bold;
+  color: #c77dff;
+}
+
+input, select {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #2a2a3a;
+  color: white;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+input:hover, select:hover {
+  box-shadow: 0 0 8px rgba(155,151,192,0.2);
+}
+
+input[type="color"] {
+  width: 50px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+select {
+  width: 100%;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button type="button" onclick="addPoint()">+ Add Glow</button>
+  <button type="button" onclick="removePoint()">- Remove Glow</button>
+  <button type="button" onclick="resetPoints()">Reset</button>
+  <button type="button" onclick="generate()">Generate</button>
+  <button type="button" onclick="copyCSS()">Copy CSS</button>
+  <button type="button" onclick="randomize()">🎲 Randomize</button>
+</div>
+
+<div class="workspace">
+  <div class="sidebar">
+    <label for="type">Gradient Type</label>
+    <select id="type">
+      <option value="radial">Radial</option>
+      <option value="linear">Linear</option>
+      <option value="conic">Conic</option>
+    </select>
+
+    <label for="c1">Primary Color</label>
+    <input type="color" id="c1" value="#6d28d9">
+
+    <label for="c2">Secondary Color</label>
+    <input type="color" id="c2" value="#3b0764">
+
+    <label for="base">Base Color</label>
+    <input type="color" id="base" value="#000000">
+
+    <label>Glow Point Colors</label>
+    <div id="pointControls"></div>
+
+    <label for="spread">Spread</label>
+    <input type="range" id="spread" min="30" max="80" value="60">
+
+    <label><input type="checkbox" id="fixConic" checked> Fix conic center</label>
+
+    <textarea id="output"></textarea>
+  </div>
+
+  <div class="preview" id="preview"></div>
+</div>
+
+<script>
+'use strict';
+const preview = document.getElementById('preview');
+const pointControls = document.getElementById('pointControls');
+let points = [];
+let selectedPoint = null;
+
+function selectPoint(pointObj) {
+  if (selectedPoint) {
+    selectedPoint.el.classList.remove('selected');
+  }
+  selectedPoint = pointObj;
+  if (selectedPoint) {
+    selectedPoint.el.classList.add('selected');
+  }
+}
+
+function createPoint(x = 50, y = 50, color = '#ffffff') {
+  const p = document.createElement('div');
+  p.className = 'point';
+  p.style.left = x + '%';
+  p.style.top = y + '%';
+  p.style.background = color;
+
+  p.onmousedown = function() {
+    document.onmousemove = function(e) {
+      const rect = preview.getBoundingClientRect();
+      let nx = ((e.clientX - rect.left) / rect.width) * 100;
+      let ny = ((e.clientY - rect.top) / rect.height) * 100;
+      p.style.left = nx + '%';
+      p.style.top = ny + '%';
+    };
+    document.onmouseup = () => { document.onmousemove = null; generate(); };
+  };
+
+  p.onclick = () => {
+    const pointObj = points.find(point => point.el === p);
+    if (pointObj) {
+      selectPoint(pointObj);
+    }
+  };
+
+  const controlRow = document.createElement('div');
+  controlRow.className = 'point-control';
+  const label = document.createElement('label');
+  label.textContent = `Point ${points.length + 1}`;
+  const input = document.createElement('input');
+  input.type = 'color';
+  input.value = color;
+  input.addEventListener('input', () => {
+    p.style.background = input.value;
+    generate();
+  });
+
+  controlRow.appendChild(label);
+  controlRow.appendChild(input);
+  pointControls.appendChild(controlRow);
+
+  preview.appendChild(p);
+  const pointObj = { el: p, colorInput: input, controlRow };
+  points.push(pointObj);
+  selectPoint(pointObj);
+}
+
+function addPoint() {
+  createPoint(Math.random() * 100, Math.random() * 100, randColor());
+}
+
+function removePoint() {
+  if (!selectedPoint) {
+    return;
+  }
+  const index = points.indexOf(selectedPoint);
+  if (index === -1) {
+    return;
+  }
+
+  selectedPoint.el.remove();
+  selectedPoint.controlRow.remove();
+  points.splice(index, 1);
+  selectedPoint = null;
+
+  points.forEach((point, idx) => {
+    point.controlRow.querySelector('label').textContent = `Point ${idx + 1}`;
+  });
+
+  if (points.length > 0) {
+    selectPoint(points[points.length - 1]);
+  }
+  generate();
+}
+
+function getPos(point) {
+  return {
+    x: parseFloat(point.el.style.left),
+    y: parseFloat(point.el.style.top)
+  };
+}
+
+function resetPoints() {
+  pointControls.innerHTML = '';
+  preview.innerHTML = '';
+  points = [];
+  selectedPoint = null;
+
+  document.getElementById('type').value = 'radial';
+  document.getElementById('c1').value = '#6d28d9';
+  document.getElementById('c2').value = '#3b0764';
+  document.getElementById('base').value = '#000000';
+  document.getElementById('spread').value = '60';
+  document.getElementById('fixConic').checked = true;
+
+  createPoint(20, 30, document.getElementById('c1').value);
+  createPoint(80, 70, document.getElementById('c2').value);
+  generate();
+}
+
+function generate() {
+  const type = document.getElementById('type').value;
+  const c1 = document.getElementById('c1').value;
+  const c2 = document.getElementById('c2').value;
+  const base = document.getElementById('base').value;
+  const spread = document.getElementById('spread').value;
+  const fixConic = document.getElementById('fixConic').checked;
+
+  let gradients = [];
+  const pointColors = points.map(point => point.colorInput.value);
+  const colorStops = pointColors.length > 0 ? pointColors : [c1, c2];
+
+  points.forEach(point => {
+    const pos = getPos(point);
+    const color = point.colorInput.value;
+    gradients.push(`radial-gradient(circle at ${pos.x}% ${pos.y}%, ${color}, transparent ${spread}%)`);
+  });
+
+  let cssValue = '';
+  let css = '';
+
+  if (type === 'radial') {
+    cssValue = `${gradients.join(', ')}, radial-gradient(circle at center, ${base} 0%, ${base} 100%)`;
+  }
+
+  if (type === 'linear') {
+    const linearStops = colorStops.length > 1 ? colorStops.join(', ') : `${colorStops[0]}, ${colorStops[0]}`;
+    cssValue = `linear-gradient(135deg, ${linearStops})`;
+  }
+
+  if (type === 'conic') {
+    const conicStops = colorStops.length > 1 ? colorStops.join(', ') : `${colorStops[0]}, ${colorStops[0]}`;
+    if (fixConic) {
+      cssValue = `conic-gradient(from 180deg at 50% 60%, ${conicStops})`;
+    } else {
+      cssValue = `conic-gradient(${conicStops})`;
+    }
+  }
+
+  css = `background: ${cssValue};`;
+  preview.style.background = cssValue;
+  document.body.style.background = cssValue;
+  document.getElementById('output').value = css;
+}
+
+function randColor() {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+}
+
+async function copyCSS() {
+  const output = document.getElementById('output');
+  try {
+    await navigator.clipboard.writeText(output.value);
+    const original = output.value;
+    output.value = 'Copied to clipboard!';
+    setTimeout(() => output.value = original, 1000);
+  } catch (err) {
+    // Fallback to old method
+    output.select();
+    document.execCommand('copy');
+    const original = output.value;
+    output.value = 'Copied to clipboard!';
+    setTimeout(() => output.value = original, 1000);
+  }
+}
+
+function randomize() {
+  const types = ['radial','linear','conic'];
+  const randomType = types[Math.floor(Math.random()*types.length)];
+  document.getElementById('type').value = randomType;
+
+  document.getElementById('c1').value = randColor();
+  document.getElementById('c2').value = randColor();
+  document.getElementById('base').value = randColor();
+
+  // randomize points too
+  points.forEach(point => {
+    point.el.style.left = Math.random() * 100 + '%';
+    point.el.style.top = Math.random() * 100 + '%';
+    point.colorInput.value = randColor();
+    point.el.style.background = point.colorInput.value;
+  });
+
+  generate();
+}
+
+// init
+createPoint(20, 30, document.getElementById('c1').value);
+createPoint(80, 70, document.getElementById('c2').value);
+generate();
+
+// Add event listeners for live updates
+document.getElementById('type').addEventListener('change', generate);
+document.getElementById('c1').addEventListener('input', generate);
+document.getElementById('c1').addEventListener('change', generate);
+document.getElementById('c2').addEventListener('input', generate);
+document.getElementById('c2').addEventListener('change', generate);
+document.getElementById('base').addEventListener('input', generate);
+document.getElementById('base').addEventListener('change', generate);
+document.getElementById('spread').addEventListener('input', generate);
+document.getElementById('fixConic').addEventListener('change', generate);
+
+window.addPoint = addPoint;
+window.removePoint = removePoint;
+window.resetPoints = resetPoints;
+window.generate = generate;
+window.copyCSS = copyCSS;
+window.randomize = randomize;
+</script>
+
+</body>
+</html>

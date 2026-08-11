@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inventory UI V3</title>
+
+<style>
+
+
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #000;
+    font-family: Arial, sans-serif;
+    color: #fff;
+}
+
+/* panel */
+.panel {
+   
+    width: 1352px;
+    height: 640px;
+    background: #1a1a24;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    border: 1px solid #00f7ff;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(1, 247, 255, 0.5);
+}
+
+/* items */
+.items {
+  display: grid !important;
+  grid-template-columns: repeat(4, 70px) !important;
+  gap: 12px;
+
+  align-content: start !important; /* 🔥 KEY FIX */
+}
+
+.item {
+  width: 70px;
+  height: 70px;
+
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+    
+#particleContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: floatUp 1.2s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-80px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.item.selected {
+    border: 2px solid;
+}
+
+.item img {
+    width: 80%;
+    height: 80%;
+}
+
+/* info panel */
+.info-panel {
+    flex: 1;
+    background: #14141c;
+    border-radius: 15px;
+    border-color:#aca9bd;
+    padding: 15px;
+    height: 620px;
+    width: 100px;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.info-panel p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.info-panel::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:var(--flash-color);
+
+    opacity:0;
+
+    pointer-events:none;
+
+    z-index:999;
+}
+
+.info-panel.flash-active::before{
+
+    animation:fullPanelFlash 1.2s ease-out;
+}
+
+@keyframes fullPanelFlash{
+
+    0%{
+        opacity:.85;
+    }
+
+    100%{
+        opacity:0;
+    }
+}
+
+#itemIcon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 60px;
+  
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+}
+
+/* labels */
+.label {
+    color: #aaa;
+}
+
+/* name */
+#name {
+    font-size: 22px;
+    font-weight: bold;
+    padding-right: 90px !important;
+}
+
+/* enchant box */
+.enchant-box {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.enchant-box select {
+    background: #2b071f;
+    color: rgb(255, 0, 93);
+    text-shadow: #a3148d 0 0 10px;
+    border: none;
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.enchant-box button {
+   background: linear-gradient(135deg, #190a11, #29001e);
+    color: rgb(166, 0, 255);
+    text-shadow: #4d0e48 0 0 10px;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* enchant display */
+#enchantDisplay {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#enchantIcon {
+    width: 60px;
+    height: 60px;
+}
+#enchantDescBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#enchantDesc {
+    opacity: 0.8;
+    text-align: center;
+}
+
+#enchantTitle {
+    font-weight: bold;
+
+}
+
+#enchantdescbox-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    z-index: -1;
+}
+.enchant-box {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center; /* 👈 centers it */
+    gap: 10px;
+}
+
+.portal-panel{
+    margin-top:24px;
+    padding:18px;
+    border-radius:18px;
+    background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.portal-panel h3{
+    margin:0 0 14px;
+    color:#fff;
+    text-shadow:0 0 10px #ff00ea;
+}
+
+.portal-grid{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.portal-card{
+    min-width:97px;
+    padding:14px;
+    border-radius:14px;
+    background:#252536;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.h3{
+    margin:0 0 14px;
+    color:#fff;
+    text-shadow:0 0 10px #ff00ea;
+    font-size:20px;
+    position: relative;
+}
+
+.portal-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 14px #00eaff;
+}
+
+.portal-card img{
+    width:34px;
+    height:34px;
+    object-fit:contain;
+}
+
+.portal-icon{
+    font-size:28px;
+}
+
+.portal-card span:last-child{
+    font-weight:bold;
+}
+
+.enchant-flash{
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    opacity:0;
+
+    z-index:100;
+
+    background:none;
+}
+
+.enchant-flash.active{
+    animation:mcdFlash .45s ease-out;
+}
+
+@keyframes mcdFlash{
+    0%{
+        left:-120%;
+        opacity:0;
+    }
+
+    20%{
+        opacity:1;
+    }
+
+    100%{
+        left:120%;
+        opacity:0;
+    }
+}
+.ap-panel,
+.mp-panel{
+
+    position:relative;
+
+    width:185px;
+    height:38px;
+
+    padding:8px 10px;
+
+    border-radius:12px;
+
+    z-index:30;
+
+    display:flex;
+    align-items:center;
+
+    background:rgba(43,23,56,.92);
+
+    overflow:hidden;
+    box-sizing:border-box;
+}
+
+/* AP */
+.ap-panel{
+
+   position:relative;
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 18px #8400ff;
+}
+
+/* MP */
+.mp-panel{
+
+    position:relative;
+
+    box-shadow:
+        0 0 10px #00bbff,
+        0 0 18px #0066ff;
+}
+
+/* ICONS */
+.ap-icon,
+.mp-icon{
+
+    width:18px;
+    height:18px;
+
+    margin-right:8px;
+
+    flex-shrink:0;
+}
+
+/* LABELS */
+.amethyst-points-h3{
+
+    font-size:13px;
+    font-weight:bold;
+
+    margin:0;
+
+    white-space:nowrap;
+
+    color:#ff5cf8;
+
+    text-shadow:0 0 6px currentColor;
+}
+#apBalance,
+#mpBalance{
+
+    font-size:13px;
+    font-weight:bold;
+
+    margin-left:6px;
+}
+/* AP BALANCE */
+#apBalance{
+
+    font-size:16px;
+    font-weight:bold;
+
+    background:linear-gradient(
+        45deg,
+        #ff00ff,
+        #7a00ff
+    );
+
+    background-clip:text;
+    -webkit-background-clip:text;
+
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+}
+
+/* MP BALANCE */
+#mpBalance{
+
+    font-size:16px;
+    font-weight:bold;
+
+    background:linear-gradient(
+        45deg,
+        #00b7ff,
+        #004cff
+    );
+
+    background-clip:text;
+    -webkit-background-clip:text;
+
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+}
+
+.ap-popup{
+    position:absolute;
+
+    right:-10px;
+    top:50%;
+
+    transform:translateY(-50%);
+
+    color:#ff00ff;
+
+    font-weight:bold;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    text-shadow:
+        0 0 10px #ff00ff;
+
+    transition:
+        opacity .25s,
+        transform .4s;
+}
+
+.ap-popup.show{
+    opacity:1;
+
+    transform:
+        translateY(-50%)
+        translateX(20px);
+}
+
+.gain-ap-btn{
+    position: relative;
+    background: linear-gradient(135deg, #190a11, #29001e);
+    color: rgb(166, 0, 255);
+    text-shadow: #4d0e48 0 0 10px;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.gain-ap-panel{
+    position:relative;
+    background:linear-gradient(135deg, #000000, #680266); 
+    top:20px;
+    left:10px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    box-shadow:0 0 20px #ff00ff;
+    height: 200px;
+}
+
+.mp-popup{
+    position:absolute;
+
+    right:-10px;
+    top:84%;
+
+    transform:translateY(-50%);
+
+    color:#1900ff;
+
+    font-weight:bold;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    text-shadow:
+        0 0 10px #00fffb;
+
+    transition:
+        opacity .25s,
+        transform .4s;
+}
+
+.mp-popup.show{
+    opacity:1;
+
+    transform:
+        translateY(-50%)
+        translateX(20px);
+}
+
+.minigames-btn{
+    position: relative;
+    background: linear-gradient(135deg, #000000, #004cff);
+    color: rgb(255, 0, 255);
+    text-shadow: #ff00ff 0 0 10px;
+    text-align: center;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    }
+
+    #starterOverlay{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.65);
+
+    backdrop-filter:blur(6px);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:9999;
+}
+
+.starter-popup{
+
+    width:600px;
+
+    padding:40px;
+
+    border-radius:24px;
+
+    background:#0a0816;
+
+    border:2px solid #ff00ff;
+
+    box-shadow:
+        0 0 20px #ff00ff,
+        0 0 60px #8400ff;
+
+    text-align:center;
+}
+
+.starter-popup h1{
+
+    color:#ff4df8;
+
+    text-shadow:0 0 12px #ff00ff;
+}
+
+.starter-reward{
+
+    font-size:32px;
+
+    color:#ff008c;
+
+    text-shadow:0 0 12px #ff008c;
+}
+
+.starter-reward.mp{
+
+    color:#00bbff;
+
+    text-shadow:0 0 12px #0099ff;
+}
+
+.starter-weapons{
+
+    margin-top:30px;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:14px;
+
+    flex-wrap:wrap;
+}
+
+.starter-weapons button{
+
+    padding:14px 20px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:#1c1733;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    transition:.2s;
+
+    box-shadow:0 0 12px #ff00ff55;
+}
+
+.starter-weapons button:hover{
+
+    transform:scale(1.05);
+
+    box-shadow:
+        0 0 14px #ff00ff,
+        0 0 30px #8400ff;
+}
+
+.mp-label{
+    color:#00bbff;
+    text-shadow:0 0 6px #00bbff;
+}
+#continueBtn{
+
+    margin-top:20px;
+
+    padding:14px 28px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:linear-gradient(
+        135deg,
+        #2d004d,
+        #6f00ff
+    );
+
+    color:white;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+    box-shadow:
+        0 0 14px #ff00ff55;
+}
+
+#continueBtn:hover{
+
+    transform:scale(1.05);
+
+    box-shadow:
+        0 0 18px #ff00ff,
+        0 0 30px #8400ff;
+}
+
+.item.locked img{
+
+    filter:
+        blur(4px)
+        brightness(.35);
+
+    opacity:.8;
+}
+
+.lock-icon{
+
+    position:absolute;
+
+    font-size:24px;
+
+    color:white;
+
+    text-shadow:0 0 8px #ff00ff;
+}
+#itemQuote{
+
+    display:block;
+
+    margin-top:18px;
+
+    font-style:italic;
+
+    opacity:.75;
+
+    font-size:15px;
+
+    transition:
+        color .2s,
+        text-shadow .2s;
+}
+.infinity-power{
+    position:relative;
+
+    font-size:32px;
+    z-index:1;
+
+    background:linear-gradient(
+        90deg,
+        #ff0000,
+        #ff8800,
+        #ffff00,
+        #00ff00,
+        #00ffff,
+        #0000ff,
+        #ff00ff,
+        #ff0000
+    );
+
+    background-size:400% 100%;
+
+    color:transparent;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    animation:rainbowWave 4s linear infinite;
+}
+.infinity-power::before{
+
+    content:attr(data-text);
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    z-index:-1;
+
+    width:100%;
+    height:100%;
+
+    background:linear-gradient(
+        90deg,
+        red,
+        orange,
+        yellow,
+        lime,
+        cyan,
+        blue,
+        magenta,
+        red
+    );
+
+    background-size:400% 100%;
+
+    animation:rainbowWave 4s linear infinite;
+
+    color:transparent;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    filter:blur(8px);
+
+    opacity:1;
+}
+@keyframes rainbowWave{
+
+    0%{
+        background-position: 0% 50%;
+    }
+
+    100%{
+        background-position: 400% 50%;
+    }
+
+}
+.balance-container{
+    margin-top:20px;
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.volume-slider-container{
+    margin-top:20px;
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+#volumeSlider{
+
+    width:220px;
+    height:8px;
+
+    appearance:none;
+    -webkit-appearance:none;
+
+    border-radius:999px;
+
+    background:linear-gradient(
+        90deg,
+        #ff00ff,
+        #7a00ff,
+        #00bbff
+    );
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 15px #00bbff;
+
+    outline:none;
+}
+#volumeSlider::-webkit-slider-thumb{
+
+    appearance:none;
+    -webkit-appearance:none;
+
+    width:22px;
+    height:22px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    border:2px solid #ff00ff;
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #8400ff;
+
+    cursor:pointer;
+}
+#volumePercent{
+
+    color:#00eaff;
+
+    font-weight:bold;
+
+    
+}
+#nowPlaying{
+
+    margin-top:12px;
+
+    color:#ff8cfb;
+
+    
+
+    font-weight:bold;
+}
+
+#songName{
+
+    color:#00eaff;
+
+    
+}
+#skipSongBtn{
+ margin-top:12px;
+    background:linear-gradient(
+        135deg,
+        #2d004d,
+        #6f00ff
+    );
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:10px 16px;
+
+    font-weight:bold;
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #8400ff;
+
+    cursor:pointer;
+}
+.seasonalContainer{
+    margin-top:20px;
+background-color: #4e1346;
+border: 1px solid #ff00ff;
+border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.seasonal-label{
+    color:#ff00ff;
+    text-shadow:0 0 8px #ff00ff;
+    text-shadow:0 3px 8px #721a72;
+}
+.damage-label{
+    color:#ff0000;
+    text-shadow:0 0 8px #ff0000;
+    
+}
+.rarity-label{
+    color:#c800ff;
+    text-shadow:0 0 8px #c800ff;
+    
+}
+.mpl-label{
+    color:#26ff00;
+    text-shadow:0 0 8px #26ff00;
+   
+}
+.prot-label{
+    color:#0dfffb;
+    text-shadow:0 0 8px #0dfffb;
+   
+}
+.aeffect-label{
+    color:#ffe100;
+    text-shadow:0 0 8px #ffe100;
+  
+}
+.bg{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+
+    background-image:
+        url("waves_toppng.png"),
+        url("DLCMap/DLC_End_Stars.png"),
+        url("DLCMap/End_Whisp_All.png"),
+        url("waves_bottom.png");
+
+    background-repeat:
+        no-repeat,
+        no-repeat,
+        no-repeat,
+        no-repeat;
+
+    background-size:
+        100% auto,
+        100% auto,
+        100% auto,
+        100% auto;
+
+    background-position:
+        center top,
+        center,
+        center,
+        center calc(100% + 150px);
+}
+.welcome-layout{
+
+    width:900px;
+
+    display:flex;
+    gap:30px;
+    align-items:stretch;
+}
+
+.welcome-main{
+
+    flex:1;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.welcome-selector{
+
+    width:280px;
+
+    background:#14141c;
+
+    border:1px solid #ff00ff55;
+
+    border-radius:16px;
+
+    padding:20px;
+
+    box-shadow:0 0 20px #8400ff55;
+
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+#welcomeSelect{
+
+    background:#1c1733;
+
+    color:#fff;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px;
+}
+
+#saveWelcome{
+
+    background:linear-gradient(
+        135deg,
+        #2d004d,
+        #6f00ff
+    );
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px;
+
+    cursor:pointer;
+}
+.infinity-power{
+    position:relative;
+
+    font-size:32px;
+    z-index:1;
+
+    background:linear-gradient(
+        90deg,
+        #ff0000,
+        #ff8800,
+        #ffff00,
+        #00ff00,
+        #00ffff,
+        #0000ff,
+        #ff00ff,
+        #ff0000
+    );
+
+    background-size:400% 100%;
+
+    color:transparent;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    animation:rainbowWave 4s linear infinite;
+}
+.infinity-power::before{
+
+    content:attr(data-text);
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    z-index:-1;
+
+    width:100%;
+    height:100%;
+
+    background:linear-gradient(
+        90deg,
+        red,
+        orange,
+        yellow,
+        lime,
+        cyan,
+        blue,
+        magenta,
+        red
+    );
+
+    background-size:400% 100%;
+
+    animation:rainbowWave 4s linear infinite;
+
+    color:transparent;
+
+    -webkit-background-clip:text;
+    background-clip:text;
+
+    filter:blur(8px);
+
+    opacity:1;
+}
+@keyframes rainbowWave{
+
+    0%{
+        background-position: 0% 50%;
+    }
+
+    100%{
+        background-position: 400% 50%;
+    }
+
+}
+.balance-container{
+    margin-top:20px;
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.volume-slider-container{
+    margin-top:20px;
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+#volumeSlider{
+
+    width:220px;
+    height:8px;
+
+    appearance:none;
+    -webkit-appearance:none;
+
+    border-radius:999px;
+
+    background:linear-gradient(
+        90deg,
+        #ff00ff,
+        #7a00ff,
+        #00bbff
+    );
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 15px #00bbff;
+
+    outline:none;
+}
+#volumeSlider::-webkit-slider-thumb{
+
+    appearance:none;
+    -webkit-appearance:none;
+
+    width:22px;
+    height:22px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    border:2px solid #ff00ff;
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #8400ff;
+
+    cursor:pointer;
+}
+#volumePercent{
+
+    color:#00eaff;
+
+    font-weight:bold;
+
+    
+}
+#nowPlaying{
+
+    margin-top:12px;
+
+    color:#ff8cfb;
+
+    
+
+    font-weight:bold;
+}
+
+#songName{
+
+    color:#00eaff;
+
+    
+}
+#skipSongBtn{
+ margin-top:12px;
+    background:linear-gradient(
+        135deg,
+        #2d004d,
+        #6f00ff
+    );
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:10px 16px;
+
+    font-weight:bold;
+
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 20px #8400ff;
+
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+  <audio id="bgm">
+        <source src="inv-music001.mp3" type="audio/mpeg">
+    </audio>
+
+    
+
+    <!-- STARTER OVERLAY -->
+ 
+    <div id="starterOverlay">
+
+    <div class="starter-popup">
+
+        <h1>Welcome to Inventory UI V3</h1>
+
+        <p class="starter-reward">
+            +100 AP
+        </p>
+
+        <p class="starter-reward mp">
+            +20 MP
+        </p>
+
+        <h2>Choose Your Starter Weapon</h2>
+
+        <div class="starter-weapons" id="starterWeapons"></div>
+
+
+        </div>
+
+    </div>
+
+<div class="bg"></div>
+<div class="panel">
+<!-- seasonal  items have to include 0, true/false and the seasonal mission level (1-3)!-->
+ <!-- use weapon maker to help code weapons with stats filled out-->
+    <!-- ITEMS -->
+    <div class="items">
+        <div class="item" onclick="showItem('Flame Sword', 60, 'Magma', 150, 0, 0, false, 0, 'still fresh from the forge')">
+            <img src="flame.png">
+        </div>
+   <div class="item" onclick="showItem('Iron Sword', 10, 'Rare', 27, 0, 0, false, 0, 'basic but reliable')">
+            <img src="Iron-Sword.png">
+        </div>
+
+
+        <div class="item" onclick="showItem('Axe', 40, 'Rare', 120, 0, 0, false, 0, 'a sturdy axe')">
+            <img src="axe.png">
+        </div>
+
+     
+        <div class="item" onclick="showItem('Daggers', 30, 'Rare', 90, 0, 0, false, 0, 'sharp and deadly')">
+            <img src="dagger.png">
+        </div>
+
+         <div class="item" onclick="showItem('Staff of Terror', 100, 'Terror', 200, 0, 0, false, 0, 'used by the greatest')">
+            <img src="staff.png">
+        </div>
+
+          <div class="item" onclick="showItem('Orb of Dominance', '∞', 'Dominance', '∞', 0, 0, false, 0, 'used by the arch illiager')">
+            <img src="orb-of-dominance.gif">
+        </div>
+
+            <div class="item" onclick="showItem('Gold Crown', 56, 'Unique', 53, 40, 0, false, 0, 'worn by the arch illiager')">
+                <img src="crown.png">
+
+        </div>
+
+        <div class="item" onclick="showItem('Cursed Axe', 59, 'Unique', 200, 0, 0, false, 0, 'dark and sharp')">
+            <img src="cursedaxe.png">
+        </div>
+          <div class="item" onclick="showItem('Dark Katana', 100, 'Dark', 200, 0, 0, false, 0, 'shadowed and made in the dark for some reason')">
+            <img src="dark-katana.png">
+        </div>
+     <div class="item" onclick="showItem('Electric Hammer V2', 300, 'Electric', 344, 0, 0, false, 0, 'bzzzzzzz')">
+    <img src="elechammerv2.png">
+    </div>
+    <div class="item" onclick="showItem('Great Hammer', 50, 'Rare', 120, 0, 0, false, 0, '*CLANG* bro what the hell was that sound')">
+    <img src="great-hammer.png">
+    </div>
+     <div class="item" onclick="showItem('Hammer of Gravity', 150, 'Gravity', 800, 0, 0, false, 0, 'uhhhhh where tf did gravity go- AHHHHHHHHHHH')">
+    <img src="hammer-of-gravity.png">
+     </div>
+  <div class="item" onclick="showItem('Stormlander', 299, 'Electric', 800, 0, 0, false, 0, '*electric crackle* uhh idk if i wanna use th- *BZZZZZZZZ* OWWWWWWWWWWWWW')">
+    <img src="stormlander.png">
+     </div>
+
+    
+
+<div class="item" onclick="showItem('Void Stabilizer', 0, 'Void+', '∞', 0, 0, false, 0, 'stabilizes the void')">
+    <img src="void-stabilizer-v2.png">
+</div>
+<div class="item" onclick="showItem('Pixel Diamond Pickaxe', 40, 'Pixel', '50', 0, 0, false, 0, 'bro why is this pixelated')">
+    <img src="diamond-pick.png">
+</div>
+<div class="item" onclick="showItem('Forgotten Beacon', 0, 'Forgotten', '0', 0, 0, false, 0, 'uhh what is this')">
+    <img src="forgotten-beacon.gif">
+</div>
+
+<div class="item"
+     onclick="showItem('Winter\'s Touch', 300, 'Frozen', 600, 0, 0, false, 0, 'the coldest of the bows')">
+    <img src="winterstouch.png">
+</div>
+
+<div class="item"
+     onclick="showItem('Flaming Quiver', 0, 'Flamed', 888, 0, 22, false, 0, 'makes your arrows catch aflame')">
+    <img src="flaming-quiver.png">
+</div>
+<div class="item"
+     onclick="showItem('Ghost Cloak', 0, 'Shadow', 653, 0, 43, false, 0, 'I AM SPEED ITSELF')">
+    <img src="ghost-cloak.png">
+</div>
+<div class="item"
+     onclick="showItem('Thundering Quiver', 0, 'Electric', 600, 0, 60, false, 0, 'arrows are now electric i... BZZZZZZZZZZZZZZZZ AHH SHI-')">
+    <img src="thundering-quiver.png">
+</div>
+<div class="item"
+     onclick="showItem('Updraft Tome', 0, 'Rare', 600, 0, 353, false, 0, 'r/whoosh')">
+    <img src="updraft-tome.png">
+</div>
+
+<div class="item"
+     onclick="showItem('Vine Whip', 44, 'Unique', 777, 0, 0, false, 0, 'NATURE WHIP ATTACKKKKKKKKK')">
+    <img src="vine-whip.png">
+</div>
+<div class="item" onclick="showItem('Frost Slayer', 196, 'Seasonal', 500, 0, 0, true, 2, 'cold, cold, cold, cold... co-..')">
+    <img src="frost-slayer.png">
+</div>
+<!-- prime example of a seasonal item (frost slayer)-->
+ <div class="item" onclick="showItem('The Starless Night', 1555, 'Void', 304, 0, 0, false, 0, 'GREEN IS EVERYTHING AAAAAA')">
+    <img src="thestarlessnight.png">
+</div>
+ <div class="item" onclick="showItem('Heartstealer', 400, 'Unique', 304, 0, 0, false, 0, 'it steals hearts.. and it will steal whoever decides to somehow duel wield it..')">
+    <img src="heartstealer.png">
+</div>
+<div class="item" onclick="showItem('Outline Axe', 0, 'Common', 0, 0, 0, false, 0, 'just a outline..')">
+    <img src="outline axe.png">
+</div>
+
+<div class="item" onclick="showItem('Crucible', 42132, 'Magma', 5555555, 0, 0, false, 0, 'RIP AND TEAR UNTIL IT IS DONE!')">
+    <img src="totem_of_undying.png">
+</div>
+<div class="item" onclick="showItem('Blue Crucible', 42132, 'Frozen', 5555555, 0, 0, false, 0, 'RIP AND TEAR (blue version)')">
+    <img src="diamond_sword.png">
+</div>
+<div class="item" onclick="showItem('Brown Crucible', 42132, 'Forgotten', 5555555, 0, 0, false, 0, 'looks like shit but somehow strong')">
+    <img src="wooden_sword.png">
+</div>
+<div class="item" onclick="showItem('Yellow Crucible', 42132, 'Divine', 5555555, 0, 0, false, 0, 'looks like a morning piss')">
+    <img src="gold_sword.png">
+</div>
+<div class="item" onclick="showItem('White Crucible', 42132, 'Dominance', 5555555, 0, 0, false, 0, 'is that the heavens?')">
+    <img src="iron_sword.png">
+</div>
+<div class="item" onclick="showItem('Gray Crucible', 42132, 'Gravity', 5555555, 0, 0, false, 0, 'is it gray or grey?')">
+    <img src="stone_sword.png">
+</div>
+</div>
+       
+    
+    <!-- INFO -->
+    <div class="info-panel">
+        <!-- ITEM DISPLAY -->
+        <h2 id="name">Select Item</h2>
+<img id="itemIcon">
+<div id="particleContainer"></div>
+  <div class="item-quote">
+    <span id="itemQuote">
+        select an item to view its story
+    </span>
+
+   <!-- STATS -->
+        <p>
+            <img class="stat-icon" src="damagev2.png">
+            <span class="damage-label">Damage:</span>
+            <span id="damage"></span>
+        </p>
+
+        <p>
+            <img class="stat-icon" src="rarityv2.png">
+            <span class="rarity-label">Rarity:</span>
+            <span id="rarity"></span>
+        </p>
+
+        <p>
+            <img class="stat-icon" src="powerv2.png">
+            <span class="mpl-label">Max LVL:</span>
+            <span id="max power lvl"></span>
+        </p>
+
+        <p>
+            <img class="stat-icon" src="protection.png">
+            <span class="prot-label">Protection:</span>
+            <span id="prot"></span>
+        </p>
+
+         <p>
+            <img class="stat-icon" src="artifact-effect-power.png">
+            <span class="aeffect-label">A-Effect Power:</span>
+            <span id="artifactEffectPower"></span>
+        </p>
+        <!-- Seasonal events container -->
+<div id="seasonalContainer">
+        <p>
+            <img class="stat-icon" src="seasoneventinvbullit.png">
+            <span class="seasonal-label">Seasonal Item:</span>
+            <span id="seasonalEvent"></span>
+        </p>
+<!-- is a seasonal item?-->
+        <p>
+            <img class="stat-icon" src="seasonal_marker3.png">
+            <span class="seasonal-label">Seasonal Level:</span>
+            <span id="seasonalLevel"></span>
+        </p>
+        </div>
+<!-- seasonal mission level?-->
+
+</div>
+  
+
+
+
+      
+
+    </div>
+   <div class="portal-panel">
+    <h3>Others...</h3>
+
+    <div class="portal-grid">
+        <div class="portal-card"
+             onclick="window.open('weaponmaker.html','_blank')">
+            <img src="wmfavicon.png">
+            <span>Weapon Maker</span>
+        </div>
+
+        <div class="portal-card"
+             onclick="window.open('index.html','_blank')">
+           <img src="v1arc64.png">
+            <span>V1 Version (Archive)</span>
+        </div>
+
+         <div class="portal-card"
+             onclick="window.open('Inventory UI V2.html','_blank')">
+           <img src="v2arc.png">
+            <span>V2 (Maintained for now)</span>
+        </div>
+
+
+    </div>
+<div class="balance-container">
+    <div class="ap-panel">
+    <img class="ap-icon" src="tag-ap.png">
+
+    <div class="amethyst-points-h3">
+        AP Balance:
+    </div>
+
+    <span id="apBalance">0</span>
+
+    <div id="apPopup" class="ap-popup">
+        +50 AP
+    </div>
+</div>
+   <div class="mp-panel">
+    <img class="mp-icon" src="tag-mp.png">
+
+    <div class="mp-label">
+        MP Balance:
+    </div>
+   
+    <span id="mpBalance">0</span>
+ <div id="mpPopup" class="mp-popup">
+        +50 MP
+    </div>
+   </div>
+
+  </div>
+
+        <!-- ENCHANT DISPLAY -->
+        <div id="enchantDisplay">
+            <img id="enchantIcon" src="enchantv2.png">
+            <span id="enchantName"></span>
+        </div>
+        
+        <p id="enchantDescBox">
+    <span id="enchantTitle"></span>
+    <span id="enchantDesc"></span>
+
+ 
+</p>
+
+  <!-- ENCHANT SELECT -->
+        <div class="enchant-box">
+            <select id="enchantSelect">
+                <option value="na">Select Enchant</option>
+                <option value="5">Frost (+5)</option>
+                <option value="1">+1</option>
+                <option value="10">Fire (+10)</option>
+                <option value="15">Shock (+15)</option>
+                <option value="loot">Loot+</option>
+                <option value="4">Exploding (+4)</option>
+                <option value="10">Smiting (+10)</option>
+                <option value="7">Piercing (+7)</option>
+                <option value="5">Unbreaking (+5)</option>
+                 <option value="5">Mending (+5)</option>
+                 <option value="66">Sharpness (+66)</option>
+            </select>
+
+            <button onclick="applyEnchant()">Apply</button>
+        </div>
+
+          <div class="volume-slider-container">
+    <p>Volume:</p>
+<input type="range" id="volumeSlider"
+       min="0" max="100" value="50">
+        <span id="volumePercent">50%</span>
+    </div>
+
+    <div id="nowPlaying">
+
+    🎵 Now Playing:
+    <span id="songName">
+        Nothing
+    </span>
+
+</div>
+
+<button id="skipSongBtn">
+    ⏭ Skip Song
+</button>
+
+  <script src="scriptv3.js"></script>
+  <script src="infopanelweaponicons.js"></script>
+      <script src="volume.js"></script>

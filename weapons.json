@@ -1,0 +1,13 @@
+{
+  "weapons": [
+    { "id": "axe.png", "name": "Axe" },
+    { "id": "bow.png", "name": "Bow" },
+    { "id": "dagger.png", "name": "Daggers" },
+    { "id": "staff.png", "name": "Staff" },
+    { "id": "flame.png", "name": "Flame Sword" },
+    { "id": "cursedaxe.png", "name": "Cursed Axe" },
+    { "id": "fof.png", "name": "Fangs of Frost" },
+    { "id": "obsitian claymore.png", "name": "Obsidian Claymore" },
+     { "id": "electrichammer.png", "name": "Electric Hammer" }
+  ]
+}

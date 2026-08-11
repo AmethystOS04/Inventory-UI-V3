@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory UI - Weapon Maker</title>
+<link rel="icon" type="image/png" href="wmfavicon.png">
+
+<style>
+*{box-sizing:border-box}
+body{
+    margin:0;
+    min-height:100vh;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:Arial,sans-serif;
+    color:white;
+    background:conic-gradient(#3c0e62,#4a082a,#3c0e62);
+}
+.panel{
+    position:relative;
+    width:auto;
+    max-width:95vw;
+    background:#1a1a24;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 0 30px rgba(0,0,0,.45);
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+}
+.maker{
+    position:relative;
+    width:320px;
+    max-width:100%;
+    background:#14141c;
+    border-radius:18px;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    height:fit-content;
+    flex-shrink:0;
+}
+.output-panel{
+    background:#14141c;
+    border-radius:18px;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:300px;
+    height:fit-content;
+    flex-shrink:0;
+}
+h2{
+    margin:0;
+    text-align:center;
+    text-shadow:0 0 10px #b84dff;
+    font-size:18px;
+}
+.output-panel h2{
+    margin:0 0 8px 0;
+    font-size:14px;
+}
+input,select,button,textarea{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#2a2a3a;
+    color:white;
+    font-size:15px;
+}
+button{
+    cursor:pointer;
+    transition:.2s;
+}
+button:hover{
+    transform:translateY(-1px);
+    box-shadow:0 0 12px #9b97c0;
+}
+textarea{
+    min-height:70px;
+    resize:none;
+    background:#0f0f14;
+    color:#8aff9d;
+    font-family:monospace;
+    font-size:12px;
+}
+#enchantDisplay{
+    position:relative;
+}
+#enchantTitle{
+    color:#b900d1;
+    text-shadow:0 0 6px currentColor;
+}
+#enchantName{
+    font-weight:bold;
+    color:#b900d1;
+    text-shadow:0 0 6px #b900d1;
+}
+#enchantDesc{
+    color:inherit;
+}
+#makerPreview{
+    position:relative;
+    min-height:160px;
+    background:#0f0f14;
+    border-radius:14px;
+    padding:12px;
+    text-align:center;
+    overflow:hidden;
+}
+#makerPreview img{
+    width:70px;
+    height:70px;
+    object-fit:contain;
+    position:relative;
+    z-index:2;
+}
+#makerPreview h3,
+#makerPreview p{
+    position:relative;
+    z-index:2;
+}
+#particles{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+}
+.particle{
+    position:absolute;
+    pointer-events:none;
+    user-select:none;
+}
+#selectedIconDisplay{
+    text-align:center;
+    color:#ccc;
+    min-height:24px;
+}
+.controls{
+    position:relative;
+    width:160px;
+    background:#14141c;
+    border-radius:16px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    box-shadow:0 0 25px rgba(0,0,0,.4);
+    flex-shrink:0;
+}
+#copyBtn:hover{
+    box-shadow:0 0 8px #ff0000,0 0 16px #ff8800;
+}
+#hubBtn:hover{
+    box-shadow:0 0 8px #3aa0ff,0 0 16px #ff1493;
+}
+#iconBackdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+}
+#iconPicker{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:520px;
+    max-width:90vw;
+    max-height:75vh;
+    overflow:auto;
+    background:#14141c;
+    border:2px solid #5a5a84;
+    border-radius:16px;
+    padding:20px;
+    display:none;
+    grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+    gap:14px;
+    z-index:10;
+    scrollbar-width:none;
+}
+#iconPicker::-webkit-scrollbar{display:none}
+.icon-option{
+    background:#2a2a3a;
+    border-radius:12px;
+    padding:10px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+.icon-option:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 12px #9b97c0;
+}
+.icon-option img{
+    width:52px;
+    height:52px;
+    object-fit:contain;
+}
+.icon-option p{
+    margin:8px 0 0;
+    font-size:12px;
+    color:#ddd;
+}
+.portal-panel{
+    margin-top:24px;
+    padding:18px;
+    border-radius:18px;
+    background:rgba(0,0,0,.22);
+    border:1px solid rgba(255,255,255,.08);
+}
+.portal-panel h3{
+    margin:0 0 14px;
+    color:#fff;
+    text-shadow:0 0 10px #ff00ea;
+}
+.portal-grid{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+}
+.portal-card{
+    min-width:97px;
+    padding:14px;
+    border-radius:14px;
+    background:#252536;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:.2s;
+}
+.portal-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 14px #00eaff;
+}
+.portal-card img{
+    width:34px;
+    height:34px;
+    object-fit:contain;
+}
+.ap-panel,
+.mp-panel{
+    position:relative;
+    width:185px;
+    height:38px;
+    padding:8px 10px;
+    border-radius:12px;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    background:rgba(43,23,56,.92);
+    overflow:hidden;
+    box-sizing:border-box;
+}
+.ap-panel{
+    position:relative;
+    box-shadow:
+        0 0 10px #ff00ff,
+        0 0 18px #8400ff;
+}
+.mp-panel{
+    position:relative;
+    margin-top:16px;
+    box-shadow:
+        0 0 10px #00bbff,
+        0 0 18px #0066ff;
+}
+.ap-icon,
+.mp-icon{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+}
+.balance-label{
+    font-size:13px;
+    font-weight:bold;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+.ap-label{
+    color:#ff5cf8;
+    text-shadow:0 0 6px #ff5cf8;
+}
+.mp-label{
+    color:#00bbff;
+    text-shadow:0 0 6px #00bbff;
+}
+#apBalance,
+#mpBalance{
+    font-size:16px;
+    font-weight:bold;
+}
+#apBalance{
+    background:linear-gradient(
+        45deg,
+        #ff00ff,
+        #7a00ff
+    );
+    background-clip:text;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+}
+#mpBalance{
+    background:linear-gradient(
+        45deg,
+        #00b7ff,
+        #004cff
+    );
+    background-clip:text;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+}
+.weapon-cost-panel{
+    margin-top:12px;
+    padding:12px;
+    border-radius:12px;
+    background:rgba(0,0,0,.3);
+    border:1px solid rgba(255,255,255,.1);
+    font-size:12px;
+}
+.weapon-cost-panel h4{
+    margin:0 0 8px;
+    color:#b84dff;
+    text-shadow:0 0 8px #b84dff;
+}
+.cost-row{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:4px;
+}
+.cost-label{
+    color:#aaa;
+}
+.cost-value{
+    font-weight:bold;
+}
+.cost-ap{
+    color:#ff00ff;
+    text-shadow:0 0 4px #ff00ff;
+}
+.cost-mp{
+    color:#00bbff;
+    text-shadow:0 0 4px #00bbff;
+}
+.seasonal-label{
+    color:#ff00ff;
+    text-shadow:0 0 8px #ff00ff;
+}
+#makerSeasonalLevel{
+    transition:
+        box-shadow 0.3s ease,
+        background-color 0.3s ease,
+        opacity 0.3s ease;
+}
+
+#makerSeasonalLevel:disabled{
+    background:#210b19;
+    color:#888;
+    cursor:not-allowed;
+    opacity:0.6;
+    box-shadow:none;
+}
+
+#makerSeasonalLevel:enabled{
+    background:#310b22;
+    color:white;
+
+    box-shadow:
+        0 0 10px #ff0381,
+        0 0 20px #ff0381;
+}
+@media (max-width:760px){
+    .panel{
+        flex-direction:column;
+        align-items:stretch;
+    }
+    .maker, .output-panel, .controls, .portal-panel{
+        width:100%;
+    }
+}
+.seasonal-toggle{
+    display:flex;
+    gap:8px;
+}
+
+.seasonal-checkbox{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    flex:1;
+    user-select:none;
+    color:#ff7cc7;
+    text-shadow:0 0 8px #ff0381;
+    font-weight:bold;
+}
+
+.seasonal-checkbox input{
+    display:none;
+}
+
+.checkmark{
+    width:22px;
+    height:22px;
+    border-radius:6px;
+    border:2px solid #ff0381;
+    background:#1a0d17;
+    box-shadow:0 0 8px rgba(255,3,129,.4);
+    position:relative;
+    transition:.2s;
+}
+
+.checkmark::after{
+    content:"";
+    position:absolute;
+    left:6px;
+    top:2px;
+    width:5px;
+    height:10px;
+    border:solid white;
+    border-width:0 3px 3px 0;
+    transform:rotate(45deg) scale(0);
+    transition:.2s;
+}
+
+.seasonal-checkbox input:checked + .checkmark{
+    background:#ff0381;
+    box-shadow:
+        0 0 10px #ff0381,
+        0 0 18px #ff0381;
+}
+
+.seasonal-checkbox input:checked + .checkmark::after{
+    transform:rotate(45deg) scale(1);
+}
+.input-wrapper{
+    position:relative;
+}
+
+.input-icon{
+    position:absolute;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    width:64px;
+    height:64px;
+}
+
+.input-wrapper input{
+    padding-left:42px;
+}
+.damage::before{
+    background-image:url("damagev2.png");
+}
+
+.rarity::before{
+    background-image:url("rarityv2.png");
+}
+.prot::before{
+    background-image:url("protection.png");
+}
+.a-effect-pwr::before{
+    background-image:url("artifact-effect-power.png");
+}
+.power::before{
+    background-image:url("powerv2.png");
+}
+.seasonalevent::before{
+    background-image:url("seasonaleventmarker.png");
+}
+.seasonal-lvl::before{
+    background-image:url("seasonal_marker3.png");
+}
+.input-wrapper::before{
+    content:"";
+    position:absolute;
+    left:-8px;
+    top:50%;
+    transform:translateY(-50%);
+    width:64px;
+    height:64px;
+    background-size:contain;
+    background-repeat:no-repeat;
+}
+.checkbox-icon{
+    width: 48px;
+    height: 48px;
+    transition:filter .25s ease;
+}
+
+.checkbox-container{
+    position:relative;
+    width: 48px;
+    height: 48px;
+}
+
+.checkbox-icon.flash{
+    animation:flash 0.2s ease-out;
+}
+
+@keyframes flash{
+
+    0%{
+        filter:none;
+    }
+
+    10%{
+        filter:
+            brightness(20)
+            saturate(0);
+    }
+
+    100%{
+        filter:none;
+    }
+
+}
+.flash-overlay{
+    position:absolute;
+    inset:0;
+    background:white;
+    display:none;
+    pointer-events:none;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="panel">
+    <div class="maker">
+        <h2>Make Your Custom Weapon</h2>
+
+        <input id="makerName" placeholder="Weapon name">
+        <div class="input-wrapper damage">
+        <input id="makerDamage" type="number" placeholder="Damage">
+        </div>
+
+        <select id="makerRarity">
+            <option>Common</option>
+            <option>Rare</option>
+            <option>Epic</option>
+            <option>Unique</option>
+            <option>Electric</option>
+            <option>Magma</option>
+            <option>Terror</option>
+            <option>Dark</option>
+            <option>Mythical</option>
+            <option>Divine</option>
+            <option>Void</option>
+            <option>Void+</option>
+            <option>Pixel</option>
+            <option>Frozen</option>
+            <option>Flamed</option>
+            <option>Artifact</option>
+            <option>Forgotten</option>
+            <option>Gravity</option>
+            <option>Dominance</option>
+            <option>Shadow</option>
+            <option>Seasonal</option>
+            <option>None</option>
+        </select>
+        <div class="input-wrapper power">
+        <input id="makerPower" type="number" placeholder="Power">
+        </div>
+        <div class="input-wrapper prot">
+        <input id="makerProtection" type="number" placeholder="Protection">
+        </div>
+        <div class="input-wrapper a-effect-pwr">
+        <input id="makerArtifactPower" type="number" placeholder="A-Effect Power">
+        </div>
+
+ <label class="seasonal-checkbox">
+
+    <input id="makerSeasonal" type="checkbox">
+
+    <div class="checkbox-container">
+        <img class="checkbox-icon" src="seasonal_counter_Background.png">
+        <div class="flash-overlay"></div>
+    </div>
+
+    <span>Seasonal Event</span>
+
+</label>
+        <div class="input-wrapper seasonal-lvl">
+        <input id="makerSeasonalLevel" type="number" min="0" max="3" placeholder="Seasonal Level (0-3)" disabled>
+        </div>
+        <textarea id="makerQuote" placeholder="Flavor text/Quote (optional)" style="min-height:60px;"></textarea>
+
+        <button onclick="openIconPicker()">Select Icon</button>
+        <div id="selectedIconDisplay">No icon selected</div>
+
+        <select id="enchantSelect">
+            <option value="na">Select Enchant</option>
+            <option value="5">Frost (+5)</option>
+            <option value="1">+1</option>
+            <option value="10">Fire (+10)</option>
+            <option value="15">Shock (+15)</option>
+            <option value="loot">Loot+</option>
+            <option value="4">Exploding (+4)</option>
+            <option value="10">Smiting (+10)</option>
+            <option value="7">Piercing (+7)</option>
+            <option value="5">Unbreaking (+5)</option>
+            <option value="5">Mending (+5)</option>
+            <option value="66">Sharpness (+66)</option>
+        </select>
+
+        <button onclick="applyEnchant()">Apply Enchant</button>
+
+        
+    </div>
+
+    <div class="output-panel">
+        <h2 style="margin-top:0;">Preview</h2>
+
+        <div id="makerPreview">
+            <div id="particles"></div>
+            <img id="makerPreviewIcon" src="sword.png">
+            <h3 id="makerPreviewName">Preview</h3>
+            <p style="font-size:12px;margin:8px 0 0;"><span id="makerPreviewQuote" style="font-style:italic;opacity:.75;">select to add flavor</span></p>
+            <p style="font-size:13px;">Damage: <span id="makerPreviewDamage"></span></p>
+            <p style="font-size:13px;">Rarity: <span id="makerPreviewRarity"></span></p>
+            <p style="font-size:13px;">Max LVL: <span id="makerPreviewPower"></span></p>
+            <p id="seasonalPreviewRow" style="font-size:13px;display:none;margin-top:8px;color:#ff0381;text-shadow:0 0 8px #ff0381;">Seasonal Lvl: <span id="makerPreviewSeasonalLevel"></span></p>
+        </div>
+
+        <div id="enchantDisplay" style="margin-top:12px;padding:12px;border-radius:10px;background:#1a1a24;display:none;">
+            <p style="font-size:12px;margin:0 0 6px;color:#aaa;">Applied Enchant:</p>
+            <p style="margin:0;font-size:14px;font-weight:bold;"><span id="enchantTitle">None</span> <span id="enchantName" style="margin-left:6px;"></span></p>
+            <p id="enchantDesc" style="margin:4px 0 0;font-size:12px;opacity:.8;"></p>
+        </div>
+
+        <button onclick="generateCode()">Generate Code</button>
+        <textarea id="codeOutput" readonly placeholder="generated code appears here"></textarea>
+    </div>
+
+    <div class="controls">
+        <button onclick="resetMaker()">Reset</button>
+        <button onclick="copyCode()" id="copyBtn">Copy Code</button>
+        <button onclick="previewWeapon()">Preview</button>
+    </div>
+
+    <div class="portal-panel">
+        <h3>Navigation</h3>
+        <div class="portal-grid">
+            <div class="portal-card" onclick="window.location.href='Inventory UI V2.html'">
+                <img src="v2arc.png">
+                <span>Inventory V2</span>
+            </div>
+            <div class="portal-card" onclick="window.location.href='index.html'">
+                <img src="v1arc64.png">
+                <span>V1 Version</span>
+            </div>
+        </div>
+        <div class="ap-panel">
+            <img class="ap-icon" src="tag-ap.png">
+            <span class="balance-label ap-label">AP:</span>
+            <span id="apBalance">0</span>
+        </div>
+        <div class="mp-panel">
+            <img class="mp-icon" src="tag-mp.png">
+            <span class="balance-label mp-label">MP:</span>
+            <span id="mpBalance">0</span>
+        </div>
+        <div class="weapon-cost-panel">
+            <h4>Weapon Cost</h4>
+            <div class="cost-row">
+                <span class="cost-label">Est. AP:</span>
+                <span class="cost-value cost-ap" id="costAP">0</span>
+            </div>
+            <div class="cost-row">
+                <span class="cost-label">Est. MP:</span>
+                <span class="cost-value cost-mp" id="costMP">0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="iconBackdrop" onclick="closeIconPicker()"></div>
+<div id="iconPicker"></div>
+<input type="file" id="customUpload" accept="image/*" hidden>
+
+<script>
+const weapons = [
+  { id:"axe.png", name:"Axe" },
+  { id:"bow.png", name:"Bow" },
+  { id:"dagger.png", name:"Daggers" },
+  { id:"staff.png", name:"Staff" },
+  { id:"flame.png", name:"Flame Sword" },
+  { id:"cursedaxe.png", name:"Cursed Axe" },
+  { id:"fof.png", name:"Fangs of Frost" },
+  { id:"obsitian claymore.png", name:"Obsidian Claymore" },
+  { id:"electrichammer.png", name:"Electric Hammer" },
+  { id:"Iron-Sword.png", name:"Iron Sword" },
+  { id:"orb-of-dominance.gif", name:"Orb of Dominance" },
+  { id:"crown.png", name:"Gold Crown" },
+  { id:"dark-katana.png", name:"Dark Katana" },
+  { id:"elechammerv2.png", name:"Electric Hammer V2" },
+  { id:"great-hammer.png", name:"Great Hammer" },
+  { id:"hammer-of-gravity.png", name:"Hammer of Gravity" },
+  { id:"stormlander.png", name:"Stormlander" },
+  { id:"void-stabilizer-v2.png", name:"Void Stabilizer" },
+  { id:"diamond-pick.png", name:"Pixel Diamond Pickaxe" },
+  { id:"forgotten-beacon.gif", name:"Forgotten Beacon" },
+  { id:"winterstouch.png", name:"Winter's Touch" },
+  { id:"flaming-quiver.png", name:"Flaming Quiver" },
+  { id:"ghost-cloak.png", name:"Ghost Cloak" },
+  { id:"thundering-quiver.png", name:"Thundering Quiver" },
+  { id:"updraft-tome.png", name:"Updraft Tome" },
+  { id:"vine-whip.png", name:"Vine Whip" },
+  { id:"__custom__", name:"Custom", icon:"custom.png" }
+];
+
+let currentIconValue = "";
+let previewIconURL = "";
+let currentEnchant = { value: null, text: "Select Enchant", title: "None", desc: "", color: "#b900d1" };
+
+const rarityColors = {
+  common:"#aaaaaa",
+  rare:"#3aa0ff",
+  epic:"#a335ee",
+  electric:"#00ffff",
+  unique:"#ff9a00",
+  magma:"#ff6600",
+  terror:"#9900D1",
+  dark:"#4B2D63",
+  mythical:"#3A339E",
+  divine:"#C9C624",
+  void:"#FF00E2",
+  "void+":"#FF2E8F",
+  pixel:"#00ff33",
+  frozen:"#8dfffb",
+  flamed:"#ff0000",
+  artifact:"#8b8186",
+  forgotten:"#362424",
+  gravity:"#ee35ff",
+  dominance:"#ffa2ee",
+  shadow:"#5c1082",
+  seasonal: "#ff0381",
+  none:"#7B2828"
+};
+
+function openIconPicker(){
+  iconBackdrop.style.display="block";
+  iconPicker.style.display="grid";
+}
+function closeIconPicker(){
+  iconBackdrop.style.display="none";
+  iconPicker.style.display="none";
+}
+function selectIcon(src,name){
+  currentIconValue = src;
+  previewIconURL = "";
+  selectedIconDisplay.textContent = name;
+  closeIconPicker();
+}
+
+function loadWeapons(){
+  iconPicker.innerHTML = "";
+  weapons.forEach(weapon=>{
+    const div = document.createElement("div");
+    div.className = "icon-option";
+    div.innerHTML = `<img src="${weapon.icon || weapon.id}"><p>${weapon.name}</p>`;
+    div.onclick = ()=>{
+      if(weapon.id === "__custom__"){
+        customUpload.click();
+      } else {
+        selectIcon(weapon.id, weapon.name);
+      }
+    };
+    iconPicker.appendChild(div);
+  });
+}
+
+customUpload.addEventListener("change", e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+
+  currentIconValue = file.name;
+  previewIconURL = URL.createObjectURL(file);
+
+  selectedIconDisplay.textContent = file.name;
+  closeIconPicker();
+});
+
+function clearParticles(){
+  particles.innerHTML = "";
+}
+
+function spawnElectric(){
+  const img = document.createElement("img");
+  img.src = "electricparticle.png";
+  img.className = "particle";
+  img.style.left = Math.random()*85 + "%";
+  img.style.top = Math.random()*75 + "%";
+  img.style.width = (16 + Math.random()*14) + "px";
+  particles.appendChild(img);
+
+  const dx = (Math.random()*90)-45;
+  const dy = (Math.random()*70)-35;
+
+  img.animate([
+    {transform:"translate(0,0) scale(.7)", opacity:0},
+    {transform:`translate(${dx}px,${dy}px) scale(1.2)`, opacity:1},
+    {transform:`translate(${dx*1.5}px,${dy*1.5}px) scale(.4)`, opacity:0}
+  ], {
+    duration:700 + Math.random()*700,
+    iterations:Infinity
+  });
+}
+
+function spawnMeteor(){
+  const img = document.createElement("img");
+  img.src = "meteor.png";
+  img.className = "particle";
+  img.style.left = Math.random()*50 + "%";
+  img.style.top = "-10px";
+  img.style.width = "34px";
+  particles.appendChild(img);
+
+  img.animate([
+    {transform:"translate(0,0) rotate(0deg)", opacity:0},
+    {transform:"translate(90px,120px) rotate(25deg)", opacity:1},
+    {transform:"translate(170px,240px) rotate(45deg)", opacity:0}
+  ], {
+    duration:1100 + Math.random()*700,
+    iterations:Infinity
+  });
+}
+
+function makeParticles(rarity){
+  clearParticles();
+  if(rarity === "Electric"){
+    for(let i=0;i<10;i++) spawnElectric();
+  }
+  if(rarity === "Magma"){
+    for(let i=0;i<6;i++) spawnMeteor();
+  }
+}
+
+function previewWeapon(){
+  const name = makerName.value || "Preview";
+  const damage = makerDamage.value || "";
+  const rarity = makerRarity.value;
+  const power = makerPower.value || "";
+  const quote = makerQuote.value || "select to add flavor";
+  const protection = makerProtection.value || "0";
+  const artifactPower = makerArtifactPower.value || "0";
+  const isSeasonal = document.getElementById("makerSeasonal").checked;
+  const seasonalLevel = document.getElementById("makerSeasonalLevel").value || "0";
+
+  makerPreviewIcon.src = previewIconURL || currentIconValue;
+  makerPreviewName.textContent = name;
+  makerPreviewDamage.textContent = damage;
+  makerPreviewRarity.textContent = rarity;
+  makerPreviewPower.textContent = power;
+  makerPreviewQuote.textContent = quote;
+  
+  // Show seasonal info if enabled
+  const seasonalPreviewRow = document.getElementById("seasonalPreviewRow");
+  if(isSeasonal && seasonalLevel > 0){
+    seasonalPreviewRow.style.display = "block";
+    document.getElementById("makerPreviewSeasonalLevel").textContent = seasonalLevel;
+  } else {
+    seasonalPreviewRow.style.display = "none";
+  }
+
+  const color = rarityColors[rarity.toLowerCase()] || "#fff";
+  makerPreviewName.style.color = color;
+  makerPreviewName.style.textShadow = `0 0 10px ${color}`;
+  makerPreviewRarity.style.color = color;
+  makerPreviewRarity.style.textShadow = `0 0 10px ${color}`;
+  makerPreviewQuote.style.color = color;
+  makerPreviewQuote.style.textShadow = `0 0 8px ${color}`;
+
+  calculateWeaponCost(damage, rarity, power, protection, artifactPower);
+  makeParticles(rarity);
+}
+
+function applyEnchant(){
+  const select = document.getElementById("enchantSelect");
+  const value = select.value;
+  const text = select.options[select.selectedIndex].text;
+  
+  // Reset
+  currentEnchant = { value: value, text: text, title: "None", desc: "", color: "#b900d1" };
+  document.getElementById("enchantDisplay").style.display = "none";
+  document.getElementById("enchantTitle").textContent = "None";
+  document.getElementById("enchantName").textContent = "";
+  document.getElementById("enchantDesc").textContent = "";
+  
+  if(text.includes("Select Enchant")){
+    return;
+  }
+  
+  // Apply damage if numeric value
+  const damageNum = parseInt(value);
+  if(damageNum > 0 && !isNaN(damageNum)){
+    const currentDamage = parseInt(makerDamage.value) || 0;
+    makerDamage.value = currentDamage + damageNum;
+  }
+  
+  // Enchant definitions
+  const enchants = {
+    "Frost": { title: "Frost", desc: "Slows enemies", color: "#3aa0ff" },
+    "Fire": { title: "Fire", desc: "Burns enemies", color: "#ff6600" },
+    "Shock": { title: "Shock", desc: "Chains lightning", color: "#ffff00" },
+    "Smiting": { title: "Smiting", desc: "Deals extra damage to undead", color: "#b5d100" },
+    "Exploding": { title: "Exploding", desc: "Explodes enemies on death", color: "#d10069" },
+    "Unbreaking": { title: "Unbreaking", desc: "whats a durability?", color: "#e610db" },
+    "Piercing": { title: "Piercing", desc: "Passes through multiple enemies", color: "#00ff00" },
+    "Mending": { title: "Mending", desc: "tf you mean your tool broke?", color: "#00ff00" },
+    "Sharpness": { title: "Sharpness", desc: "man i wish this redstone golem died", color: "#00fffb" },
+    "Loot+": { title: "Loot+", desc: "+25% emeralds, +15% food", color: "#8AFF9D" },
+    "+1": { title: "+1 Boost", desc: "Minor power increase", color: "#00D1C0" }
+  };
+  
+  // Find matching enchant
+  for(const [key, enchant] of Object.entries(enchants)){
+    if(text.includes(key)){
+      currentEnchant = { value, text, ...enchant };
+      document.getElementById("enchantDisplay").style.display = "block";
+      document.getElementById("enchantTitle").textContent = enchant.title;
+      document.getElementById("enchantTitle").style.color = enchant.color;
+      document.getElementById("enchantTitle").style.textShadow = `0 0 6px ${enchant.color}`;
+      document.getElementById("enchantName").textContent = "+" + value;
+      document.getElementById("enchantName").style.color = enchant.color;
+      document.getElementById("enchantName").style.textShadow = `0 0 6px ${enchant.color}`;
+      document.getElementById("enchantDesc").textContent = enchant.desc;
+      document.getElementById("enchantDesc").style.color = enchant.color;
+      document.getElementById("enchantDesc").style.textShadow = `0 0 6px ${enchant.color}`;
+      break;
+    }
+  }
+  
+  previewWeapon();
+}
+
+function calculateWeaponCost(damage, rarity, power, protection, artifactPower){
+  const rarityMultiplier = {
+    common: 1,
+    rare: 1.5,
+    epic: 2.5,
+    unique: 3,
+    electric: 2.5,
+    magma: 3,
+    terror: 3.5,
+    dark: 2,
+    mythical: 4,
+    divine: 4.5,
+    void: 5,
+    "void+": 6,
+    pixel: 1.5,
+    frozen: 2.5,
+    flamed: 2.5,
+    artifact: 3.5,
+    forgotten: 0.5,
+    gravity: 5,
+    dominance: 5.5,
+    shadow: 3,
+    none: 0.5
+  };
+
+  const damageNum = parseInt(damage) || 0;
+  const powerNum = parseInt(power) || 0;
+  const protNum = parseInt(protection) || 0;
+  const artNum = parseInt(artifactPower) || 0;
+  const multiplier = rarityMultiplier[rarity.toLowerCase()] || 1;
+
+  // Base cost formula
+  const baseCost = (damageNum * 2 + powerNum * 0.5 + protNum * 3 + artNum * 2) * multiplier;
+  const costAP = Math.ceil(baseCost * 1.2);
+  const costMP = Math.ceil(baseCost * 0.8);
+
+  document.getElementById("costAP").textContent = costAP;
+  document.getElementById("costMP").textContent = costMP;
+}
+
+function generateCode(){
+  const name = makerName.value || "Weapon";
+  const damage = makerDamage.value || "0";
+  const rarity = makerRarity.value || "Common";
+  const power = makerPower.value || "0";
+  const protection = makerProtection.value || "0";
+  const artifactPower = makerArtifactPower.value || "0";
+  const isSeasonal = document.getElementById("makerSeasonal").checked;
+  const seasonalLevel = document.getElementById("makerSeasonalLevel").value || "0";
+  const quote = makerQuote.value || "";
+
+  codeOutput.value =
+`<div class="item" onclick="showItem('${name}', ${damage}, '${rarity}', ${power}, ${protection}, ${artifactPower}, ${isSeasonal}, ${seasonalLevel}, '${quote}')">
+    <img src="${currentIconValue}">
+</div>`;
+}
+
+function copyCode(){
+  if(codeOutput.value) navigator.clipboard.writeText(codeOutput.value);
+}
+
+function resetMaker(){
+  makerName.value = "";
+  makerDamage.value = "";
+  makerPower.value = "";
+  makerProtection.value = "";
+  makerArtifactPower.value = "";
+  makerQuote.value = "";
+  makerRarity.selectedIndex = 0;
+  document.getElementById("makerSeasonal").checked = false;
+  document.getElementById("makerSeasonalLevel").value = "0";
+  document.getElementById("makerSeasonalLevel").disabled = true;
+  document.getElementById("enchantSelect").selectedIndex = 0;
+  currentEnchant = { value: null, text: "Select Enchant", title: "None", desc: "", color: "#b900d1" };
+  currentIconValue = "";
+  previewIconURL = "";
+  selectedIconDisplay.textContent = "No icon selected";
+  makerPreviewIcon.src = "sword.png";
+  makerPreviewName.textContent = "Preview";
+  makerPreviewDamage.textContent = "";
+  makerPreviewRarity.textContent = "";
+  makerPreviewPower.textContent = "";
+  makerPreviewQuote.textContent = "select to add flavor";
+  document.getElementById("seasonalPreviewRow").style.display = "none";
+  document.getElementById("enchantDisplay").style.display = "none";
+  codeOutput.value = "";
+  clearParticles();
+}
+
+loadWeapons();
+const icon = document.querySelector(".checkbox-icon");
+// Seasonal checkbox handling
+document.getElementById("makerSeasonal").addEventListener("change", function(){
+
+    const seasonalLevelInput =
+        document.getElementById("makerSeasonalLevel");
+
+    const icon = document.querySelector(".checkbox-icon");
+
+    icon.src = this.checked
+        ? "base.png"
+        : "seasonal_counter_Background.png";
+
+    icon.classList.add("flash");
+
+    setTimeout(() => {
+        icon.classList.remove("flash");
+    }, 600);
+
+    seasonalLevelInput.disabled = !this.checked;
+
+    if(!this.checked){
+        seasonalLevelInput.value = "0";
+    }
+
+    previewWeapon();
+});
+// Seasonal level input handling
+document.getElementById("makerSeasonalLevel").addEventListener("change", previewWeapon);
+
+// AP/MP System
+let ap = parseInt(localStorage.getItem("ap")) || 0;
+let mp = parseInt(localStorage.getItem("mp")) || 0;
+
+document.getElementById("apBalance").textContent = ap;
+document.getElementById("mpBalance").textContent = mp;
+
+// Update display when storage changes
+window.addEventListener("storage", () => {
+  ap = parseInt(localStorage.getItem("ap")) || 0;
+  mp = parseInt(localStorage.getItem("mp")) || 0;
+  document.getElementById("apBalance").textContent = ap;
+  document.getElementById("mpBalance").textContent = mp;
+});
+
+</script>
+
+</body>
+</html>
