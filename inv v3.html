@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Inventory UI V3</title>
-
+<link rel="icon" href="v3ico.png">
 <style>
 
 
@@ -24,8 +24,8 @@ body {
 /* panel */
 .panel {
    
-    width: 1352px;
-    height: 640px;
+    width: 1600px;
+    height: 680px;
     background: #1a1a24;
     border-radius: 20px;
     padding: 20px;
@@ -38,11 +38,18 @@ body {
 
 /* items */
 .items {
-  display: grid !important;
-  grid-template-columns: repeat(4, 70px) !important;
-  gap: 12px;
+    display: grid !important;
+    grid-template-columns: repeat(4, 70px) !important;
+    gap: 12px;
 
-  align-content: start !important; /* 🔥 KEY FIX */
+    align-content: start !important;
+
+    height: 580px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 8px;
+    box-sizing: border-box;
 }
 
 .item {
@@ -103,8 +110,8 @@ body {
     border-radius: 15px;
     border-color:#aca9bd;
     padding: 15px;
-    height: 620px;
-    width: 100px;
+    height: 658px;
+    width: 139px;
 
     position: relative;
 
@@ -1233,14 +1240,31 @@ border-radius:12px;
 
     cursor:pointer;
 }
+.items::-webkit-scrollbar {
+    width: 8px;
+}
+
+.items::-webkit-scrollbar-track {
+    background: #61047e;
+    border-radius: 10px;
+}
+
+.items::-webkit-scrollbar-thumb {
+    background: #4c26a5;
+    border-radius: 10px;
+}
+
+.items::-webkit-scrollbar-thumb:hover {
+    background: #1ba3cc;
+}
 </style>
 </head>
 <body>
 
-  <audio id="bgm">
+  <!--<audio id="bgm">
         <source src="inv-music001.mp3" type="audio/mpeg">
     </audio>
-
+--!>
     
 
     <!-- STARTER OVERLAY -->
@@ -1393,6 +1417,15 @@ border-radius:12px;
 <div class="item" onclick="showItem('Gray Crucible', 42132, 'Gravity', 5555555, 0, 0, false, 0, 'is it gray or grey?')">
     <img src="stone_sword.png">
 </div>
+<div class="item" onclick="showItem('Smol Amethyst Shard', 0.5, 'Seasonal', 0.8, 0, 0, true, 1, 'smol 🥺')">
+    <img src="smolamethyst.png">
+</div>
+<div class="item" onclick="showItem('Medium Amethyst Bud', 1.5, 'Seasonal', 4, 0, 0, true, 1, 'it may be cute but it is somewhat sharp')">
+    <img src="separate_amethyst.png">
+</div>
+<div class="item" onclick="showItem('Huge Amethyst Cluster', 30.8, 'Seasonal', 90, 0, 0, true, 3, 'you sure you wanna mess with me now?')">
+    <img src="hugeamethyst.png">
+</div>
 </div>
        
     
@@ -1482,6 +1515,11 @@ border-radius:12px;
            <img src="v2arc.png">
             <span>V2 (Maintained for now)</span>
         </div>
+        <div class="portal-card"
+onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
+    <img src="mcglint_8x_pack.png">
+    <span>amethyst's stupid stuff</span>
+</div>
 
 
     </div>
