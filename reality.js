@@ -234,6 +234,17 @@ const realities = {
         accent2: "#8400ff",
         text: "#ffffff",
         muted: "#aaaaaa"
+    },
+    the_event_horizon: {
+        name: "The Accretion Disk",
+panel: "#030303",
+infoPanel: "#080605",
+border: "#32150A",
+borderGlow: "rgba(255, 91, 0, 0.45)",
+accent: "#FF6A00",
+accent2: "#FFD21F",
+text: "#FFF1D6",
+muted: "#8F7460"
     }
 };
 function applyReality(realityName) {
