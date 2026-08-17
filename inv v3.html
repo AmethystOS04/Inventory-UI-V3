@@ -26,14 +26,13 @@ body {
    
     width: 1600px;
     height: 680px;
-    background: #1a1a24;
     border-radius: 20px;
     padding: 20px;
     display: flex;
     gap: 20px;
-    border: 1px solid #00f7ff;
-    border-radius: 20px;
-    box-shadow: 0 0 10px rgba(1, 247, 255, 0.5);
+      background: var(--reality-panel, #1a1a24);
+    border: 1px solid var(--reality-border, #00f7ff);
+    box-shadow: 0 0 10px var(--reality-border-glow, rgba(1, 247, 255, 0.5));
 }
 
 /* items */
@@ -106,7 +105,7 @@ body {
 /* info panel */
 .info-panel {
     flex: 1;
-    background: #14141c;
+    background: var(--reality-info-panel, #14141c);
     border-radius: 15px;
     border-color:#aca9bd;
     padding: 15px;
@@ -996,7 +995,27 @@ border-radius:12px;
     gap:30px;
     align-items:stretch;
 }
+.reality-selector {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
+.reality-selector label {
+    color: #00ffb3;
+    font-weight: bolder;
+    text-shadow: 0 0 8px #00ffb3;
+}
+
+#realitySelect {
+    background: #1c1733;
+    color: rgb(204, 0, 255);
+    border: 1px solid #8400ff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+}
 .welcome-main{
 
     flex:1;
@@ -1551,7 +1570,32 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
    </div>
 
   </div>
+<div class="reality-selector">
+    <label for="realitySelect">Reality:</label>
 
+    <select id="realitySelect">
+        <option value="default">Default</option>
+        <option value="void">Void</option>
+        <option value="midnight">Midnight</option>
+        <option value="starrynight">Starry Night</option>
+        <option value="aurora">Aurora</option>
+        <option value="nebula">Nebula</option>
+        <option value="galatic">Galatic</option>
+        <option value="purplevoid">Purple Void</option>
+        <option value="darkmode">Dark Mode</option>
+        <option value="lightmode">Light Mode</option>
+        <option value="amethyst">Amethyst</option>
+        <option value="allinone">All In One</option>
+        <option value="morepurplethanpurple">More Purple Than Purple</option>
+        <option value="pitchblack">Pitch Black</option>
+        <option value="lightsout">Lights Out</option>
+        <option value="cocacola">Coca Cola</option>
+        <option value="theheatdeathoftheuniverse">The Heat Death of the Universe</option>
+        <option value="itsallyourfault">It's All Your Fault</option>
+        <option value="seasonaltrials">Seasonal Trials</option>
+        <option value="ripandtearuntilitsdone">Rip and Tear Until It's Done</option>
+    </select>
+</div>
         <!-- ENCHANT DISPLAY -->
         <div id="enchantDisplay">
             <img id="enchantIcon" src="enchantv2.png">
@@ -1608,3 +1652,4 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
   <script src="scriptv3.js"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js"></script>
+      <script src="reality.js"></script>

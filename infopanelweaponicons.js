@@ -35,9 +35,9 @@ const icons = {
 "White Crucible": "iron_sword.png",
 "Gray Crucible": "stone_sword.png",
 "Yellow Crucible": "gold_sword.png",
-"Smol Amethyst Shard": "smolamethyst.png",
-"Medium Amethyst Bud": "separate_amethyst.png",
-"Huge Amethyst Cluster": "hugeamethyst.png",
+"Smol Amethyst Shard": "smolamethyst.png", // seasonal \\
+"Medium Amethyst Bud": "separate_amethyst.png", // seasonal \\
+"Huge Amethyst Cluster": "hugeamethyst.png", // seasonal \\
 // EXAMPLE  ||| \\ 
 // "Weapon Name": "weapon-icon.png", \\
 // OR JUST COPY ONE OF THE WEAPON ICONS ABOVE AND CHANGE THE NAME AND IMAGE SOURCE \\
