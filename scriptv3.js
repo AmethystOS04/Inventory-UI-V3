@@ -468,7 +468,7 @@ function applyEnchant() {
 
     // reset
     title.textContent = "NA";
-    desc.textContent = "No enchant selected. Select a enchant to see what it does.";
+    desc.textContent = "No enchant selected Select a enchant to see what it does";
     icon.src = "na.png";
     enchantName.style.color = "#B900D1";
 
@@ -478,7 +478,7 @@ function applyEnchant() {
 
     if (text.includes("Select Enchant")) {
         title.textContent = "NA";
-        desc.textContent = "No enchant.";
+        desc.textContent = "No enchant";
         icon.src = "na.png";
         enchantName.style.color = "#7B2828";
     }
@@ -509,7 +509,7 @@ function applyEnchant() {
     }
     else if (text.includes("Exploding")) {
         title.textContent = "Exploding";
-        desc.textContent = "Explodes ememys on death.";
+        desc.textContent = "Explodes ememys on death";
         icon.src = "exploding.png";
         enchantName.style.color = "#d10069";
     }

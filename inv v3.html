@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Inventory UI V3</title>
-<link rel="icon" href="v3ico.png">
+<link rel="icon" href="v3ico-sculk.png">
 <style>
 
 
@@ -33,6 +33,113 @@ body {
       background: var(--reality-panel, #1a1a24);
     border: 1px solid var(--reality-border, #00f7ff);
     box-shadow: 0 0 10px var(--reality-border-glow, rgba(1, 247, 255, 0.5));
+    transition: background-color 600ms ease, border-color 600ms ease, box-shadow 600ms ease;
+    position: relative;
+    isolation: isolate;
+}
+
+.panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 0;
+    transition: opacity 600ms ease;
+    background-image: url("deepdark-bottom-clumps.png"), url("deepdark-sculk-growth.png"), url("deepdark-sculk-growth-mirror.png");
+    background-size: 1640px 140px, 192px 192px, 192px 192px;
+    background-position: bottom center, top left, bottom right;
+    background-repeat: no-repeat, repeat, repeat;
+}
+
+.panel > * {
+    z-index: 1;
+}
+
+html[data-reality="deepdark"] .panel::before {
+    opacity: .72;
+}
+
+.amethyst-decor {
+    position: absolute;
+    inset: auto 0 0;
+    height: 84px;
+    z-index: 3 !important;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 600ms ease;
+}
+
+html[data-reality="amethyst"] .amethyst-decor {
+    opacity: 1;
+}
+
+.amethyst-decor img {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+}
+
+.amethyst-stage {
+    position: absolute;
+    display: block;
+    height: auto;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.amethyst-stage-small {
+    width: 34px;
+    aspect-ratio: 203 / 281;
+    background-image: url("amethyst-stage-small.png");
+}
+
+.amethyst-stage-medium {
+    width: 44px;
+    aspect-ratio: 139 / 173;
+    background-image: url("amethyst-stage-medium.png");
+}
+
+.amethyst-stage-large {
+    width: 56px;
+    aspect-ratio: 359 / 416;
+    background-image: url("amethyst-stage-large.png");
+}
+
+.amethyst-stage-cluster {
+    width: 68px;
+    aspect-ratio: 521 / 484;
+    background-image: url("amethyst-stage-cluster.png");
+}
+
+.amethyst-stage { bottom: 2px; }
+
+.amethyst-stage-one { left: 1%; }
+.amethyst-stage-two { left: 7%; }
+.amethyst-stage-three { left: 13%; }
+.amethyst-stage-four { left: 19%; }
+.amethyst-stage-five { left: 44%; }
+.amethyst-stage-six { left: 50%; }
+.amethyst-stage-seven { left: 56%; }
+.amethyst-stage-eight { left: 62%; }
+.amethyst-stage-nine { left: 68%; }
+.amethyst-stage-ten { left: 74%; }
+.amethyst-stage-eleven { left: 80%; }
+.amethyst-stage-twelve { left: 86%; }
+.amethyst-stage-thirteen { left: 92%; }
+
+.amethyst-stage-four,
+.amethyst-stage-nine {
+    transform: scaleX(-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .amethyst-decor {
+        transition: none;
+    }
 }
 
 /* items */
@@ -49,6 +156,8 @@ body {
 
     padding-right: 8px;
     box-sizing: border-box;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 36px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 36px), transparent 100%);
 }
 
 .item {
@@ -106,6 +215,7 @@ body {
 .info-panel {
     flex: 1;
     background: var(--reality-info-panel, #14141c);
+    transition: background-color 600ms ease;
     border-radius: 15px;
     border-color:#aca9bd;
     padding: 15px;
@@ -114,7 +224,85 @@ body {
 
     position: relative;
 
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4c26a5 #24102f;
+    isolation: isolate;
+    z-index: 1;
+}
+
+.info-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.info-panel::-webkit-scrollbar-track {
+    background: #24102f;
+    border-radius: 10px;
+}
+
+.info-panel::-webkit-scrollbar-thumb {
+    background: #4c26a5;
+    border-radius: 10px;
+}
+
+.info-panel::-webkit-scrollbar-thumb:hover {
+    background: #1ba3cc;
+}
+
+.info-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 600ms ease;
+    background-image: url("deepdark-info-clumps.png"), url("deepdark-sculk-growth.png"), url("deepdark-sculk-growth-mirror.png");
+    background-size: 240px 100px, 120px 120px, 120px 120px;
+    background-position: bottom center, top left, bottom right;
+    background-repeat: no-repeat, repeat, repeat;
+}
+
+.info-panel > #name,
+.info-panel > .item-quote,
+.info-panel > #unlockOffer {
+    position: relative;
+    z-index: 1;
+}
+
+.info-panel > #itemIcon {
+    z-index: 1;
+}
+
+.info-panel > #particleContainer {
+    z-index: 2;
+}
+
+html[data-reality="deepdark"] .info-panel::after {
+    opacity: .72;
+}
+
+@keyframes deepDarkSculkPulse {
+    0%, 100% {
+        filter: brightness(1.12) saturate(1.18) hue-rotate(0deg);
+    }
+    50% {
+        filter: brightness(.62) saturate(1.22) hue-rotate(28deg);
+    }
+}
+
+html[data-reality="deepdark"] .panel::before,
+html[data-reality="deepdark"] .info-panel::after {
+    animation: deepDarkSculkPulse 5.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-reality="deepdark"] .panel::before,
+    html[data-reality="deepdark"] .info-panel::after {
+        animation: none;
+    }
 }
 
 .info-panel p {
@@ -253,8 +441,187 @@ body {
     margin-top:24px;
     padding:18px;
     border-radius:18px;
-    background:rgba(0,0,0,.22);
+    position:relative;
+    z-index:2;
+    background:color-mix(in srgb, var(--reality-panel, #1a1a24) 86%, #000 14%);
     border:1px solid rgba(255,255,255,.08);
+}
+
+#dailyMissions {
+    position:absolute;
+    top:150px;
+    left:370px;
+    right:16px;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:10px;
+    z-index:2;
+}
+
+.enchant-box {
+    position:absolute;
+    left:80px;
+    top:300px;
+    width:260px;
+    margin-top:0;
+    justify-content:flex-start;
+    z-index:1;
+}
+
+#dailyMissions h3 {
+    grid-column:1 / -1;
+    margin:0;
+    color:var(--reality-accent, #ff00ff);
+    text-shadow:0 0 8px currentColor;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+}
+
+#dailyRefreshTimer {
+    color:var(--reality-muted, #aaa);
+    font-size:11px;
+    font-weight:400;
+    text-shadow:none;
+}
+
+.mission-card {
+    min-width:0;
+    min-height:145px;
+    padding:12px;
+    border:1px solid color-mix(in srgb, var(--reality-border, #00f7ff) 48%, transparent);
+    border-radius:12px;
+    background:color-mix(in srgb, var(--reality-panel, #1a1a24) 90%, #000 10%);
+    color:var(--reality-text, #fff);
+}
+
+.mission-card h4 {
+    margin:0 0 8px;
+    font-size:14px;
+}
+
+.mission-progress,
+.mission-reward,
+.mission-status {
+    margin:6px 0;
+    font-size:12px;
+}
+
+.mission-objective { margin:0 0 6px; color:var(--reality-muted, #aaa); font-size:11px; }
+.mission-reward { color:var(--reality-accent, #ff00ff); }
+.mission-status { color:var(--reality-muted, #aaa); }
+.mission-status.complete { color:#68ffb3; }
+.mission-refresh-button {
+    margin-top:5px;
+    padding:6px 9px;
+    border:1px solid #9a45dc;
+    border-radius:8px;
+    background:#2b103c;
+    color:#f0ccff;
+    font-size:11px;
+    cursor:pointer;
+}
+.mission-refresh-button:disabled { opacity:.5; cursor:not-allowed; }
+.mission-refresh-message { min-height:14px; color:var(--reality-muted, #aaa); font-size:10px !important; }
+
+.mission-meter {
+    height:6px;
+    overflow:hidden;
+    border-radius:8px;
+    background:rgba(255,255,255,.12);
+}
+
+.mission-meter span {
+    display:block;
+    height:100%;
+    width:0;
+    border-radius:inherit;
+    background:linear-gradient(90deg, var(--reality-accent, #ff00ff), var(--reality-accent-2, #8400ff));
+    transition:width 250ms ease;
+}
+
+.weekly-challenge {
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    align-items:center;
+    gap:12px;
+    padding:14px;
+    border:1px solid #a83dff;
+    border-radius:14px;
+    background:linear-gradient(110deg, rgba(63, 15, 91, .94), rgba(12, 17, 35, .96));
+    box-shadow:0 0 16px #8b19ff55;
+    color:var(--reality-text, #fff);
+}
+
+.weekly-challenge h4 { margin:0 0 6px; color:#e9a4ff; }
+.weekly-challenge p { margin:5px 0; font-size:13px; }
+.weekly-reward { color:#ff70df; }
+#weeklyChallengeStatus.complete { color:#68ffb3; }
+.weekly-challenge button,
+#weeklyGameDialog button {
+    border:1px solid #d94cff;
+    border-radius:9px;
+    padding:9px 14px;
+    background:#36004f;
+    color:#fff;
+    cursor:pointer;
+}
+.weekly-challenge button:disabled { opacity:.65; cursor:default; }
+.weekly-actions { display:flex; flex-direction:column; gap:8px; }
+
+#weeklyGameDialog[hidden] { display:none; }
+#weeklyGameDialog {
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:grid;
+    place-items:center;
+    padding:18px;
+    background:rgba(3, 3, 12, .82);
+    backdrop-filter:blur(7px);
+}
+.weekly-game-box {
+    width:min(620px, 100%);
+    padding:20px;
+    border:1px solid #963cff;
+    border-radius:18px;
+    background:#10101b;
+    color:#fff;
+    box-shadow:0 0 32px #8300ff77;
+}
+.weekly-game-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.weekly-game-head h2 { margin:0; color:#dfa0ff; }
+#weeklyGameStatus { min-height:24px; color:#8cf5ff; }
+#pulseBoard {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(44px, 1fr));
+    gap:10px;
+    padding:12px;
+    border-radius:14px;
+    background:radial-gradient(ellipse, #122d36, #090a12 70%);
+}
+.pulse-tile {
+    aspect-ratio:1;
+    border:1px solid #174a4f !important;
+    border-radius:50% !important;
+    padding:0 !important;
+    background:radial-gradient(circle, #08171b 20%, #061015 70%) !important;
+    box-shadow:inset 0 0 12px #00d9ff16;
+}
+.pulse-tile.active {
+    border-color:#86ffff !important;
+    background:radial-gradient(circle, #d8ffff 0 8%, #3fffff 17%, #087c9c 48%, #061015 76%) !important;
+    box-shadow:0 0 18px #39faff, inset 0 0 14px #d5ffff;
+}
+.weekly-game-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+
+@media (max-width: 1100px) {
+    #dailyMissions {
+        position:relative;
+        inset:auto;
+        margin-top:18px;
+    }
 }
 
 .portal-panel h3{
@@ -487,30 +854,6 @@ body {
     transform:
         translateY(-50%)
         translateX(20px);
-}
-
-.gain-ap-btn{
-    position: relative;
-    background: linear-gradient(135deg, #190a11, #29001e);
-    color: rgb(166, 0, 255);
-    text-shadow: #4d0e48 0 0 10px;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.gain-ap-panel{
-    position:relative;
-    background:linear-gradient(135deg, #000000, #680266); 
-    top:20px;
-    left:10px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    padding: 10px 18px;
-    border-radius: 6px;
-    box-shadow:0 0 20px #ff00ff;
-    height: 200px;
 }
 
 .mp-popup{
@@ -1019,11 +1362,18 @@ border-radius:12px;
 .welcome-main{
 
     flex:1;
+    min-width:0;
 
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
+}
+
+.welcome-message{
+    max-width:100%;
+    overflow-wrap:anywhere;
+    word-break:break-word;
 }
 
 .welcome-selector{
@@ -1280,10 +1630,10 @@ border-radius:12px;
 </head>
 <body>
 
-  <!--<audio id="bgm">
+  <audio id="bgm">
         <source src="inv-music001.mp3" type="audio/mpeg">
     </audio>
---!>
+
     
 
     <!-- STARTER OVERLAY -->
@@ -1313,6 +1663,21 @@ border-radius:12px;
 
 <div class="bg"></div>
 <div class="panel">
+    <div class="amethyst-decor" aria-hidden="true">
+        <span class="amethyst-stage amethyst-stage-large amethyst-stage-one"></span>
+        <span class="amethyst-stage amethyst-stage-small amethyst-stage-two"></span>
+        <span class="amethyst-stage amethyst-stage-cluster amethyst-stage-three"></span>
+        <span class="amethyst-stage amethyst-stage-medium amethyst-stage-four"></span>
+        <span class="amethyst-stage amethyst-stage-small amethyst-stage-five"></span>
+        <span class="amethyst-stage amethyst-stage-medium amethyst-stage-six"></span>
+        <span class="amethyst-stage amethyst-stage-cluster amethyst-stage-seven"></span>
+        <span class="amethyst-stage amethyst-stage-small amethyst-stage-eight"></span>
+        <span class="amethyst-stage amethyst-stage-large amethyst-stage-nine"></span>
+        <span class="amethyst-stage amethyst-stage-medium amethyst-stage-ten"></span>
+        <span class="amethyst-stage amethyst-stage-small amethyst-stage-eleven"></span>
+        <span class="amethyst-stage amethyst-stage-cluster amethyst-stage-twelve"></span>
+        <span class="amethyst-stage amethyst-stage-large amethyst-stage-thirteen"></span>
+    </div>
 <!-- seasonal  items have to include 0, true/false and the seasonal mission level (1-3)!-->
  <!-- use weapon maker to help code weapons with stats filled out-->
     <!-- ITEMS -->
@@ -1323,7 +1688,9 @@ border-radius:12px;
    <div class="item" onclick="showItem('Iron Sword', 10, 'Rare', 27, 0, 0, false, 0, 'basic but reliable')">
             <img src="Iron-Sword.png">
         </div>
-
+   <div class="item" onclick="showItem('Bow', 25, 'Common', 90, 0, 0, false, 0, 'used by starters')">
+            <img src="bow.png">
+        </div>
 
         <div class="item" onclick="showItem('Axe', 40, 'Rare', 120, 0, 0, false, 0, 'a sturdy axe')">
             <img src="axe.png">
@@ -1444,6 +1811,21 @@ border-radius:12px;
 </div>
 <div class="item" onclick="showItem('Huge Amethyst Cluster', 30.8, 'Seasonal', 90, 0, 0, true, 3, 'you sure you wanna mess with me now?')">
     <img src="hugeamethyst.png">
+</div>
+<div class="item" onclick="showItem('Sculker Claws', 50, 'Unique', 60, 0, 0, true, 3, 'Minecraft Dungeons II weapon..exclusive to the Deep Dark event..')">
+    <img src="Sculker Claws.png">
+</div>
+<div class="item" onclick="showItem('Twilight Dagger', 32, 'Unique', 56, 0, 0, true, 2, 'Obtained during the Deep Dark event..')">
+    <img src="Twilight Dagger.png">
+</div>
+<div class="item" onclick="showItem('Sculker\'s Bane', 70, 'Unique', 43, 0, 0, true, 3, 'Obtained from the Deep Dark event.. unique variant of the Twilight Dagger')">
+    <img src="Sculkers Bane.png">
+</div>
+<div class="item" onclick="showItem('Lunar Sickle', 54, 'Unique', 76, 0, 0, true, 2, 'Obtained from the Deep Dark event')">
+    <img src="Lunar Sickle.png">
+</div>
+<div class="item" onclick="showItem('Sparkler', 12, 'Unique', 15, 0, 0, true, 1, 'Obtained during a birthday event..')">
+    <img src="Sparkler.png">
 </div>
 </div>
        
@@ -1585,6 +1967,10 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
         <option value="darkmode">Dark Mode</option>
         <option value="lightmode">Light Mode</option>
         <option value="amethyst">Amethyst</option>
+        <option value="blush">Blush</option>
+        <option value="deepdark">Deep Dark</option>
+        <option value="howlingwoods">Howling Woods</option>
+        <option value="carapace">Carapace</option>
         <option value="allinone">All In One</option>
         <option value="morepurplethanpurple">More Purple Than Purple</option>
         <option value="pitchblack">Pitch Black</option>
@@ -1650,7 +2036,70 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
     ⏭ Skip Song
 </button>
 
+<section id="dailyMissions" aria-label="daily missions">
+    <h3>daily missions <span id="dailyRefreshTimer"></span></h3>
+    <article class="mission-card" data-mission="inspect">
+        <h4>loot scout</h4>
+        <p class="mission-objective">inspect different items</p>
+        <p class="mission-progress"></p>
+        <div class="mission-meter"><span></span></div>
+        <p class="mission-reward">+40 ap · +15 mp</p>
+        <p class="mission-status"></p>
+        <button class="mission-refresh-button" data-refresh-quest="inspect" type="button">refresh quest 1 · 100 ap</button>
+        <p class="mission-refresh-message" aria-live="polite"></p>
+    </article>
+    <article class="mission-card" data-mission="realities">
+        <h4>reality hopper</h4>
+        <p class="mission-objective">visit different realities</p>
+        <p class="mission-progress"></p>
+        <div class="mission-meter"><span></span></div>
+        <p class="mission-reward">+25 ap · +15 mp</p>
+        <p class="mission-status"></p>
+        <button class="mission-refresh-button" data-refresh-quest="realities" type="button">refresh quest 2 · 300 ap</button>
+        <p class="mission-refresh-message" aria-live="polite"></p>
+    </article>
+    <article class="mission-card" data-mission="enchant">
+        <h4>blacksmith's touch</h4>
+        <p class="mission-objective">apply an enchant</p>
+        <p class="mission-progress"></p>
+        <div class="mission-meter"><span></span></div>
+        <p class="mission-reward">+35 ap · +20 mp</p>
+        <p class="mission-status"></p>
+        <button class="mission-refresh-button" data-refresh-quest="enchant" type="button">refresh quest 3 · 500 ap</button>
+        <p class="mission-refresh-message" aria-live="polite"></p>
+    </article>
+    <article class="weekly-challenge" id="weeklyChallenge">
+        <div>
+            <h4>weekly challenge · <span id="weeklyChallengeTitle">sculk pulse</span></h4>
+            <p id="weeklyChallengeObjective">hit 20 sculk pulses in 30 seconds, with fewer than 3 misses</p>
+            <p class="weekly-reward">reward: +1,000 ap · +500 mp · frost slayer seasonal unlock</p>
+            <p id="weeklyChallengeStatus" aria-live="polite">one reward each week</p>
+        </div>
+        <div class="weekly-actions">
+            <button id="playWeeklyChallenge" type="button">play challenge</button>
+            <button id="refreshWeeklyChallenge" type="button" hidden>refresh weekly · 3000 mp</button>
+        </div>
+    </article>
+</section>
+
+<div id="weeklyGameDialog" hidden role="dialog" aria-modal="true" aria-labelledby="weeklyGameTitle">
+    <div class="weekly-game-box">
+        <div class="weekly-game-head">
+            <h2 id="weeklyGameTitle">sculk pulse</h2>
+            <button id="closeWeeklyGame" type="button" aria-label="close">close</button>
+        </div>
+        <p id="weeklyGameStatus">hit 20 pulses before time runs out, 3 misses ends the run</p>
+        <p>hits: <span id="pulseScore">0</span> / <span id="pulseGoal">20</span> · misses: <span id="pulseMisses">0</span> / <span id="pulseMissLimit">2</span> · time: <span id="pulseTime">30</span>s</p>
+        <div id="pulseBoard" aria-label="sculk pulse targets"></div>
+        <div class="weekly-game-actions"><button id="startPulseGame" type="button">start run</button></div>
+    </div>
+</div>
+
+  <script src="weapon-cost.js"></script>
   <script src="scriptv3.js"></script>
+  <script src="unlocks.js"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js"></script>
       <script src="reality.js"></script>
+      <script src="missions.js"></script>
+      <script src="item-sheet.js"></script>

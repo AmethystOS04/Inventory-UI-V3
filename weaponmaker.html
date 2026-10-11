@@ -691,6 +691,7 @@ textarea{
 <div id="iconPicker"></div>
 <input type="file" id="customUpload" accept="image/*" hidden>
 
+<script src="weapon-cost.js"></script>
 <script>
 const weapons = [
   { id:"axe.png", name:"Axe" },
@@ -948,43 +949,9 @@ function applyEnchant(){
 }
 
 function calculateWeaponCost(damage, rarity, power, protection, artifactPower){
-  const rarityMultiplier = {
-    common: 1,
-    rare: 1.5,
-    epic: 2.5,
-    unique: 3,
-    electric: 2.5,
-    magma: 3,
-    terror: 3.5,
-    dark: 2,
-    mythical: 4,
-    divine: 4.5,
-    void: 5,
-    "void+": 6,
-    pixel: 1.5,
-    frozen: 2.5,
-    flamed: 2.5,
-    artifact: 3.5,
-    forgotten: 0.5,
-    gravity: 5,
-    dominance: 5.5,
-    shadow: 3,
-    none: 0.5
-  };
-
-  const damageNum = parseInt(damage) || 0;
-  const powerNum = parseInt(power) || 0;
-  const protNum = parseInt(protection) || 0;
-  const artNum = parseInt(artifactPower) || 0;
-  const multiplier = rarityMultiplier[rarity.toLowerCase()] || 1;
-
-  // Base cost formula
-  const baseCost = (damageNum * 2 + powerNum * 0.5 + protNum * 3 + artNum * 2) * multiplier;
-  const costAP = Math.ceil(baseCost * 1.2);
-  const costMP = Math.ceil(baseCost * 0.8);
-
-  document.getElementById("costAP").textContent = costAP;
-  document.getElementById("costMP").textContent = costMP;
+  const cost = window.estimateWeaponCost(damage, rarity, power, protection, artifactPower);
+  document.getElementById("costAP").textContent = cost.ap;
+  document.getElementById("costMP").textContent = cost.mp;
 }
 
 function generateCode(){

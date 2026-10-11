@@ -132,6 +132,54 @@ const realities = {
         muted: "#8d7d99"
     },
 
+    blush: {
+        name: "Blush",
+        panel: "#24171b",
+        infoPanel: "#332027",
+        border: "#9a5968",
+        borderGlow: "rgba(154, 89, 104, 0.32)",
+        accent: "#c98290",
+        accent2: "#75404d",
+        text: "#f0d9dc",
+        muted: "#aa858c"
+    },
+
+    deepdark: {
+        name: "Deep Dark",
+        panel: "#070d14",
+        infoPanel: "#0a131d",
+        border: "#55b9d1",
+        borderGlow: "rgba(85, 185, 209, 0.28)",
+        accent: "#8cddf2",
+        accent2: "#347e9b",
+        text: "#d2edf2",
+        muted: "#789eac"
+    },
+
+    howlingwoods: {
+        name: "Howling Woods",
+        panel: "#101711",
+        infoPanel: "#192318",
+        border: "#718454",
+        borderGlow: "rgba(113, 132, 84, 0.3)",
+        accent: "#b7ca7a",
+        accent2: "#596b3d",
+        text: "#e1e7d2",
+        muted: "#99a58a"
+    },
+
+    carapace: {
+        name: "Carapace",
+        panel: "#11191b",
+        infoPanel: "#192527",
+        border: "#b99a70",
+        borderGlow: "rgba(91, 199, 192, 0.28)",
+        accent: "#91ddd5",
+        accent2: "#9d7464",
+        text: "#e6e0d2",
+        muted: "#95aaa4"
+    },
+
     allinone: {
         name: "All In One",
         panel: "#1a1a4d",
@@ -251,6 +299,8 @@ function applyReality(realityName) {
     const reality = realities[realityName];
 
     if (!reality) return;
+
+    document.documentElement.dataset.reality = realityName;
 
     document.documentElement.style.setProperty("--reality-panel", reality.panel);
     document.documentElement.style.setProperty("--reality-info-panel", reality.infoPanel);

@@ -3,7 +3,8 @@
 // IF USING APOSTROPHES, USE BACKSLASHES TO ESCAPE THEM (ex: "Winter\'s Touch": "winterstouch.png",) \\
 // ADD A COMMA TO THE END OF THE NEW WEAPON IF ADDING MORE \\
 const icons = {
-  "Axe": "axe.png",    // all below besides frost slayer are non-seasonal you can add seasonal ones later \\
+  "Axe": "axe.png", 
+  "Bow": "bow.png",   // all below besides frost slayer are non-seasonal you can add seasonal ones later \\
   "Flame Sword": "flame.png",
   "Staff of Terror": "staff.png",
   "Cursed Axe": "cursedaxe.png",
@@ -38,6 +39,11 @@ const icons = {
 "Smol Amethyst Shard": "smolamethyst.png", // seasonal \\
 "Medium Amethyst Bud": "separate_amethyst.png", // seasonal \\
 "Huge Amethyst Cluster": "hugeamethyst.png", // seasonal \\
+"Sculker Claws": "Sculker Claws.png", // seasonal \\
+"Twilight Dagger": "Twilight Dagger.png", // seasonal \\
+"Sculker's Bane": "Sculkers Bane.png", // seasonal \\
+"Lunar Sickle": "Lunar Sickle.png", // seasonal \\
+"Sparkler": "Sparkler.png" // seasonal \\
 // EXAMPLE  ||| \\ 
 // "Weapon Name": "weapon-icon.png", \\
 // OR JUST COPY ONE OF THE WEAPON ICONS ABOVE AND CHANGE THE NAME AND IMAGE SOURCE \\
