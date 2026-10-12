@@ -16,7 +16,19 @@ theres armor stuff
 
 theres weapon stuff
 
-theres maps
+theres quests
+
+theres events
+
+theres unlocking/locking
+
+theres minigames
+
+theres a new item adding system that only i control
+
+your free to clone this
+
+theres stupid stuff
 
 theres icons
 
