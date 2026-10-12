@@ -1,3 +1,7 @@
-name,image,damage,rarity,max_level,protection,artifact_power,seasonal,seasonal_level,description
-Soul Reaper,Soul Reaper.png,77,Unique,79,0,0,True,3,From MCD II.. obtained from the Deep Dark event
-Emerald Hammer,emerald_hammer.png,55,Unique,55,0,0,True,2,from mcd ii.. obtained in the Sift event
+name,image,damage,rarity,max_level,protection,artifact_power,seasonal,seasonal_level,description,event
+Soul Reaper,Soul Reaper.png,77,Unique,79,0,0,True,3,From MCD II..,deep dark
+Emerald Hammer,emerald_hammer.png,55,Unique,55,0,0,True,2,from mcd ii..,sifting
+Sifting Hammer,Sifting Hammer.png,150,Seasonal,152,0,0,True,3,custom made mcd ii inspired weapon,sifting
+Shivering Bow,MCD_Shivering_Bow.png,53,Seasonal,56,0,0,True,3,"from mcd i,",frosting winter
+Awesomeaxe,Awesomeaxe.png,599,Seasonal,600,0,0,True,3,from mcd ii,deep dark
+Pride of the Plains,Pride of the Plains.png,90,Seasonal,90,0,0,True,2,from mcd ii,deep dark
