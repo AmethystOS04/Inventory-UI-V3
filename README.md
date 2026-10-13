@@ -1,6 +1,6 @@
 # inventory ui v3
 
-minecraft dungeons inventory ui thing
+minecraft dungeons based inventory ui thing
 
 this is v3
 
@@ -10,11 +10,25 @@ some assets are ripped from mcd because fuck recreating all of that
 
 theres inventory stuff
 
-potato overflow conflicts
+potato overflow conflicts (exclusive to amethyst's stupid stuff lmaooooooooooo)
 
 theres armor stuff
 
 theres weapon stuff
+
+theres artifact stuff
+
+theres ranged stuff
+
+theres.. realities
+
+theres.. enchanting
+
+theres.. seasonal events that somehow last shorter than my attention span
+
+theres save importing/exporting
+
+theres.. animated items
 
 theres quests
 
