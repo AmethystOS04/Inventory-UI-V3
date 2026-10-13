@@ -77,6 +77,9 @@
         card.className = "item";
         card.dataset.itemName = item.name;
         card.dataset.seasonal = String(seasonal);
+        card.dataset.rarity = item.rarity || "common";
+        if (item.event) card.dataset.catalogEvent = item.event.trim().toLowerCase();
+        card.dataset.originalOrder = String(inventory.querySelectorAll(".item").length);
         card.setAttribute("aria-label", item.name);
         card.title = item.name;
 
@@ -113,6 +116,7 @@
         }
     }
 
+    window.refreshItemSheet = loadSheet;
     loadSheet();
     window.setInterval(loadSheet, refreshEveryMs);
 })();

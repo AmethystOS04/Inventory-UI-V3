@@ -25,25 +25,31 @@ const songs = [
 
 const bgm = document.getElementById("bgm");
 const slider = document.getElementById("volumeSlider");
+const volumePercent = document.getElementById("volumePercent");
+const volumeStorageKey = "inventoryMusicVolumeV1";
 let currentSong = -1;
-// Start at 50% volume
-bgm.volume = 0.5;
+const storedVolume = localStorage.getItem(volumeStorageKey);
+let savedVolume = storedVolume === null ? 50 : Number(storedVolume);
+if (!Number.isFinite(savedVolume) || savedVolume < 0 || savedVolume > 100) savedVolume = 50;
+slider.value = String(savedVolume);
+bgm.volume = savedVolume / 100;
+volumePercent.textContent = `${savedVolume}%`;
+
+function saveMusicVolume() {
+    const volume = Number(slider.value);
+    if (!Number.isFinite(volume)) return;
+    bgm.volume = volume / 100;
+    volumePercent.textContent = `${volume}%`;
+    localStorage.setItem(volumeStorageKey, String(volume));
+}
 
 // Play audio on first user interaction (required by Chrome's autoplay policy)
 document.addEventListener("click", () => {
     bgm.play();
 }, { once: true });
 
-slider.addEventListener("input", () => {
-   
-});
-slider.addEventListener("input", () => {
-
-    bgm.volume = slider.value / 100;
-
-    document.getElementById("volumePercent")
-        .textContent = slider.value + "%";
-});
+slider.addEventListener("input", saveMusicVolume);
+slider.addEventListener("change", saveMusicVolume);
 
 function playRandomSong(){
 

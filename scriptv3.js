@@ -115,8 +115,28 @@ generateStarterChoices();
 let ap = parseInt(localStorage.getItem("ap")) || 0;
 let mp = parseInt(localStorage.getItem("mp")) || 0;
 
-document.getElementById("apBalance").textContent = ap;
-document.getElementById("mpBalance").textContent = mp;
+window.formatInventoryNumber = function (value) {
+    const amount = Number(value) || 0;
+    const absolute = Math.abs(amount);
+    if (absolute < 1000) return String(amount);
+    const suffixes = ["", "k", "m", "b", "t", "qa", "qi", "sx", "sp", "oc", "no", "dc"];
+    let tier = Math.min(Math.floor(Math.log10(absolute) / 3), suffixes.length - 1);
+    let scaled = amount / (1000 ** tier);
+    let rounded = Number(scaled.toFixed(Math.abs(scaled) < 10 ? 1 : 0));
+    if (Math.abs(rounded) >= 1000 && tier < suffixes.length - 1) {
+        tier += 1;
+        scaled = amount / (1000 ** tier);
+        rounded = Number(scaled.toFixed(Math.abs(scaled) < 10 ? 1 : 0));
+    }
+    return `${rounded}${suffixes[tier]}`;
+};
+window.getInventoryBalance = key => {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+};
+
+document.getElementById("apBalance").textContent = window.formatInventoryNumber(ap);
+document.getElementById("mpBalance").textContent = window.formatInventoryNumber(mp);
 
 window.addEventListener("DOMContentLoaded", () => {
 

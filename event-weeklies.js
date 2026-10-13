@@ -1,0 +1,1 @@
+window.INVENTORY_EVENT_WEEKLIES = [];

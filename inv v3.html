@@ -1,6 +1,4 @@
----
-permalink: /
----
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -162,6 +160,53 @@ html[data-reality="amethyst"] .amethyst-decor {
     -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 36px), transparent 100%);
     mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 36px), transparent 100%);
 }
+
+.item-sort-control {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 0;
+    color: #8cf5ff;
+    background: var(--reality-panel, #1a1a24);
+    font-size: 12px;
+}
+
+.item-sort-control > label {
+    white-space: nowrap;
+}
+
+.item-sort-control select {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 7px;
+    border: 1px solid #8a00d4;
+    border-radius: 7px;
+    color: #f5eaff;
+    background: #180b24;
+}
+
+.item-grid-refresh {
+    padding: 5px 7px;
+    border: 1px solid #8a00d4;
+    border-radius: 7px;
+    color: #f5eaff;
+    background: #180b24;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.item-grid-refresh:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+.item.is-filtered-out { display: none !important; }
 
 .item {
   width: 70px;
@@ -572,6 +617,21 @@ html[data-reality="deepdark"] .info-panel::after {
 }
 .weekly-challenge button:disabled { opacity:.65; cursor:default; }
 .weekly-actions { display:flex; flex-direction:column; gap:8px; }
+#arenaShopDialog[hidden] { display:none; }
+#arenaShopDialog { position:fixed; inset:0; z-index:10002; display:grid; place-items:center; padding:18px; background:rgba(3,3,12,.82); backdrop-filter:blur(7px); }
+.arena-shop-box { width:min(720px, 100%); max-height:min(82vh, 760px); overflow:auto; padding:20px; border:1px solid #29d7e8; border-radius:18px; background:#10101b; color:#fff; box-shadow:0 0 32px #00cde777; }
+.arena-shop-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.arena-shop-head h2 { margin:0; color:#8cf5ff; }
+.arena-shop-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:16px; }
+.arena-upgrade { display:flex; flex-direction:column; gap:9px; padding:14px; border:1px solid #285365; border-radius:12px; background:linear-gradient(145deg, #101c2b, #171024); }
+.arena-upgrade h3 { margin:0; color:#9bf7ff; }
+.arena-upgrade p { margin:0; color:#c9bfd7; font-size:13px; line-height:1.4; }
+.arena-upgrade-level { color:#dca4ff; font-size:13px; }
+.arena-upgrade-preview { padding:8px 10px; border:1px solid #36506b; border-radius:8px; color:#e9faff; background:#0b1420; font-size:13px; font-weight:700; }
+.arena-upgrade-cost { color:#7cefff; font-size:13px; }
+.arena-shop-box button { border:1px solid #39d8e8; border-radius:9px; padding:9px 14px; background:#142b42; color:#fff; cursor:pointer; }
+.arena-shop-box button:disabled { opacity:.55; cursor:default; }
+@media (max-width:640px) { .arena-shop-grid { grid-template-columns:1fr; } .survival-hud { flex-wrap:wrap; } }
 
 #weeklyGameDialog[hidden] { display:none; }
 #weeklyGameDialog {
@@ -596,27 +656,17 @@ html[data-reality="deepdark"] .info-panel::after {
 .weekly-game-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .weekly-game-head h2 { margin:0; color:#dfa0ff; }
 #weeklyGameStatus { min-height:24px; color:#8cf5ff; }
-#pulseBoard {
-    display:grid;
-    grid-template-columns:repeat(4, minmax(44px, 1fr));
-    gap:10px;
-    padding:12px;
+#survivalCanvas {
+    display:block;
+    width:100%;
+    aspect-ratio:16 / 9;
+    border:1px solid #49356b;
     border-radius:14px;
-    background:radial-gradient(ellipse, #122d36, #090a12 70%);
+    background:#080c18;
+    touch-action:none;
 }
-.pulse-tile {
-    aspect-ratio:1;
-    border:1px solid #174a4f !important;
-    border-radius:50% !important;
-    padding:0 !important;
-    background:radial-gradient(circle, #08171b 20%, #061015 70%) !important;
-    box-shadow:inset 0 0 12px #00d9ff16;
-}
-.pulse-tile.active {
-    border-color:#86ffff !important;
-    background:radial-gradient(circle, #d8ffff 0 8%, #3fffff 17%, #087c9c 48%, #061015 76%) !important;
-    box-shadow:0 0 18px #39faff, inset 0 0 14px #d5ffff;
-}
+.survival-hud { display:flex; justify-content:space-between; gap:8px; margin:10px 2px; color:#9cf8ff; font-weight:700; }
+.survival-controls { margin:8px 2px; color:#b8a8ce; font-size:13px; }
 .weekly-game-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
 
 @media (max-width: 1100px) {
@@ -717,7 +767,7 @@ html[data-reality="deepdark"] .info-panel::after {
 
     position:relative;
 
-    width:185px;
+    width:220px;
     height:38px;
 
     padding:8px 10px;
@@ -1008,6 +1058,14 @@ html[data-reality="deepdark"] .info-panel::after {
 .mp-label{
     color:#00bbff;
     text-shadow:0 0 6px #00bbff;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+#apBalance,
+#mpBalance{
+    white-space:nowrap;
+    flex-shrink:0;
 }
 #continueBtn{
 
@@ -1629,6 +1687,20 @@ border-radius:12px;
 .items::-webkit-scrollbar-thumb:hover {
     background: #1ba3cc;
 }
+.amethyst-stupid-stuff {
+background: linear-gradient(90deg, #a855f7, #ff4fcf);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+transition: filter .2s ease;
+}
+.ass-hover:hover {
+   transform:translateY(-2px);
+    box-shadow:0 0 8px #a855f7, 0 0 18px #ff4fcf;
+}
+.ass-hover:hover .amethyst-stupid-stuff {
+    filter: drop-shadow(0 0 6px #d946ef) drop-shadow(0 0 11px #ff4fcf);
+}
 </style>
 </head>
 <body>
@@ -1685,6 +1757,18 @@ border-radius:12px;
  <!-- use weapon maker to help code weapons with stats filled out-->
     <!-- ITEMS -->
     <div class="items">
+        <div class="item-sort-control">
+            <label for="itemSort">items</label>
+            <select id="itemSort" aria-label="sort or filter items">
+                <option value="all">normal order</option>
+                <option value="rarity">rarity, a to z</option>
+                <option value="unlocked">unlocked</option>
+                <option value="locked">locked</option>
+                <option value="seasonal">seasonal</option>
+                <option value="regular">normal items</option>
+            </select>
+            <button id="refreshItemGrid" class="item-grid-refresh" type="button" title="reload items from the spreadsheet">refresh</button>
+        </div>
         <div class="item" onclick="showItem('Flame Sword', 60, 'Magma', 150, 0, 0, false, 0, 'still fresh from the forge')">
             <img src="flame.png">
         </div>
@@ -1919,10 +2003,10 @@ border-radius:12px;
            <img src="v2arc.png">
             <span>V2 (Maintained for now)</span>
         </div>
-        <div class="portal-card"
+        <div class="portal-card ass-hover"
 onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
     <img src="mcglint_8x_pack.png">
-    <span>amethyst's stupid stuff</span>
+    <div class="amethyst-stupid-stuff">amethyst's stupid stuff</div>
 </div>
 
 
@@ -2040,7 +2124,7 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
 </button>
 
 <section id="dailyMissions" aria-label="daily missions">
-    <h3>daily missions <span id="dailyRefreshTimer"></span></h3>
+    <h3><span id="dailyMissionsHeading">daily missions</span> <span id="dailyRefreshTimer"></span></h3>
     <article class="mission-card" data-mission="inspect">
         <h4>loot scout</h4>
         <p class="mission-objective">inspect different items</p>
@@ -2049,6 +2133,7 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
         <p class="mission-reward">+40 ap · +15 mp</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="inspect" type="button">refresh quest 1 · 100 ap</button>
+        <button class="mission-refresh-button" data-event-quest="inspect" type="button" hidden>play event quest</button>
         <p class="mission-refresh-message" aria-live="polite"></p>
     </article>
     <article class="mission-card" data-mission="realities">
@@ -2059,6 +2144,7 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
         <p class="mission-reward">+25 ap · +15 mp</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="realities" type="button">refresh quest 2 · 300 ap</button>
+        <button class="mission-refresh-button" data-event-quest="realities" type="button" hidden>play event quest</button>
         <p class="mission-refresh-message" aria-live="polite"></p>
     </article>
     <article class="mission-card" data-mission="enchant">
@@ -2069,18 +2155,20 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
         <p class="mission-reward">+35 ap · +20 mp</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="enchant" type="button">refresh quest 3 · 500 ap</button>
+        <button class="mission-refresh-button" data-event-quest="enchant" type="button" hidden>play event quest</button>
         <p class="mission-refresh-message" aria-live="polite"></p>
     </article>
     <article class="weekly-challenge" id="weeklyChallenge">
         <div>
-            <h4>weekly challenge · <span id="weeklyChallengeTitle">sculk pulse</span></h4>
-            <p id="weeklyChallengeObjective">hit 20 sculk pulses in 30 seconds, with fewer than 3 misses</p>
-            <p class="weekly-reward">reward: +1,000 ap · +500 mp · frost slayer seasonal unlock</p>
+            <h4>weekly challenge · <span id="weeklyChallengeTitle">amethyst outbreak</span></h4>
+            <p id="weeklyChallengeObjective">survive the arena for 90 seconds as rift creatures swarm in</p>
+            <p class="weekly-reward" id="weeklyChallengeReward">reward: +1,000 ap · +500 mp · frost slayer seasonal unlock</p>
             <p id="weeklyChallengeStatus" aria-live="polite">one reward each week</p>
         </div>
         <div class="weekly-actions">
             <button id="playWeeklyChallenge" type="button">play challenge</button>
-            <button id="refreshWeeklyChallenge" type="button" hidden>refresh weekly · 3000 mp</button>
+            <button id="openArenaShop" type="button">arena upgrades</button>
+            <button id="refreshWeeklyChallenge" type="button">refresh weekly · 5000 mp</button>
         </div>
     </article>
 </section>
@@ -2088,21 +2176,38 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
 <div id="weeklyGameDialog" hidden role="dialog" aria-modal="true" aria-labelledby="weeklyGameTitle">
     <div class="weekly-game-box">
         <div class="weekly-game-head">
-            <h2 id="weeklyGameTitle">sculk pulse</h2>
+            <h2 id="weeklyGameTitle">amethyst outbreak</h2>
             <button id="closeWeeklyGame" type="button" aria-label="close">close</button>
         </div>
-        <p id="weeklyGameStatus">hit 20 pulses before time runs out, 3 misses ends the run</p>
-        <p>hits: <span id="pulseScore">0</span> / <span id="pulseGoal">20</span> · misses: <span id="pulseMisses">0</span> / <span id="pulseMissLimit">2</span> · time: <span id="pulseTime">30</span>s</p>
-        <div id="pulseBoard" aria-label="sculk pulse targets"></div>
-        <div class="weekly-game-actions"><button id="startPulseGame" type="button">start run</button></div>
+        <p id="weeklyGameStatus">survive the rift waves and stay alive until the timer ends</p>
+        <div class="survival-hud"><span>health <span id="arenaHealth">♥ ♥ ♥ ♥ ♥</span></span><span>wave <span id="arenaWave">1</span></span><span>eliminated <span id="arenaKills">0</span></span><span>time <span id="arenaTime">60</span>s</span></div>
+        <canvas id="survivalCanvas" width="960" height="540" aria-label="wave survival arena"></canvas>
+        <p class="survival-controls">move with wasd or arrow keys · click or tap to move</p>
+        <div class="weekly-game-actions"><button id="startSurvivalGame" type="button">start game</button></div>
     </div>
 </div>
 
+<div id="arenaShopDialog" hidden role="dialog" aria-modal="true" aria-labelledby="arenaShopTitle">
+    <section class="arena-shop-box">
+        <div class="arena-shop-head"><h2 id="arenaShopTitle">rift arena upgrades</h2><button id="closeArenaShop" type="button">close</button></div>
+        <p>spend ap and mp on permanent arena upgrades · upgrades take effect next run</p>
+        <div class="arena-shop-grid">
+            <article class="arena-upgrade" data-upgrade="damage"><h3>damage boost</h3><p>each amethyst bolt deals one extra damage per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
+            <article class="arena-upgrade" data-upgrade="health"><h3>extra health</h3><p>start each run with one extra heart per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
+            <article class="arena-upgrade" data-upgrade="resistance"><h3>rift resistance</h3><p>gain more invulnerability time after taking a hit</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
+        </div>
+    </section>
+</div>
+
   <script src="weapon-cost.js"></script>
-  <script src="scriptv3.js"></script>
-  <script src="unlocks.js"></script>
+  <script src="scriptv3.js?v=20261012-compact-balances1"></script>
+  <script src="event-catalog.js?v=20261012-shared-events1"></script>
+  <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
+  <script src="unlocks.js?v=20261012-compact-balances1"></script>
   <script src="infopanelweaponicons.js"></script>
-      <script src="volume.js"></script>
+      <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
-      <script src="missions.js"></script>
-      <script src="item-sheet.js"></script>
+  <script src="missions.js?v=20261012-compact-balances1"></script>
+      <script src="item-sheet.js?v=20261012-eventschedule3"></script>
+  <script src="save-format.js?v=20261012-player-save1"></script>
+  <script src="save-tools.js?v=20261012-player-save1"></script>
