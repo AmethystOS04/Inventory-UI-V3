@@ -3,6 +3,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100b18">
+<meta name="color-scheme" content="dark">
 <title>Inventory UI V3</title>
 <link rel="icon" href="v3ico-sculk.png">
 <style>
@@ -1700,6 +1703,330 @@ transition: filter .2s ease;
 }
 .ass-hover:hover .amethyst-stupid-stuff {
     filter: drop-shadow(0 0 6px #d946ef) drop-shadow(0 0 11px #ff4fcf);
+}
+
+@media (max-width: 900px) {
+    html {
+        min-width: 320px;
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        display: block;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+        padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    .panel {
+        width: 100%;
+        height: auto;
+        min-height: calc(100vh - 20px);
+        min-height: calc(100svh - 20px);
+        margin: 0 auto;
+        padding: 12px;
+        box-sizing: border-box;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        overflow: hidden;
+    }
+
+    .items {
+        width: 100%;
+        height: min(38vh, 340px);
+        height: min(38svh, 340px);
+        min-height: 210px;
+        grid-template-columns: repeat(4, minmax(0, 70px)) !important;
+        grid-auto-rows: clamp(52px, 17vw, 70px);
+        justify-content: start;
+        gap: 8px;
+        padding: 6px 5px 12px 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .item {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+        touch-action: manipulation;
+    }
+
+    .item-sort-control {
+        min-height: 42px;
+    }
+
+    .item-sort-control select,
+    .item-grid-refresh {
+        min-height: 40px;
+    }
+
+    .info-panel {
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        padding: 14px;
+        box-sizing: border-box;
+        overflow: visible;
+    }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        object-fit: contain;
+    }
+
+    .info-panel p {
+        min-width: 0;
+        margin: 10px 0;
+        flex-wrap: wrap;
+        overflow-wrap: anywhere;
+    }
+
+    #itemIcon {
+        width: 48px;
+        right: 8px;
+    }
+
+    #name {
+        padding-right: 60px !important;
+        overflow-wrap: anywhere;
+    }
+
+    .portal-panel {
+        width: 100%;
+        min-width: 0;
+        margin-top: 0;
+        padding: 14px;
+        box-sizing: border-box;
+    }
+
+    .portal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .portal-card {
+        min-width: 0;
+        padding: 10px;
+        gap: 8px;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+        touch-action: manipulation;
+    }
+
+    .portal-card img {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+    }
+
+    .balance-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ap-panel,
+    .mp-panel {
+        width: auto;
+        min-width: 0;
+        flex: 1 1 145px;
+    }
+
+    .amethyst-points-h3,
+    .mp-label {
+        font-size: 12px;
+    }
+
+    #apBalance,
+    #mpBalance {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+
+    .reality-selector {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    #realitySelect {
+        flex: 1 1 180px;
+        min-width: 0;
+        min-height: 42px;
+    }
+
+    .enchant-box {
+        position: static;
+        width: auto;
+        margin: 14px 0 0;
+        flex-wrap: wrap;
+    }
+
+    .enchant-box select,
+    .enchant-box button,
+    #skipSongBtn {
+        min-height: 42px;
+    }
+
+    .volume-slider-container {
+        width: 100%;
+    }
+
+    #volumeSlider {
+        width: min(100%, 320px);
+        height: 26px;
+        touch-action: pan-y;
+    }
+
+    #dailyMissions {
+        position: static;
+        inset: auto;
+        width: 100%;
+        margin-top: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mission-card,
+    .weekly-challenge {
+        min-width: 0;
+        padding: 11px;
+        overflow-wrap: anywhere;
+    }
+
+    .weekly-challenge {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .weekly-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .weekly-actions button,
+    .mission-refresh-button {
+        min-height: 42px;
+        touch-action: manipulation;
+    }
+
+    .starter-popup {
+        width: min(100%, 600px);
+        max-height: calc(100vh - 24px);
+        max-height: calc(100svh - 24px);
+        padding: 22px 16px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+
+    #starterOverlay {
+        padding: 12px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+
+    .welcome-layout {
+        width: min(100%, 900px);
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .welcome-selector {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #weeklyGameDialog,
+    #arenaShopDialog {
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .weekly-game-box,
+    .arena-shop-box {
+        width: 100%;
+        max-height: calc(100vh - 20px);
+        max-height: calc(100svh - 20px);
+        padding: 14px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+
+    .survival-hud {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    }
+
+    .panel {
+        min-height: calc(100vh - 12px);
+        min-height: calc(100svh - 12px);
+        padding: 9px;
+        gap: 9px;
+        border-radius: 15px;
+    }
+
+    .items {
+        height: min(34vh, 290px);
+        height: min(34svh, 290px);
+        min-height: 190px;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        grid-auto-rows: auto;
+    }
+
+    .item {
+        width: 100%;
+        max-width: 70px;
+    }
+
+    .item-sort-control {
+        gap: 5px;
+        font-size: 11px;
+    }
+
+    .portal-panel {
+        padding: 11px;
+    }
+
+    .portal-card {
+        flex-direction: column;
+        align-items: flex-start;
+        min-height: 80px;
+    }
+
+    #dailyMissions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .weekly-actions {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .weekly-game-head,
+    .weekly-game-actions {
+        align-items: stretch;
+    }
+
+    .weekly-game-head {
+        flex-wrap: wrap;
+    }
+
+    .survival-hud {
+        font-size: 12px;
+    }
 }
 </style>
 </head>

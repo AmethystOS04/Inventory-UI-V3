@@ -1,0 +1,50 @@
+name: deploy inventory ui
+
+on:
+  push:
+    branches:
+      - v3
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: check out source
+        uses: actions/checkout@v4
+
+      - name: configure pages
+        uses: actions/configure-pages@v5
+
+      - name: prepare site
+        shell: bash
+        run: |
+          mkdir -p _site
+          while IFS= read -r -d '' file; do
+            mkdir -p "_site/$(dirname "$file")"
+            cp "$file" "_site/$file"
+          done < <(git ls-files -z)
+          cp "inv v3.html" _site/index.html
+          rm -f "_site/inv v3.html"
+          touch _site/.nojekyll
+
+      - name: upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: deploy to github pages
+        id: deployment
+        uses: actions/deploy-pages@v4
