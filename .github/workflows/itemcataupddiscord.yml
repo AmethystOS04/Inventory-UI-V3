@@ -34,7 +34,7 @@ jobs:
               \"embeds\": [
                 {
                   \"title\": \"Item catalog update\",
-                  \"description\": \"${ITEM_COUNT} have been added\",
+                  \"description\": \"${ITEM_COUNT} item(s) have been added\",
                   \"color\": 11031039
                 }
               ]
