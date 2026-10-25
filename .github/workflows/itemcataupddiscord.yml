@@ -1,0 +1,17 @@
+name: Discord Webhook
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-discord:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send Discord message
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+            -d '{"content":"new catalog out"}' \
+            "$DISCORD_WEBHOOK"
