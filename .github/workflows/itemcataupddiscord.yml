@@ -1,4 +1,4 @@
-name: Discord Webhook
+name: Item Catalog Update
 
 on:
   workflow_dispatch:
