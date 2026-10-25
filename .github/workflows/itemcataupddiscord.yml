@@ -8,10 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send Discord message
+      - name: Send Discord embed
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           curl -H "Content-Type: application/json" \
-            -d '{"content":"new catalog out"}' \
+            -d '{
+              "embeds": [
+                {
+                  "title": "Item Catalog Update",
+                  "description": "new item/items out",
+                  "color": 11031039,
+                  "footer": {
+                    "text": "GitHub Actions"
+                  }
+                }
+              ]
+            }' \
             "$DISCORD_WEBHOOK"
