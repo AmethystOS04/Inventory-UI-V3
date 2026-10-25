@@ -1,28 +1,42 @@
-name: Item Catalog Update
+name: Item Catalog update
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   send-discord:
+    if: contains(github.event.head_commit.message, 'update item catalog')
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Count new items
+        id: count
+        run: |
+          OLD_COUNT=$(git show HEAD^:items.csv | tail -n +2 | grep -c '[^[:space:]]' || true)
+          NEW_COUNT=$(tail -n +2 items.csv | grep -c '[^[:space:]]' || true)
+
+          ADDED=$((NEW_COUNT - OLD_COUNT))
+
+          echo "count=$ADDED" >> "$GITHUB_OUTPUT"
+
       - name: Send Discord embed
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          ITEM_COUNT: ${{ steps.count.outputs.count }}
         run: |
           curl -H "Content-Type: application/json" \
-            -d '{
-              "embeds": [
+            -d "{
+              \"embeds\": [
                 {
-                  "title": "Item Catalog Update",
-                  "description": "new item/items out",
-                  "color": 11031039,
-                  "footer": {
-                    "text": "GitHub Actions"
-                  }
+                  \"title\": \"Item catalog update\",
+                  \"description\": \"${ITEM_COUNT} have been added\",
+                  \"color\": 11031039
                 }
               ]
-            }' \
+            }" \
             "$DISCORD_WEBHOOK"
