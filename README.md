@@ -1,6 +1,6 @@
 # inventory ui v3
 [![Item Catalog update](https://github.com/AmethystOS04/Inventory-UI-V3/actions/workflows/itemcataupddiscord.yml/badge.svg?branch=v3&event=workflow_dispatch)](https://github.com/AmethystOS04/Inventory-UI-V3/actions/workflows/itemcataupddiscord.yml)
-
+[![deploy inventory ui](https://github.com/AmethystOS04/Inventory-UI-V3/actions/workflows/pages.yml/badge.svg?event=page_build)](https://github.com/AmethystOS04/Inventory-UI-V3/actions/workflows/pages.yml)
 
 minecraft dungeons based inventory ui thing
 
