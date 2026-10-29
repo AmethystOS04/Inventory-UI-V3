@@ -1,42 +1,155 @@
-name: Item Catalog update
+name: discord commit announcements
 
 on:
   push:
 
+permissions:
+  contents: read
+
 jobs:
-  send-discord:
-    if: contains(github.event.head_commit.message, 'update item catalog')
+  announce:
+    if: github.event.deleted == false
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: check out full history
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Count new items
-        id: count
-        run: |
-          OLD_COUNT=$(git show HEAD^:items.csv | tail -n +2 | grep -c '[^[:space:]]' || true)
-          NEW_COUNT=$(tail -n +2 items.csv | grep -c '[^[:space:]]' || true)
-
-          ADDED=$((NEW_COUNT - OLD_COUNT))
-
-          echo "count=$ADDED" >> "$GITHUB_OUTPUT"
-
-      - name: Send Discord embed
+      - name: build and send announcement
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          ITEM_COUNT: ${{ steps.count.outputs.count }}
+          EVENT_PATH: ${{ github.event_path }}
+          REPOSITORY: ${{ github.repository }}
+          SERVER_URL: ${{ github.server_url }}
+          AFTER_SHA: ${{ github.event.after }}
         run: |
-          curl -H "Content-Type: application/json" \
-            -d "{
-              \"embeds\": [
-                {
-                  \"title\": \"Item catalog update\",
-                  \"description\": \"${ITEM_COUNT} item(s) have been added\",
-                  \"color\": 11031039
-                }
-              ]
-            }" \
-            "$DISCORD_WEBHOOK"
+          python3 - <<'PY'
+          import csv
+          import io
+          import json
+          import os
+          import subprocess
+          import sys
+          import urllib.error
+          import urllib.request
+
+          webhook = os.environ.get("DISCORD_WEBHOOK", "").strip()
+          if not webhook:
+              sys.exit("the discord_webhook repository secret is missing")
+
+          with open(os.environ["EVENT_PATH"], encoding="utf-8") as source:
+              event = json.load(source)
+
+          before = event.get("before", "")
+          after = event.get("after") or os.environ["AFTER_SHA"]
+          ref = event.get("ref", "").removeprefix("refs/heads/").removeprefix("refs/tags/")
+          commits = event.get("commits") or []
+          if not commits and after:
+              commits = [{"id": after, "message": "commit update", "url": ""}]
+
+          repo = os.environ["REPOSITORY"]
+          server = os.environ["SERVER_URL"]
+          commit_lines = []
+          for commit in commits[:16]:
+              sha = commit.get("id", "")
+              short_sha = sha[:7]
+              subject = (commit.get("message") or "commit update").splitlines()[0][:160]
+              url = commit.get("url") or f"{server}/{repo}/commit/{sha}"
+              commit_lines.append(f"[`{short_sha}`]({url}) {subject}")
+          if len(commits) > 16:
+              commit_lines.append(f"and {len(commits) - 16} more commits")
+
+          def git_output(*args):
+              return subprocess.check_output(["git", *args], text=True).split("\0")
+
+          changes = []
+          if after:
+              zero_sha = "0" * len(before)
+              if before and before != zero_sha:
+                  changes = git_output("diff", "--name-status", "-z", before, after)
+              else:
+                  changes = git_output("diff-tree", "--root", "--no-commit-id", "--name-status", "-r", "-z", after)
+
+          counts = {"added": 0, "changed": 0, "removed": 0}
+          paths = []
+          index = 0
+          while index < len(changes) and changes[index]:
+              status = changes[index]
+              index += 1
+              if status.startswith(("R", "C")):
+                  old_path = changes[index]
+                  new_path = changes[index + 1]
+                  index += 2
+                  counts["changed"] += 1
+                  paths.append(("renamed", f"{old_path} → {new_path}"))
+                  continue
+              path = changes[index]
+              index += 1
+              kind = "added" if status.startswith("A") else "removed" if status.startswith("D") else "changed"
+              counts[kind] += 1
+              paths.append((kind, path))
+
+          description = "\n".join(commit_lines) or "a new commit was pushed"
+          if len(description) > 3500:
+              description = description[:3480].rsplit("\n", 1)[0] + "\nmore commit details are available on github"
+
+          file_lines = []
+          for kind, path in paths:
+              line = f"{kind}: `{path}`"
+              if sum(len(entry) + 1 for entry in file_lines) + len(line) > 950:
+                  break
+              file_lines.append(line)
+          if len(file_lines) < len(paths):
+              file_lines.append(f"and {len(paths) - len(file_lines)} more changed paths")
+          file_text = "\n".join(file_lines) or "no changed paths found"
+
+          fields = [{
+              "name": "changes",
+              "value": f"{counts['added']} added · {counts['changed']} changed · {counts['removed']} removed",
+              "inline": True,
+          }, {
+              "name": "files",
+              "value": file_text[:1024],
+              "inline": False,
+          }]
+
+          if "items.csv" in {path for _, path in paths} and before and before != "0" * len(before):
+              try:
+                  old_csv = subprocess.check_output(["git", "show", f"{before}:items.csv"], text=True)
+                  new_csv = subprocess.check_output(["git", "show", f"{after}:items.csv"], text=True)
+                  old_count = sum(1 for row in list(csv.reader(io.StringIO(old_csv)))[1:] if row and any(cell.strip() for cell in row))
+                  new_count = sum(1 for row in list(csv.reader(io.StringIO(new_csv)))[1:] if row and any(cell.strip() for cell in row))
+                  fields.append({"name": "catalog items added", "value": str(max(0, new_count - old_count)), "inline": True})
+              except (subprocess.CalledProcessError, IndexError):
+                  pass
+
+          title = "new commit" if len(commits) == 1 else "new commits"
+          payload = {
+              "allowed_mentions": {"parse": []},
+              "embeds": [{
+                  "title": title,
+                  "url": f"{server}/{repo}/commit/{after}" if after else f"{server}/{repo}",
+                  "description": description,
+                  "color": 11031039,
+                  "fields": fields,
+                  "footer": {"text": f"{repo} · {ref}"},
+              }],
+          }
+          request = urllib.request.Request(
+              webhook,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json", "User-Agent": "inventory-ui-commit-announcer"},
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  if response.status < 200 or response.status >= 300:
+                      sys.exit(f"discord returned http {response.status}")
+          except urllib.error.HTTPError as error:
+              sys.exit(f"discord returned http {error.code}")
+          except urllib.error.URLError as error:
+              sys.exit(f"could not reach discord: {error.reason}")
+          print("discord commit announcement sent")
+          PY
