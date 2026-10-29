@@ -40,7 +40,7 @@
             <label id="importPlayerSaveLabel" for="importPlayerSaveInput">import save</label>
             <input id="importPlayerSaveInput" type="file" accept="application/json,.json">
         </div>
-        <p class="save-export-note">if you want your save edited dm amethystos04 on discord</p>
+        <p class="save-export-note">if you want your save edited dm amethystos04 on discord OR if uou cant use discord gmail me at amethystos04mc@gmail.com</p>
         <div class="save-export-actions"><button id="exportPlayerSave" type="button">export save</button></div>
         <p id="saveDataStatus" role="status" aria-live="polite"></p>
     `;
