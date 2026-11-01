@@ -133,7 +133,7 @@ window.INVENTORY_BADGE_CATALOG = [
         "condition": {
             "type": "custom-code",
             "amount": 10,
-            "code": "return api.ap(4444444444444444444444444)"
+            "code": "return api.ap() >= 4444444444444444444444444"
         }
     },
     {

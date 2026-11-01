@@ -5,6 +5,7 @@
     const adminLockedBadgesKey = "inventoryAdminLockedBadgesV1";
     const unlockAnimationsKey = "inventoryUnlockAnimationsEnabledV1";
     const actionProgressKey = "badgeActionProgressV1";
+    const whatBadgeRepairKey = "badgeWhatApRequirementRepairV1";
     const peekStateKey = "badgeSecretPeekStateV1";
     const peekQuestProgressKey = "badgePeekQuestProgressV1";
     const peekPenaltiesDisabledKey = "badgePeekPenaltiesDisabledV1";
@@ -605,6 +606,14 @@
         previousOwnership = currentOwnership;
         const catalog = readCatalog();
         const unlocked = readUnlocked();
+        if (localStorage.getItem(whatBadgeRepairKey) !== "true") {
+            const savedAp = Number(window.getInventoryBalance ? window.getInventoryBalance("ap") : localStorage.getItem("ap")) || 0;
+            if (unlocked.has("what") && savedAp < 4444444444444444444444444) {
+                unlocked.delete("what");
+                localStorage.setItem(unlockedKey, JSON.stringify(Array.from(unlocked)));
+            }
+            localStorage.setItem(whatBadgeRepairKey, "true");
+        }
         const adminLocked = readAdminLockedBadges();
         const newlyUnlocked = [];
         for (const badge of catalog) {
