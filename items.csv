@@ -1,10 +1,13 @@
-name,image,damage,rarity,max_level,protection,artifact_power,seasonal,seasonal_level,description,event
-Soul Reaper,Soul Reaper.png,77,Unique,79,0,0,True,3,From MCD II..,deep dark
-Emerald Hammer,emerald_hammer.png,55,Unique,55,0,0,True,2,from mcd ii..,sifting
-Sifting Hammer,Sifting Hammer.png,150,Seasonal,152,0,0,True,3,custom made mcd ii inspired weapon,sifting
-Shivering Bow,MCD_Shivering_Bow.png,53,Seasonal,56,0,0,True,3,"from mcd i,",frosting winter
-Awesomeaxe,Awesomeaxe.png,599,Seasonal,600,0,0,True,3,from mcd ii,deep dark
-Pride of the Plains,Pride of the Plains.png,90,Seasonal,90,0,0,True,2,from mcd ii,deep dark
-Slaymore,MCD2_Render_Slaymore_Icon.png,500,Seasonal,4334,0,0,True,1,from mcd ii,deep dark
-Ultimate Pickaxe,MCSM_Ultimate_Pickaxe.png,53,Mythical,6666,0,0,False,0,from mcsm,
-Ultimate Sword,MCSM_Ultimate_Sword.png,646,Divine,555555,0,0,False,0,from mcsm,
+name,image,damage,rarity,max_level,protection,artifact_power,seasonal,seasonal_level,description,event,soul_usage
+Soul Reaper,Soul Reaper.png,77,Unique,79,0,0,True,3,From MCD II..,deep dark,
+Emerald Hammer,emerald_hammer.png,55,Unique,55,0,0,True,2,from mcd ii..,sifting,
+Sifting Hammer,Sifting Hammer.png,150,Seasonal,152,0,0,True,3,custom made mcd ii inspired weapon,sifting,
+Shivering Bow,MCD_Shivering_Bow.png,53,Seasonal,56,0,0,True,3,"from mcd i,",frosting winter,
+Awesomeaxe,Awesomeaxe.png,599,Seasonal,600,0,0,True,3,from mcd ii,deep dark,
+Pride of the Plains,Pride of the Plains.png,90,Seasonal,90,0,0,True,2,from mcd ii,deep dark,
+Slaymore,MCD2_Render_Slaymore_Icon.png,500,Seasonal,4334,0,0,True,1,from mcd ii,deep dark,
+Ultimate Pickaxe,MCSM_Ultimate_Pickaxe.png,53,Mythical,6666,0,0,False,0,from mcsm,,None
+Ultimate Sword,MCSM_Ultimate_Sword.png,646,Divine,555555,0,0,False,0,from mcsm,,None
+Corrupted Beacon (MCDII),MCD2_Corrupted_Beacon_gear_icon.webp,55,Special,66,0,52,True,3,"fires a purple energy beam at your enemies, melting them like acid.. cool right?",deep dark,20
+Lightning Rod (MCDII),50px-MCD2_Lightning_Rod_gear_icon.webp,3,Special,188,0,188,True,2,"copyright strikes your enemies, cool right?",deep dark,20
+Firework Arrow (MCDII),150px-MCD2_Firework_Arrow_screenshot.webp,5553,Special,0,0,53533,True,3,"fires a arrow as a firework, launching a portable firework show.. cool right?",deep dark,20
