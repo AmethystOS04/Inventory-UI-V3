@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOORS Badge Browser</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #17151c;
+      color: #fff;
+    }
+
+    header {
+      padding: 24px 28px;
+      background: #211e29;
+      border-bottom: 1px solid #393342;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    #status {
+      color: #aaa4b8;
+      font-size: 14px;
+    }
+
+    #badges {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 18px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .badge-card {
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px;
+      box-sizing: border-box;
+      background: #24212b;
+      border: 1px solid #393342;
+      border-radius: 14px;
+      transition: transform .15s, border-color .15s;
+    }
+
+    .badge-card:hover {
+      transform: translateY(-3px);
+      border-color: #7f6aa8;
+    }
+
+    .badge {
+      width: 86px;
+      height: 86px;
+      object-fit: contain;
+    }
+
+    .name {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-align: center;
+      color: #ddd8e5;
+      font-size: 13px;
+    }
+
+    .error {
+      padding: 28px;
+      color: #ff9292;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DOORS Badge Browser</h1>
+    <div id="status">Loading badges from GitLab...</div>
+  </header>
+
+  <main id="badges"></main>
+
+  <script>
+    const project = encodeURIComponent("AmethystOS04/DOORSBADGEGRADIENTS");
+    const branch = "main";
+
+    const apiUrl =
+      `https://gitlab.com/api/v4/projects/${project}/repository/tree` +
+      `?ref=${encodeURIComponent(branch)}&recursive=true&per_page=100`;
+
+    const rawBase =
+      `https://gitlab.com/AmethystOS04/DOORSBADGEGRADIENTS/-/raw/${branch}/`;
+
+    async function loadBadges() {
+      const status = document.getElementById("status");
+      const container = document.getElementById("badges");
+
+      try {
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`GitLab API returned ${response.status}`);
+        }
+
+        const files = await response.json();
+
+        const badges = files.filter(file =>
+          file.type === "blob" &&
+          /\.(png|jpg|jpeg|webp|svg)$/i.test(file.path)
+        );
+
+        if (!badges.length) {
+          status.textContent = "No badge image files found";
+          return;
+        }
+
+        status.textContent =
+          `${badges.length} badge image${badges.length === 1 ? "" : "s"} found in the repository`;
+
+        for (const file of badges) {
+          const card = document.createElement("div");
+          card.className = "badge-card";
+
+          const img = document.createElement("img");
+          img.className = "badge";
+          img.src = rawBase + file.path.split("/").map(encodeURIComponent).join("/");
+          img.alt = file.path;
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = file.path;
+
+          card.appendChild(img);
+          card.appendChild(name);
+          container.appendChild(card);
+        }
+      } catch (error) {
+        status.textContent = "Failed to load badges";
+        container.innerHTML =
+          `<div class="error">
+            ${error.message}<br><br>
+            Make sure the repository is public and you're opening this page in a browser with internet access
+          </div>`;
+      }
+    }
+
+    loadBadges();
+  </script>
+</body>
+</html>
