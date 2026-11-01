@@ -1473,9 +1473,14 @@ border-radius:12px;
     font-family:Oswald, sans-serif;
 }
 .rarity-label{
-    color:#c800ff;
-    text-shadow:0 0 8px #c800ff;
-    
+    background:linear-gradient(180deg, #9d0aff, #2a0297, #ba27c7, #bc36dd);
+    background-clip:text;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    font-weight:bold;
+    font-family:Oswald, sans-serif;
+    text-shadow:0 0 6px #5a155a;
 }
 .mpl-label{
     color:#26ff00;
@@ -2188,7 +2193,7 @@ transition: filter .2s ease;
     -webkit-text-fill-color:transparent;
     font-weight:bold;
     font-family:Oswald, sans-serif;
-    left: 443px;
+    margin-left:6px;
 }
 </style>
 </head>
@@ -2486,19 +2491,19 @@ transition: filter .2s ease;
         <div class="portal-card"
              onclick="window.open('weaponmaker.html','_blank')">
             <img src="wmfavicon.png">
-            <span>Weapon Maker</span>
+            <span>Weapon Maker (Archived)</span>
         </div>
 
         <div class="portal-card"
              onclick="window.open('inv v1.html','_blank')">
            <img src="v1arc64.png">
-            <span>V1 Version (Archive)</span>
+            <span>V1 Version (Archived)</span>
         </div>
 
          <div class="portal-card"
              onclick="window.open('Inventory UI V2.html','_blank')">
            <img src="v2arc.png">
-            <span>V2 (Maintained for now)</span>
+            <span>V2 (Archived)</span>
         </div>
         <div class="portal-card ass-hover"
 onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
