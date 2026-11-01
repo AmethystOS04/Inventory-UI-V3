@@ -85,7 +85,7 @@ window.INVENTORY_EVENT_CATALOG = [
         "name": "deep dark",
         "theme": "auto",
         "themeColor": "",
-        "start": "2026-11-02T21:50:00.000Z",
+        "start": "2026-11-01T19:50:00.000Z",
         "end": "2026-11-05T01:50:00.000Z",
         "items": [
             "Awesomeaxe",
