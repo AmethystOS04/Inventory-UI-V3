@@ -2,7 +2,11 @@
     const fieldTypes = {
         ap: "balance",
         mp: "balance",
+        stardust: "balance",
         ownedItemsV2: "names",
+        inventoryBadgesUnlockedV1: "string-array",
+        inventoryAdminLockedBadgesV1: "string-array",
+        inventoryBadgeRewardsClaimedV1: "string-array",
         eventItemHistoryV1: "names",
         starterWeapon: "text",
         starterClaimed: "boolean",
@@ -36,6 +40,12 @@
                     if (value == null) { data[key] = []; break; }
                     if (!Array.isArray(value) || value.some(name => typeof name !== "string" || name.length > 120)) throw new Error(`${key} must be a list of item names`);
                     data[key] = Array.from(new Set(value.map(name => name.trim()).filter(Boolean)));
+                    break;
+                }
+                case "string-array": {
+                    if (value == null) { data[key] = []; break; }
+                    if (!Array.isArray(value) || value.some(entry => typeof entry !== "string" || entry.length > 160)) throw new Error(`${key} must be a list of ids`);
+                    data[key] = Array.from(new Set(value.map(entry => entry.trim()).filter(Boolean)));
                     break;
                 }
                 case "boolean":
@@ -75,11 +85,11 @@
     function readStored(key) {
         const raw = localStorage.getItem(key);
         if (raw == null) return null;
-        if (["ownedItemsV2", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
+        if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
             try { return JSON.parse(raw); } catch { return null; }
         }
-        if (["ap", "mp", "inventoryMusicVolumeV1"].includes(key)) {
-            if (["ap", "mp"].includes(key) && /^tree\(\s*\d+\s*\)$/i.test(raw.trim())) return raw.trim().toLowerCase();
+        if (["ap", "mp", "stardust", "inventoryMusicVolumeV1"].includes(key)) {
+            if (["ap", "mp", "stardust"].includes(key) && (/^tree\(\s*\d+\s*\)$/i.test(raw.trim()) || /^infinity$/i.test(raw.trim()))) return raw.trim().toLowerCase();
             const number = Number(raw);
             return Number.isFinite(number) ? number : null;
         }
@@ -98,7 +108,7 @@
             const value = clean[key];
             if (value == null || (key === "starterWeapon" && !value) || (["starterClaimed", "eventItemsRelockedV3"].includes(key) && !value)) {
                 storage.removeItem(key);
-            } else if (["ownedItemsV2", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
+            } else if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
                 storage.setItem(key, JSON.stringify(value));
             } else {
                 storage.setItem(key, String(value));

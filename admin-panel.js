@@ -18,7 +18,7 @@
     root.innerHTML = `
         <header class="iap-head"><strong>local admin</strong><button class="iap-collapse" type="button" aria-label="collapse admin panel">−</button></header>
         <div class="iap-body">
-            <section><h3>balances</h3><div class="iap-balance"><label for="iapAp">ap</label><input id="iapAp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="ap">set</button></div><div class="iap-balance"><label for="iapMp">mp</label><input id="iapMp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="mp">set</button></div></section>
+            <section><h3>balances</h3><div class="iap-balance"><label for="iapAp">ap</label><input id="iapAp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="ap">set</button></div><div class="iap-balance"><label for="iapMp">mp</label><input id="iapMp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="mp">set</button></div><div class="iap-balance"><label for="iapStardust">dust</label><input id="iapStardust" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="stardust">set</button></div></section>
             <section><h3>items</h3><select id="iapItem" aria-label="choose item"><option value="">loading items</option></select><div class="iap-actions"><button type="button" data-item-action="give">give item</button><button type="button" data-item-action="lock">lock item</button></div><button class="iap-wide" type="button" data-item-action="give-all">give all items</button><details id="iapMultiItemDropdown"><summary>choose multiple items</summary><input id="iapMultiItemSearch" type="search" placeholder="search items" aria-label="search items"><div id="iapMultiItemOptions" role="group" aria-label="items to select"></div></details><div class="iap-actions"><button type="button" data-item-action="give-selected">give items</button><button type="button" data-item-action="lock-selected">lock items</button></div><button class="iap-wide" type="button" data-item-action="lock-all">lock all items</button></section>
             <section><h3>badges</h3><select id="iapBadge" aria-label="choose badge"><option value="">choose badge</option></select><div class="iap-actions"><button type="button" data-badge-action="give">give badge</button><button type="button" data-badge-action="lock">lock badge</button></div><div class="iap-actions"><button type="button" data-badge-action="normal">give all normal</button><button type="button" data-badge-action="secret">give all secret</button></div><button class="iap-wide" type="button" data-badge-action="all">give all badges</button><button class="iap-wide" type="button" data-badge-action="lock-all">lock all badges</button></section>
             <section><label class="iap-toggle"><input id="iapAnimations" type="checkbox"><span>unlock animations</span></label></section>
@@ -97,7 +97,7 @@
     };
 
     function setBalance(key) {
-        const input = root.querySelector(key === 'ap' ? '#iapAp' : '#iapMp');
+        const input = root.querySelector(key === 'ap' ? '#iapAp' : key === 'mp' ? '#iapMp' : '#iapStardust');
         const normalized = String(input.value || '').trim();
         if (/^infinity$/i.test(normalized)) {
             if (typeof window.setInventoryBalance !== 'function') { say('infinity balances need the main inventory page'); return; }

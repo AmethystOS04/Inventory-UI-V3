@@ -120,6 +120,7 @@ function readInventoryBalanceNumber(key) {
 }
 let ap = readInventoryBalanceNumber("ap");
 let mp = readInventoryBalanceNumber("mp");
+let stardust = readInventoryBalanceNumber("stardust");
 
 window.formatInventoryNumber = function (value) {
     const amount = Number(value) || 0;
@@ -175,8 +176,10 @@ window.getInventoryBalance = key => {
 
 document.getElementById("apBalance").textContent = window.formatInventoryBalance(ap, "ap");
 document.getElementById("mpBalance").textContent = window.formatInventoryBalance(mp, "mp");
+document.getElementById("stardustBalance").textContent = window.formatInventoryBalance(stardust, "stardust");
 document.getElementById("apBalance").classList.toggle("is-infinity", String(localStorage.getItem("ap") || "").trim().toLowerCase() === "infinity");
 document.getElementById("mpBalance").classList.toggle("is-infinity", String(localStorage.getItem("mp") || "").trim().toLowerCase() === "infinity");
+document.getElementById("stardustBalance").classList.toggle("is-infinity", String(localStorage.getItem("stardust") || "").trim().toLowerCase() === "infinity");
 
 window.addEventListener("DOMContentLoaded", () => {
 

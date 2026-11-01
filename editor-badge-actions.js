@@ -13,5 +13,6 @@
         progress[key] = (Number(progress[key]) || 0) + Math.max(0, Number(amount) || 0);
         localStorage.setItem(actionProgressKey, JSON.stringify(progress));
         window.dispatchEvent(new CustomEvent("inventory-editor-badge-action", { detail: { key, amount } }));
+        return progress[key];
     };
 })();

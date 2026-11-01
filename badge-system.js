@@ -3,6 +3,7 @@
     const privateCatalogKey = "inventoryPrivateBadgeCatalogV1";
     const unlockedKey = "inventoryBadgesUnlockedV1";
     const adminLockedBadgesKey = "inventoryAdminLockedBadgesV1";
+    const badgeRewardsClaimedKey = "inventoryBadgeRewardsClaimedV1";
     const unlockAnimationsKey = "inventoryUnlockAnimationsEnabledV1";
     const actionProgressKey = "badgeActionProgressV1";
     const whatBadgeRepairKey = "badgeWhatApRequirementRepairV1";
@@ -125,9 +126,13 @@
             "editor:badge-create": "create a badge",
             "editor:badge-edit": "edit a badge",
             "editor:badge-remove": "remove a badge",
-            "editor:badge-helper-save": "save a badge helper"
+            "editor:badge-helper-save": "save a badge helper",
+            "portal:amethyst-stupid-stuff": "go to amethyst's stupid stuff by portal"
         };
-        if (condition.type === "editor-action") return `${editorActions[condition.actionKey] || condition.actionKey || "editor action"} ${amount} times`;
+        if (condition.type === "editor-action") {
+            const action = editorActions[condition.actionKey] || condition.actionKey || "editor action";
+            return condition.actionKey === "portal:amethyst-stupid-stuff" && amount === 1 ? action : `${action} ${amount} times`;
+        }
         const labels = {
             items: `unlock ${amount} items`,
             seasonal: `unlock ${amount} seasonal items`,
@@ -143,6 +148,8 @@
             "one-more-badge": "be the last badge unlocked in its group",
             "all-normal-badges": "complete all other normal badges",
             "secret-badges": `unlock ${amount} secret badges`,
+            "secret-amethyst": `unlock ${amount} secret amethyst badges`,
+            "secret-amethyst-badges": `unlock ${amount} secret amethyst badges`,
             "all-secret-badges": "complete all other secret badges",
             "all-badges": "complete all other badges",
             "daily-quests": `complete ${amount} daily quests`,
@@ -154,6 +161,49 @@
         };
         if (condition.type === "editor-action") return `do ${condition.actionKey || "an editor action"} ${amount} times`;
         return labels[condition.type] || `meet requirement: ${condition.type || "unknown"}`;
+    }
+
+    function rewardDescription(badge) {
+        const reward = badge?.rewards || {};
+        const parts = [
+            Number(reward.ap) > 0 ? `${reward.ap} ap` : "",
+            Number(reward.mp) > 0 ? `${reward.mp} mp` : "",
+            Number(reward.stardust) > 0 ? `${reward.stardust} stardust` : "",
+            reward.item ? `item: ${reward.item}` : ""
+        ].filter(Boolean);
+        return parts.length ? `reward: ${parts.join(" · ")}` : "";
+    }
+
+    function grantBadgeReward(badge) {
+        const reward = badge?.rewards || {};
+        const ap = Math.max(0, Number(reward.ap) || 0);
+        const mp = Math.max(0, Number(reward.mp) || 0);
+        const stardust = Math.max(0, Number(reward.stardust) || 0);
+        const item = String(reward.item || "").trim();
+        if (!ap && !mp && !stardust && !item) return "";
+        let claimed = [];
+        try { claimed = JSON.parse(localStorage.getItem(badgeRewardsClaimedKey) || "[]"); } catch {}
+        if (!Array.isArray(claimed)) claimed = [];
+        if (claimed.includes(badge.id)) return "";
+        claimed.push(badge.id);
+        localStorage.setItem(badgeRewardsClaimedKey, JSON.stringify(claimed));
+        if ((ap || mp || stardust) && typeof window.awardCurrency === "function") window.awardCurrency(ap, mp, stardust);
+        else if (ap || mp || stardust) {
+            for (const [key, amount] of [["ap", ap], ["mp", mp], ["stardust", stardust]]) {
+                if (!amount) continue;
+                const current = Number(localStorage.getItem(key)) || 0;
+                localStorage.setItem(key, String(current + amount));
+            }
+        }
+        if (item && typeof window.unlockItem === "function") window.unlockItem(item);
+        else if (item) {
+            let owned = [];
+            try { owned = JSON.parse(localStorage.getItem("ownedItemsV2") || "[]"); } catch {}
+            if (!Array.isArray(owned)) owned = [];
+            if (!owned.includes(item)) owned.push(item);
+            localStorage.setItem("ownedItemsV2", JSON.stringify(owned));
+        }
+        return rewardDescription(badge);
     }
 
     function dailyQuestsCompleted() {
@@ -181,7 +231,7 @@
             const value = unlockedBadges.size;
             return { value, target, label: `${value} / ${target} badges unlocked` };
         }
-        if (["normal-badges", "secret-badges", "one-more-badge", "all-normal-badges", "all-secret-badges", "all-badges"].includes(condition.type)) {
+        if (["normal-badges", "secret-badges", "one-more-badge", "all-normal-badges", "all-secret-badges", "all-badges", "secret-amethyst", "secret-amethyst-badges"].includes(condition.type)) {
             const catalog = readPublicCatalog().filter(item => item && item.id && item.name);
             if (condition.type === "normal-badges") {
                 const normal = catalog.filter(item => !isSecret(item));
@@ -191,6 +241,11 @@
             if (condition.type === "secret-badges") {
                 const value = catalog.filter(isSecret).filter(item => unlockedBadges.has(item.id)).length;
                 return { value, target, label: `${value} / ${target} secret badges unlocked` };
+            }
+            if (["secret-amethyst", "secret-amethyst-badges"].includes(condition.type)) {
+                const privateSecrets = readPrivateCatalog().filter(item => item && item.id && item.name && isSecret(item));
+                const value = privateSecrets.filter(item => unlockedBadges.has(item.id)).length;
+                return { value, target, label: `${value} / ${target} secret amethyst badges unlocked` };
             }
             const group = condition.type === "all-normal-badges"
                 ? catalog.filter(item => !isSecret(item))
@@ -259,7 +314,7 @@
             return { value: balance, target, label: `${window.formatInventoryNumber ? window.formatInventoryNumber(balance) : balance} / ${window.formatInventoryNumber ? window.formatInventoryNumber(target) : target} ${condition.type}` };
         }
         if (["action", "editor-action", "item-unlock", "event-item-unlock", "event-quest", "weekly-win", "arena-kill", "enchant", "reality-visit"].includes(condition.type)) {
-            const key = condition.type === "action" || condition.type === "editor-action" ? String(condition.actionKey || "") : condition.type;
+            const key = condition.type === "action" || condition.type === "editor-action" ? String(condition.actionKey || "").trim().toLowerCase() : condition.type;
             const value = Number(readActionProgress()[key]) || 0;
             const label = condition.type === "action"
                 ? `${key}: ${value} / ${target}`
@@ -322,6 +377,9 @@
         const description = document.createElement("span");
         description.textContent = current.description || "you earned this badge";
         copy.append(name, description);
+        const reward = document.createElement("span");
+        reward.textContent = rewardDescription(current);
+        if (reward.textContent) copy.append(reward);
         body.append(frame, copy);
         card.append(heading, body);
         toast.prepend(card);
@@ -348,12 +406,12 @@
     const dialog = document.createElement("dialog");
     dialog.id = "badgesDialog";
     dialog.setAttribute("aria-labelledby", "badgesTitle");
-    dialog.innerHTML = `<div class="badges-heading"><h2 id="badgesTitle">badges</h2><button id="closeBadgesPanel" type="button">close</button></div><div class="badge-progress-row"><div id="badgeCollectionProgress" class="badge-progress" role="progressbar" aria-label="badge collection progress" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div id="badgeCollectionFill" class="badge-progress-fill"></div><span class="badge-progress-label">progress</span><span id="badgeCollectionCount" class="badge-progress-count">0 / 0 (0%)</span></div><img id="badgeProgressionStar" class="badge-progression-star" alt="" hidden></div><div class="badge-list-toolbar"><label>view <select id="badgeViewMode" aria-label="badge list view"><option value="grid">grid</option><option value="list">list</option></select></label><span id="badgePeekStatus" aria-live="polite"></span></div><nav id="badgeCategoryTabs" class="badge-category-tabs" role="tablist" aria-label="badge categories"><button type="button" role="tab" data-badge-category="normal-unlocked" aria-selected="true">normal unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="normal-locked" aria-selected="false">normal locked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="secret-unlocked" aria-selected="false">secret unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="secret-locked" aria-selected="false">secret locked <span class="badge-category-count">?</span></button><button type="button" role="tab" data-badge-category="all-unlocked" aria-selected="false">all badges unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="all-locked" aria-selected="false">all badges locked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="amethyst" aria-selected="false" hidden>amethyst's badges <span class="badge-category-count">0</span></button></nav><section class="badge-list-panel badge-category-panel"><h3 id="badgeCategoryHeading">normal unlocked</h3><div id="badgeCategoryList" class="badge-list grid-view" role="tabpanel" aria-live="polite"></div></section>`;
+    dialog.innerHTML = `<div class="badges-heading"><h2 id="badgesTitle">badges</h2><button id="closeBadgesPanel" type="button">close</button></div><div class="badge-progress-row"><div id="badgeCollectionProgress" class="badge-progress" role="progressbar" aria-label="badge collection progress" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><div id="badgeCollectionFill" class="badge-progress-fill"></div><span class="badge-progress-label">progress</span><span id="badgeCollectionCount" class="badge-progress-count">0 / 0 (0%)</span></div><img id="badgeProgressionStar" class="badge-progression-star" alt="" hidden></div><div class="badge-list-toolbar"><label>view <select id="badgeViewMode" aria-label="badge list view"><option value="grid">grid</option><option value="list">list</option></select></label><span id="badgePeekStatus" aria-live="polite"></span></div><nav id="badgeCategoryTabs" class="badge-category-tabs" role="tablist" aria-label="badge categories"><button type="button" role="tab" data-badge-category="normal-unlocked" aria-selected="true">normal unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="normal-locked" aria-selected="false">normal locked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="secret-unlocked" aria-selected="false">secret unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="secret-locked" aria-selected="false">secret locked <span class="badge-category-count">?</span></button><button type="button" role="tab" data-badge-category="all-unlocked" aria-selected="false">all badges unlocked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="all-locked" aria-selected="false">all badges locked <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="amethyst" aria-selected="false" hidden>amethyst's badges <span class="badge-category-count">0</span></button><button type="button" role="tab" data-badge-category="secret-amethyst" aria-selected="false" hidden>secret amethyst's badges <span class="badge-category-count">0</span></button></nav><section class="badge-list-panel badge-category-panel"><h3 id="badgeCategoryHeading">normal unlocked</h3><div id="badgeCategoryList" class="badge-list grid-view" role="tabpanel" aria-live="polite"></div></section>`;
     document.body.append(dialog);
 
     const style = document.createElement("style");
     style.textContent = `
-        #openBadgesPanel,#closeBadgesPanel{border:1px solid var(--reality-border,#00f7ff);border-radius:8px;padding:8px 11px;color:var(--reality-accent-2,#70eaff);background:var(--reality-panel,#15121d);font:inherit;cursor:pointer}
+        #openBadgesPanel,#closeBadgesPanel{border:1px solid var(--reality-border,#00f7ff);border-radius:8px;padding:8px 11px;color:var(--reality-accent-2,#70eaff);background:var(--reality-panel,#15121d);font:inherit;cursor:pointer;text-shadow:0 0 1px --reality-accent-2,#70eaff}
         #badgesDialog{width:min(860px,94vw);max-height:min(720px,88vh);padding:18px;border:1px solid var(--reality-border,#00f7ff);border-radius:16px;color:var(--reality-text,#fff);background:var(--reality-panel,#080c13);box-shadow:0 0 28px color-mix(in srgb,var(--reality-border,#00f7ff) 32%,transparent)}
         #badgesDialog::backdrop{background:rgba(2,4,12,.78);backdrop-filter:blur(4px)}
         .badges-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.badges-heading h2{margin:0;color:var(--reality-accent,#ff00ff);text-transform:lowercase}
@@ -413,6 +471,10 @@
             obtain.className = "badge-obtain";
             obtain.textContent = `obtain: ${conditionObtainText(badge)}`;
             text.append(obtain);
+            const reward = document.createElement("span");
+            reward.className = "badge-obtain";
+            reward.textContent = rewardDescription(badge);
+            if (reward.textContent) text.append(reward);
         }
         row.append(frame, text);
         return row;
@@ -424,7 +486,7 @@
 
     let activeBadgeCategory = "normal-unlocked";
 
-    function createPeekSecretRow(remainingSecretCount, state = readPeekState()) {
+    function createPeekSecretRow(remainingSecretCount, state = readPeekState(), secretCatalog = readPublicCatalog()) {
         const row = document.createElement("article");
         row.className = "badge-entry is-locked is-hidden-secret";
         const copy = document.createElement("div");
@@ -432,7 +494,7 @@
         const label = document.createElement("strong");
         label.textContent = "hidden secret badge";
         const detail = document.createElement("span");
-        const unlockedSecretCount = readPublicCatalog().filter(badge => badge?.id && isSecret(badge) && readUnlocked().has(badge.id)).length;
+        const unlockedSecretCount = secretCatalog.filter(badge => badge?.id && isSecret(badge) && readUnlocked().has(badge.id)).length;
         const freeAvailable = unlockedSecretCount >= freePeekSecretThreshold && !state.freePeekUsed;
         const penaltiesDisabled = localStorage.getItem(peekPenaltiesDisabledKey) === "true";
         const penaltyRemaining = state.penaltyUntil - Date.now();
@@ -465,7 +527,8 @@
     }
 
     function peekAtSecretBadge() {
-        const catalog = readPublicCatalog().filter(badge => badge?.id && badge.name && isSecret(badge));
+        const source = activeBadgeCategory === "secret-amethyst" ? readPrivateCatalog() : readPublicCatalog();
+        const catalog = source.filter(badge => badge?.id && badge.name && isSecret(badge));
         const unlocked = readUnlocked();
         const state = readPeekState();
         const target = catalog.find(badge => !unlocked.has(badge.id) && !state.peeked.includes(badge.id));
@@ -521,7 +584,9 @@
         const unlockedNormal = normal.filter(badge => unlocked.has(badge.id)).length;
         const allNormalComplete = normal.length > 0 && unlockedNormal === normal.length;
         const allBadgesComplete = catalog.length > 0 && catalog.every(badge => unlocked.has(badge.id));
-        if (allBadgesComplete && options.privateCollection) {
+        const privateCatalog = readPrivateCatalog();
+        const allPrivateBadgesComplete = privateCatalog.length > 0 && privateCatalog.every(badge => unlocked.has(badge.id));
+        if (allPrivateBadgesComplete) {
             star.src = "AmethystProgressionStar1.png";
             star.alt = "amethyst's badge collection complete";
             star.title = "all amethyst badges unlocked";
@@ -545,6 +610,8 @@
     function render() {
         const catalog = readPublicCatalog().filter(badge => badge && badge.id && badge.name);
         const privateCatalog = readPrivateCatalog();
+        const privateNormal = privateCatalog.filter(badge => !isSecret(badge));
+        const privateSecret = privateCatalog.filter(isSecret);
         const unlocked = readUnlocked();
         const unlockedBadges = catalog.filter(badge => unlocked.has(badge.id));
         const lockedBadges = catalog.filter(badge => !unlocked.has(badge.id));
@@ -558,6 +625,11 @@
         const revealSecretDetails = localStorage.getItem(revealSecretDetailsKey) === "true";
         const visibleLockedSecrets = revealSecretDetails ? secretLocked : peekedSecrets;
         const hiddenSecretCount = revealSecretDetails ? 0 : unopenedSecrets.length;
+        const privateSecretUnlocked = privateSecret.filter(badge => unlocked.has(badge.id));
+        const peekedPrivateSecrets = privateSecret.filter(badge => !unlocked.has(badge.id) && peekState.peeked.includes(badge.id));
+        const unopenedPrivateSecrets = privateSecret.filter(badge => !unlocked.has(badge.id) && !peekState.peeked.includes(badge.id));
+        const visiblePrivateSecrets = revealSecretDetails ? privateSecret : [...privateSecretUnlocked, ...peekedPrivateSecrets];
+        const hiddenPrivateSecretCount = revealSecretDetails ? 0 : unopenedPrivateSecrets.length;
         const categories = {
             "normal-unlocked": { title: "normal unlocked", badges: normalUnlocked, hiddenSecret: false },
             "normal-locked": { title: "normal locked", badges: normalLocked, hiddenSecret: false },
@@ -565,19 +637,26 @@
             "secret-locked": { title: "secret locked", badges: visibleLockedSecrets, hiddenSecret: hiddenSecretCount > 0 },
             "all-unlocked": { title: "all badges unlocked", badges: unlockedBadges, hiddenSecret: false },
             "all-locked": { title: "all badges locked", badges: [...normalLocked, ...visibleLockedSecrets], hiddenSecret: hiddenSecretCount > 0 },
-            "amethyst": { title: "amethyst's badges", badges: privateCatalog, hiddenSecret: false }
+            "amethyst": { title: "amethyst's badges", badges: privateNormal, hiddenSecret: false },
+            "secret-amethyst": { title: "secret amethyst's badges", badges: visiblePrivateSecrets, hiddenSecret: hiddenPrivateSecretCount > 0 }
         };
         const privateTab = dialog.querySelector('[data-badge-category="amethyst"]');
+        const privateSecretTab = dialog.querySelector('[data-badge-category="secret-amethyst"]');
         privateTab.hidden = !localDraft;
-        privateTab.querySelector(".badge-category-count").textContent = String(privateCatalog.length);
-        if (!localDraft && activeBadgeCategory === "amethyst") activeBadgeCategory = "normal-unlocked";
+        privateSecretTab.hidden = !localDraft;
+        privateTab.querySelector(".badge-category-count").textContent = String(privateNormal.length);
+        privateSecretTab.querySelector(".badge-category-count").textContent = hiddenPrivateSecretCount && !revealSecretDetails
+            ? "?"
+            : String(visiblePrivateSecrets.length + hiddenPrivateSecretCount);
+        if (!localDraft && ["amethyst", "secret-amethyst"].includes(activeBadgeCategory)) activeBadgeCategory = "normal-unlocked";
         if (!categories[activeBadgeCategory]) activeBadgeCategory = "normal-unlocked";
         for (const tab of dialog.querySelectorAll("[data-badge-category]")) {
             const key = tab.dataset.badgeCategory;
             const category = categories[key];
             tab.setAttribute("aria-selected", String(key === activeBadgeCategory));
             const count = tab.querySelector(".badge-category-count");
-            count.textContent = key === "secret-locked" && secretLocked.length && !revealSecretDetails
+            count.textContent = key === "secret-locked" && secretLocked.length && hiddenSecretCount > 0 && !revealSecretDetails
+                || key === "secret-amethyst" && privateSecret.length && hiddenPrivateSecretCount > 0 && !revealSecretDetails
                 ? "?"
                 : String(category.badges.length + (category.hiddenSecret ? 1 : 0));
         }
@@ -588,9 +667,9 @@
         list.classList.toggle("list-view", document.getElementById("badgeViewMode").value === "list");
         document.getElementById("badgeCategoryHeading").textContent = category.title;
         for (const badge of category.badges) list.append(createBadgeRow(badge, unlocked.has(badge.id)));
-        if (category.hiddenSecret) list.append(createPeekSecretRow(unopenedSecrets.length, peekState));
+        if (category.hiddenSecret) list.append(createPeekSecretRow(activeBadgeCategory === "secret-amethyst" ? unopenedPrivateSecrets.length : unopenedSecrets.length, peekState, activeBadgeCategory === "secret-amethyst" ? privateSecret : catalog));
         if (!list.childElementCount) list.append(createEmptyBadgeState());
-        if (activeBadgeCategory === "amethyst" && localDraft) {
+        if (["amethyst", "secret-amethyst"].includes(activeBadgeCategory) && localDraft) {
             updateProgress(privateCatalog, unlocked, { privateCollection: true });
         } else {
             updateProgress(catalog, unlocked);
@@ -629,7 +708,10 @@
         if (newlyUnlocked.length) {
             localStorage.setItem(unlockedKey, JSON.stringify(Array.from(unlocked)));
         }
-        announcements.forEach((badge, index) => showUnlockToast(badge, index * 90));
+        announcements.forEach((badge, index) => {
+            grantBadgeReward(badge);
+            showUnlockToast(badge, index * 90);
+        });
         lastObservedUnlocked = new Set(unlocked);
         render();
     }

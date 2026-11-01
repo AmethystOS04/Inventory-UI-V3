@@ -30,7 +30,7 @@ body {
 .panel {
    
     width: 1600px;
-    height: 680px;
+    height: 730px;
     border-radius: 20px;
     padding: 20px;
     display: flex;
@@ -436,7 +436,7 @@ html[data-reality="deepdark"] .info-panel::after {
 
 /* enchant box */
 .enchant-box {
-    margin-top: 15px;
+    margin-top: 45px;
     display: flex;
     gap: 10px;
 }
@@ -462,7 +462,7 @@ html[data-reality="deepdark"] .info-panel::after {
 
 /* enchant display */
 #enchantDisplay {
-    margin-top: 10px;
+    margin-top: 23px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -498,7 +498,7 @@ html[data-reality="deepdark"] .info-panel::after {
     z-index: -1;
 }
 .enchant-box {
-    margin-top: 15px;
+    margin-top: 21px;
     display: flex;
     justify-content: center; /* 👈 centers it */
     gap: 10px;
@@ -512,6 +512,8 @@ html[data-reality="deepdark"] .info-panel::after {
     z-index:2;
     background:color-mix(in srgb, var(--reality-panel, #1a1a24) 86%, #000 14%);
     border:1px solid rgba(255,255,255,.08);
+    height: 97%;
+    box-sizing: border-box;
 }
 
 #dailyMissions {
@@ -528,7 +530,7 @@ html[data-reality="deepdark"] .info-panel::after {
 .enchant-box {
     position:absolute;
     left:80px;
-    top:300px;
+    top:390px;
     width:260px;
     margin-top:0;
     justify-content:flex-start;
@@ -819,7 +821,8 @@ html[data-reality="deepdark"] .info-panel::after {
     }
 }
 .ap-panel,
-.mp-panel{
+.mp-panel,
+.stardust-panel{
 
     position:relative;
 
@@ -861,9 +864,14 @@ html[data-reality="deepdark"] .info-panel::after {
         0 0 18px #0066ff;
 }
 
+.stardust-panel{
+    box-shadow:0 0 10px #b6a44a,0 0 18px #705b14;
+}
+
 /* ICONS */
 .ap-icon,
-.mp-icon{
+.mp-icon,
+.stardust-icon{
 
     width:18px;
     height:18px;
@@ -1314,7 +1322,8 @@ html[data-reality="deepdark"] .info-panel::after {
     max-width:100%;
 }
 .balance-container.balance-full-names .ap-panel,
-.balance-container.balance-full-names .mp-panel{
+.balance-container.balance-full-names .mp-panel,
+.balance-container.balance-full-names .stardust-panel{
     width:max-content;
     min-width:220px;
     max-width:min(500px, calc(100vw - 24px));
@@ -1322,7 +1331,8 @@ html[data-reality="deepdark"] .info-panel::after {
     overflow:visible;
 }
 .balance-container.balance-full-names #apBalance,
-.balance-container.balance-full-names #mpBalance{
+.balance-container.balance-full-names #mpBalance,
+.balance-container.balance-full-names #stardustBalance{
     flex:0 0 auto;
     min-width:max-content;
     overflow:visible;
@@ -1454,9 +1464,13 @@ border-radius:12px;
     filter: drop-shadow(0 0 4px #5EA8FF) drop-shadow(0 0 7px #114C8F);
 }
 .damage-label{
-    color:#ff0000;
-    text-shadow:0 0 8px #ff0000;
-    
+    background:linear-gradient(180deg, #ff9c9c, #e93131, #9c513c, #a74866);
+    background-clip:text;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    font-weight:bold;
+    font-family:Oswald, sans-serif;
 }
 .rarity-label{
     color:#c800ff;
@@ -1517,7 +1531,7 @@ border-radius:12px;
     align-items:stretch;
 }
 .reality-selector {
-    margin-top: 12px;
+    margin-top: 54px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1957,19 +1971,22 @@ transition: filter .2s ease;
     }
 
     .ap-panel,
-    .mp-panel {
+    .mp-panel,
+    .stardust-panel {
         width: auto;
         min-width: 0;
         flex: 1 1 145px;
     }
 
     .amethyst-points-h3,
-    .mp-label {
+    .mp-label,
+    .stardust-label {
         font-size: 12px;
     }
 
     #apBalance,
-    #mpBalance {
+    #mpBalance,
+    #stardustBalance {
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2149,6 +2166,29 @@ transition: filter .2s ease;
     .survival-hud {
         font-size: 12px;
     }
+}
+.stardust-label{
+    background:linear-gradient(180deg, #fdfce9, #f1e380, #e49b87, #cd7792);
+    background-clip:text;
+    stroke: #72354b;
+    stroke-width: 14px;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    font-weight:bold;
+    font-family:Oswald, sans-serif;
+}
+#stardustBalance{
+    background:linear-gradient(180deg, #fdfce9, #f1e380, #e49b87, #cd7792);
+    background-clip:text;
+    stroke: #72354b;
+    stroke-width: 15px;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    font-weight:bold;
+    font-family:Oswald, sans-serif;
+    left: 443px;
 }
 </style>
 </head>
@@ -2461,7 +2501,7 @@ transition: filter .2s ease;
             <span>V2 (Maintained for now)</span>
         </div>
         <div class="portal-card ass-hover"
-onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
+onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
     <img src="mcglint_8x_pack.png">
     <div class="amethyst-stupid-stuff">amethyst's stupid stuff</div>
 </div>
@@ -2493,6 +2533,11 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
  <div id="mpPopup" class="mp-popup">
         +50 MP
     </div>
+   </div>
+   <div class="stardust-panel">
+    <img class="stardust-icon" src="Stardust_icon.png" alt="">
+    <div class="stardust-label">Stardust:</div>
+    <span id="stardustBalance">0</span>
    </div>
 
   </div>
@@ -2670,7 +2715,7 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
       <script src="reality.js"></script>
   <script src="missions.js?v=20261031-badge-peek-admin1"></script>
       <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
-  <script src="badge-system.js?v=20261031-what-ap-requirement1"></script>
+  <script src="badge-system.js?v=20261101-secret-amethyst-condition1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261012-player-save1"></script>
 <script src="admin-panel.js?v=20261031-private-badges1"></script>

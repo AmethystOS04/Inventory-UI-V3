@@ -200,10 +200,13 @@
         const format = window.formatInventoryBalance || window.formatInventoryNumber || (value => String(value));
         document.getElementById("apBalance").textContent = format(ap, "ap");
         document.getElementById("mpBalance").textContent = format(mp, "mp");
+        document.getElementById("stardustBalance").textContent = format(stardust, "stardust");
         document.getElementById("apBalance").classList.toggle("is-infinity", /^infinity$/i.test(String(localStorage.getItem("ap") || "").trim()));
         document.getElementById("mpBalance").classList.toggle("is-infinity", /^infinity$/i.test(String(localStorage.getItem("mp") || "").trim()));
+        document.getElementById("stardustBalance").classList.toggle("is-infinity", /^infinity$/i.test(String(localStorage.getItem("stardust") || "").trim()));
         if (Number.isFinite(ap)) localStorage.setItem("ap", ap);
         if (Number.isFinite(mp)) localStorage.setItem("mp", mp);
+        if (Number.isFinite(stardust)) localStorage.setItem("stardust", stardust);
     }
     window.refreshInventoryBalances = updateBalances;
 
@@ -270,9 +273,10 @@
         });
     }
 
-    window.awardCurrency = function (apEarned, mpEarned) {
+    window.awardCurrency = function (apEarned, mpEarned, stardustEarned = 0) {
         ap = readStoredBalance("ap", ap) + Math.max(0, Number(apEarned) || 0);
         mp = readStoredBalance("mp", mp) + Math.max(0, Number(mpEarned) || 0);
+        stardust = readStoredBalance("stardust", stardust) + Math.max(0, Number(stardustEarned) || 0);
         updateBalances();
         if (selectedItem) {
             try { showOffer(selectedItem.args); } catch (error) { console.error(error); }
@@ -280,12 +284,19 @@
         return true;
     };
 
+    window.awardStardust = function (amount) {
+        stardust = readStoredBalance("stardust", stardust) + Math.max(0, Number(amount) || 0);
+        updateBalances();
+        return true;
+    };
+
     window.setInventoryBalance = function (key, amount) {
-        if (!['ap', 'mp'].includes(key)) return false;
+        if (!['ap', 'mp', 'stardust'].includes(key)) return false;
         const normalized = String(amount || "").trim();
         if (/^infinity$/i.test(normalized)) {
             if (key === 'ap') ap = Infinity;
-            else mp = Infinity;
+            else if (key === 'mp') mp = Infinity;
+            else stardust = Infinity;
             localStorage.setItem(key, "infinity");
             updateBalances();
             return true;
@@ -294,7 +305,8 @@
         if (symbolic) {
             const canonical = `tree(${BigInt(symbolic[1])})`;
             if (key === 'ap') ap = Infinity;
-            else mp = Infinity;
+            else if (key === 'mp') mp = Infinity;
+            else stardust = Infinity;
             localStorage.setItem(key, canonical);
             updateBalances();
             return true;
@@ -302,17 +314,20 @@
         const value = Number(amount);
         if (!Number.isFinite(value) || value < 0) return false;
         if (key === 'ap') ap = value;
-        else mp = value;
+        else if (key === 'mp') mp = value;
+        else stardust = value;
         updateBalances();
         return true;
     };
 
-    window.spendCurrency = function (apCost = 0, mpCost = 0) {
+    window.spendCurrency = function (apCost = 0, mpCost = 0, stardustCost = 0) {
         ap = readStoredBalance("ap", ap);
         mp = readStoredBalance("mp", mp);
-        if (ap < apCost || mp < mpCost) return false;
+        stardust = readStoredBalance("stardust", stardust);
+        if (ap < apCost || mp < mpCost || stardust < stardustCost) return false;
         ap -= apCost;
         mp -= mpCost;
+        stardust -= stardustCost;
         updateBalances();
         if (selectedItem) showOffer(selectedItem.args);
         return true;
@@ -900,9 +915,10 @@
             try { ownedItems = new Set(JSON.parse(event.newValue || "[]")); } catch { ownedItems = new Set(); }
             updateCards();
         }
-        if (event.key === "ap" || event.key === "mp") {
+        if (event.key === "ap" || event.key === "mp" || event.key === "stardust") {
             ap = readStoredBalance("ap", ap);
             mp = readStoredBalance("mp", mp);
+            stardust = readStoredBalance("stardust", stardust);
             updateBalances();
         }
     });
