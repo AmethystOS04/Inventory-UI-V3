@@ -104,8 +104,8 @@ function generateStarterChoices(){
 
 generateStarterChoices();
 
-let ap = parseInt(localStorage.getItem("ap")) || 0;
-let mp = parseInt(localStorage.getItem("mp")) || 0;
+let ap = Number(localStorage.getItem("ap")) || 0;
+let mp = Number(localStorage.getItem("mp")) || 0;
 
 document.getElementById("apBalance").textContent = ap;
 document.getElementById("mpBalance").textContent = mp;

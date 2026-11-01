@@ -1035,16 +1035,16 @@ document.getElementById("makerSeasonal").addEventListener("change", function(){
 document.getElementById("makerSeasonalLevel").addEventListener("change", previewWeapon);
 
 // AP/MP System
-let ap = parseInt(localStorage.getItem("ap")) || 0;
-let mp = parseInt(localStorage.getItem("mp")) || 0;
+let ap = Number(localStorage.getItem("ap")) || 0;
+let mp = Number(localStorage.getItem("mp")) || 0;
 
 document.getElementById("apBalance").textContent = ap;
 document.getElementById("mpBalance").textContent = mp;
 
 // Update display when storage changes
 window.addEventListener("storage", () => {
-  ap = parseInt(localStorage.getItem("ap")) || 0;
-  mp = parseInt(localStorage.getItem("mp")) || 0;
+  ap = Number(localStorage.getItem("ap")) || 0;
+  mp = Number(localStorage.getItem("mp")) || 0;
   document.getElementById("apBalance").textContent = ap;
   document.getElementById("mpBalance").textContent = mp;
 });

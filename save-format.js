@@ -23,6 +23,10 @@
             const value = source[key];
             switch (fieldTypes[key]) {
                 case "balance": {
+                    if (typeof value === "string" && (/^tree\(\s*\d+\s*\)$/i.test(value.trim()) || /^infinity$/i.test(value.trim()))) {
+                        data[key] = value.trim().toLowerCase();
+                        break;
+                    }
                     const number = Number(value ?? 0);
                     if (!Number.isFinite(number) || number < 0 || Math.floor(number) !== number) throw new Error(`${key} must be a whole number at least zero`);
                     data[key] = number;
@@ -75,6 +79,7 @@
             try { return JSON.parse(raw); } catch { return null; }
         }
         if (["ap", "mp", "inventoryMusicVolumeV1"].includes(key)) {
+            if (["ap", "mp"].includes(key) && /^tree\(\s*\d+\s*\)$/i.test(raw.trim())) return raw.trim().toLowerCase();
             const number = Number(raw);
             return Number.isFinite(number) ? number : null;
         }

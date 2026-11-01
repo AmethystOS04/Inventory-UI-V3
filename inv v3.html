@@ -8,6 +8,7 @@
 <meta name="color-scheme" content="dark">
 <title>Inventory UI V3</title>
 <link rel="icon" href="v3ico-sculk.png">
+<link rel="stylesheet" href="events.css?v=20261031-event-presets1">
 <style>
 
 
@@ -254,7 +255,10 @@ html[data-reality="amethyst"] .amethyst-decor {
 }
 
 .item.selected {
-    border: 2px solid;
+    border: 2px solid var(--item-selection-color, #ffffff) !important;
+    outline: 1px solid var(--item-selection-color, #ffffff);
+    outline-offset: 1px;
+    box-shadow: 0 0 12px var(--item-selection-color, #ffffff);
 }
 
 .item img {
@@ -360,8 +364,19 @@ html[data-reality="deepdark"] .info-panel::after {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin: 8px 0;
 }
-#soulUsageRow[hidden] { display: none; }
+
+#soulUsageRow[hidden] {
+    display: none;
+}
+
+.info-panel .stat-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    object-fit: contain;
+}
 .info-panel::before{
 
     content:"";
@@ -537,6 +552,29 @@ html[data-reality="deepdark"] .info-panel::after {
     text-shadow:none;
 }
 
+#nextEventCountdown {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin:-7px 0 10px;
+    padding:0 2px 6px;
+    border-bottom:1px solid color-mix(in srgb, var(--reality-border, #00f7ff) 42%, transparent);
+    color:var(--reality-accent-2, #70eaff);
+    font-size:12px;
+    text-shadow:0 0 7px currentColor;
+    flex-wrap:wrap;
+}
+
+#nextEventCountdown[hidden] {
+    display:none;
+}
+
+#nextEventCountdown strong {
+    color:var(--reality-accent, #ff00ff);
+    text-transform:capitalize;
+}
+
 .mission-card {
     min-width:0;
     min-height:145px;
@@ -671,6 +709,19 @@ html[data-reality="deepdark"] .info-panel::after {
 }
 .survival-hud { display:flex; justify-content:space-between; gap:8px; margin:10px 2px; color:#9cf8ff; font-weight:700; }
 .survival-controls { margin:8px 2px; color:#b8a8ce; font-size:13px; }
+.arena-loadout { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); align-items:center; gap:8px; margin:10px 2px; color:#b8a8ce; font-size:13px; }
+.arena-loadout-field { display:grid; gap:4px; min-width:0; }
+.arena-loadout select { width:100%; min-width:0; padding:8px 10px; border:1px solid #6843a0; border-radius:8px; background:#171024; color:#fff; }
+.arena-souls { color:#8cf5ff; font-weight:700; }
+.arena-combat-stats { display:flex; flex-wrap:wrap; gap:6px 14px; margin:4px 2px 10px; color:#c7b7df; font-size:12px; }
+.arena-combat-stats span { min-width:120px; }
+.arena-weapon-preview { display:flex; align-items:center; gap:7px; min-width:130px; color:#fff; font-weight:700; }
+.arena-weapon-preview img { width:42px; height:42px; object-fit:contain; image-rendering:pixelated; filter:drop-shadow(0 0 8px #aa58ff); }
+.arena-artifact-preview img { filter:drop-shadow(0 0 8px #36caff); }
+.arena-health-track { width:min(240px, 38vw); height:12px; overflow:hidden; border:1px solid #5c7392; border-radius:999px; background:#1a1826; }
+.arena-health-fill { display:block; width:100%; height:100%; background:linear-gradient(90deg, #ff3d71, #ffbd62 58%, #6cffb7); transition:width .16s ease; }
+.arena-health-number { min-width:48px; color:#fff; }
+@media (max-width:640px) { .arena-loadout { grid-template-columns:repeat(2, minmax(0, 1fr)); } .arena-weapon-preview { min-width:0; } }
 .weekly-game-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
 
 @media (max-width: 1100px) {
@@ -679,6 +730,7 @@ html[data-reality="deepdark"] .info-panel::after {
         inset:auto;
         margin-top:18px;
     }
+
 }
 
 .portal-panel h3{
@@ -881,6 +933,33 @@ html[data-reality="deepdark"] .info-panel::after {
     -webkit-text-fill-color:transparent;
 }
 
+#apBalance.is-infinity,
+#mpBalance.is-infinity{
+    background:linear-gradient(90deg,#ff3b3b,#ff9f1c,#fff12e,#43e85c,#22d8ff,#4d5bff,#d64dff,#ff3b3b);
+    background-size:300% 100%;
+    background-clip:text;
+    -webkit-background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 5px #d64dff);
+    animation:infinityBalanceRainbow 3s linear infinite;
+}
+
+#apBalance:not(.is-infinity),
+#mpBalance:not(.is-infinity){
+    animation:none;
+    filter:none;
+}
+
+@keyframes infinityBalanceRainbow{
+    to{background-position:300% 50%;}
+}
+
+@media(prefers-reduced-motion:reduce){
+    #apBalance.is-infinity,
+    #mpBalance.is-infinity{animation:none;}
+}
+
 .ap-popup{
     position:absolute;
 
@@ -1069,7 +1148,10 @@ html[data-reality="deepdark"] .info-panel::after {
 #apBalance,
 #mpBalance{
     white-space:nowrap;
-    flex-shrink:0;
+    flex:1 1 auto;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 #continueBtn{
 
@@ -1227,6 +1309,25 @@ html[data-reality="deepdark"] .info-panel::after {
     flex-direction:column;
     gap:12px;
 }
+.balance-container.balance-full-names{
+    width:max-content;
+    max-width:100%;
+}
+.balance-container.balance-full-names .ap-panel,
+.balance-container.balance-full-names .mp-panel{
+    width:max-content;
+    min-width:220px;
+    max-width:min(500px, calc(100vw - 24px));
+    flex:0 1 auto;
+    overflow:visible;
+}
+.balance-container.balance-full-names #apBalance,
+.balance-container.balance-full-names #mpBalance{
+    flex:0 0 auto;
+    min-width:max-content;
+    overflow:visible;
+    text-overflow:clip;
+}
 .volume-slider-container{
     margin-top:20px;
 
@@ -1340,9 +1441,18 @@ border-radius:12px;
     text-shadow:0 0 8px #ff00ff;
     text-shadow:0 3px 8px #721a72;
 }
-.soul-stat-icon { width:40px; height:40px; flex:0 0 40px; object-fit:contain; }
-.soul-label { color:#59ADFF; text-shadow:0 0 8px #59ADFF; }
-#soulUsage { background:linear-gradient(to bottom,#5EA8FF,#114C8F); background-clip:text; -webkit-background-clip:text; color:transparent; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 4px #5EA8FF) drop-shadow(0 0 7px #114C8F); }
+.soul-label {
+    color: #59ADFF;
+    text-shadow: 0 0 8px #59ADFF;
+}
+#soulUsage {
+    background: linear-gradient(to bottom, #5EA8FF, #114C8F);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 4px #5EA8FF) drop-shadow(0 0 7px #114C8F);
+}
 .damage-label{
     color:#ff0000;
     text-shadow:0 0 8px #ff0000;
@@ -1838,6 +1948,14 @@ transition: filter .2s ease;
         gap: 8px;
     }
 
+    .balance-container.balance-full-names {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        width: max-content;
+        max-width: 100%;
+    }
+
     .ap-panel,
     .mp-panel {
         width: auto;
@@ -2303,7 +2421,11 @@ transition: filter .2s ease;
             <span id="seasonalLevel"></span>
         </p>
         </div>
-        <p id="soulUsageRow" hidden><img class="stat-icon soul-stat-icon" src="Dungeons2Sprite_artifact.png" alt=""><span class="soul-label">Soul Usage:</span><span id="soulUsage"></span></p>
+        <p id="soulUsageRow" hidden>
+            <img class="stat-icon" src="Dungeons2Sprite_artifact.png" alt="">
+            <span class="soul-label">Soul Usage:</span>
+            <span id="soulUsage"></span>
+        </p>
 </div>
   
 
@@ -2314,6 +2436,11 @@ transition: filter .2s ease;
     </div>
    <div class="portal-panel">
     <h3>Others...</h3>
+
+    <div id="nextEventCountdown" role="timer" aria-live="off" hidden>
+        <strong id="nextEventName"></strong>
+        <span id="nextEventTime"></span>
+    </div>
 
     <div class="portal-grid">
         <div class="portal-card"
@@ -2510,8 +2637,10 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
             <button id="closeWeeklyGame" type="button" aria-label="close">close</button>
         </div>
         <p id="weeklyGameStatus">survive the rift waves and stay alive until the timer ends</p>
-        <div class="survival-hud"><span>health <span id="arenaHealth">♥ ♥ ♥ ♥ ♥</span></span><span>wave <span id="arenaWave">1</span></span><span>eliminated <span id="arenaKills">0</span></span><span>time <span id="arenaTime">60</span>s</span></div>
-        <canvas id="survivalCanvas" width="960" height="540" aria-label="wave survival arena"></canvas>
+        <div class="survival-hud"><span>health</span><span class="arena-health-track"><span id="arenaHealthFill" class="arena-health-fill"></span></span><span id="arenaHealth" class="arena-health-number">100 / 100</span><span>wave <span id="arenaWave">1</span></span><span>eliminated <span id="arenaKills">0</span></span><span>void <span id="arenaCorruption">0%</span></span><span>time <span id="arenaTime">60</span>s</span></div>
+        <div class="arena-loadout"><label class="arena-loadout-field" for="arenaWeaponPicker">weapon<select id="arenaWeaponPicker" aria-label="choose an unlocked weapon"></select></label><label class="arena-loadout-field" for="arenaArtifactPicker">artifact<select id="arenaArtifactPicker" aria-label="choose an unlocked artifact"></select></label><label class="arena-loadout-field" for="arenaDifficulty">difficulty<select id="arenaDifficulty" aria-label="choose arena difficulty"><option value="easy">easy</option><option value="normal" selected>normal</option><option value="hard">hard</option></select></label><span class="arena-weapon-preview"><img id="arenaWeaponPreview" alt=""><span id="arenaWeaponName">amethyst orb</span></span><span class="arena-weapon-preview arena-artifact-preview"><img id="arenaArtifactPreview" alt=""><span id="arenaArtifactName">no artifact</span></span><span class="arena-souls" id="arenaSouls">100 souls</span></div>
+        <div class="arena-combat-stats" aria-live="polite"><span id="arenaWeaponDamage">weapon damage: 14</span><span id="arenaArtifactDamage">artifact damage: none</span><span id="arenaArtifactCooldown">artifact ready: none</span></div>
+        <canvas id="survivalCanvas" width="960" height="540" tabindex="0" aria-label="wave survival arena"></canvas>
         <p class="survival-controls">move with wasd or arrow keys · click or tap to move</p>
         <div class="weekly-game-actions"><button id="startSurvivalGame" type="button">start game</button></div>
     </div>
@@ -2522,22 +2651,26 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
         <div class="arena-shop-head"><h2 id="arenaShopTitle">rift arena upgrades</h2><button id="closeArenaShop" type="button">close</button></div>
         <p>spend ap and mp on permanent arena upgrades · upgrades take effect next run</p>
         <div class="arena-shop-grid">
-            <article class="arena-upgrade" data-upgrade="damage"><h3>damage boost</h3><p>each amethyst bolt deals one extra damage per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
-            <article class="arena-upgrade" data-upgrade="health"><h3>extra health</h3><p>start each run with one extra heart per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
+            <article class="arena-upgrade" data-upgrade="damage"><h3>damage boost</h3><p>weapons and arena attacks deal extra damage per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
+            <article class="arena-upgrade" data-upgrade="health"><h3>extra health</h3><p>start each run with 100 health plus 10 per level</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
             <article class="arena-upgrade" data-upgrade="resistance"><h3>rift resistance</h3><p>gain more invulnerability time after taking a hit</p><span class="arena-upgrade-level"></span><span class="arena-upgrade-preview"></span><span class="arena-upgrade-cost"></span><button class="buy-arena-upgrade" type="button">buy upgrade</button></article>
         </div>
     </section>
 </div>
 
   <script src="weapon-cost.js"></script>
-  <script src="scriptv3.js?v=20261031-soul-usage1"></script>
-  <script src="event-catalog.js?v=20261012-shared-events1"></script>
+  <script src="scriptv3.js?v=20261031-infinity-balance-rainbow1"></script>
+  <script src="event-catalog.js?v=20261031-event-countdown1"></script>
+  <script src="event-countdown.js?v=20261031-event-countdown1"></script>
+  <script src="badge-catalog.js?v=20261031-badges1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
-  <script src="unlocks.js?v=20261012-compact-balances1"></script>
+  <script src="unlocks.js?v=20261031-infinity-balance-rainbow1"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
-  <script src="missions.js?v=20261012-compact-balances1"></script>
-      <script src="item-sheet.js?v=20261031-soul-usage1"></script>
+  <script src="missions.js?v=20261031-badge-peek-admin1"></script>
+      <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
+  <script src="badge-system.js?v=20261031-amethyst-progression-star1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261012-player-save1"></script>
+<script src="admin-panel.js?v=20261031-private-badges1"></script>

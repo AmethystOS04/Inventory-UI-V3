@@ -112,14 +112,27 @@ function generateStarterChoices(){
 
 generateStarterChoices();
 
-let ap = parseInt(localStorage.getItem("ap")) || 0;
-let mp = parseInt(localStorage.getItem("mp")) || 0;
+function readInventoryBalanceNumber(key) {
+    const raw = String(localStorage.getItem(key) || "0").trim();
+    if (/^tree\(\s*\d+\s*\)$/i.test(raw) || /^infinity$/i.test(raw)) return Infinity;
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+let ap = readInventoryBalanceNumber("ap");
+let mp = readInventoryBalanceNumber("mp");
 
 window.formatInventoryNumber = function (value) {
     const amount = Number(value) || 0;
+    if (!Number.isFinite(amount)) {
+        return "infinity";
+    }
     const absolute = Math.abs(amount);
     if (absolute < 1000) return String(amount);
     const suffixes = ["", "k", "m", "b", "t", "qa", "qi", "sx", "sp", "oc", "no", "dc"];
+    if (absolute >= 1000 ** suffixes.length) {
+        const [mantissa, exponent] = amount.toExponential(2).split("e");
+        return `${Number(mantissa)}e${Number(exponent)}`;
+    }
     let tier = Math.min(Math.floor(Math.log10(absolute) / 3), suffixes.length - 1);
     let scaled = amount / (1000 ** tier);
     let rounded = Number(scaled.toFixed(Math.abs(scaled) < 10 ? 1 : 0));
@@ -130,13 +143,40 @@ window.formatInventoryNumber = function (value) {
     }
     return `${rounded}${suffixes[tier]}`;
 };
+window.formatInventoryNumberLong = function (value) {
+    const amount = Number(value) || 0;
+    const absolute = Math.abs(amount);
+    if (absolute < 1000) return String(amount);
+    const suffixes = ["", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion", "nonillion", "decillion"];
+    if (absolute >= 1000 ** suffixes.length) {
+        const [mantissa, exponent] = amount.toExponential(2).split("e");
+        return `${Number(mantissa)}e${Number(exponent)}`;
+    }
+    let tier = Math.min(Math.floor(Math.log10(absolute) / 3), suffixes.length - 1);
+    let scaled = amount / (1000 ** tier);
+    let rounded = Number(scaled.toFixed(Math.abs(scaled) < 10 ? 1 : 0));
+    if (Math.abs(rounded) >= 1000 && tier < suffixes.length - 1) {
+        tier += 1;
+        scaled = amount / (1000 ** tier);
+        rounded = Number(scaled.toFixed(Math.abs(scaled) < 10 ? 1 : 0));
+    }
+    return `${rounded} ${suffixes[tier]}`;
+};
+window.formatInventoryBalance = (value, key) => {
+    const raw = String(localStorage.getItem(key) || "").trim();
+    if (/^tree\(\s*\d+\s*\)$/i.test(raw) || /^infinity$/i.test(raw)) return raw.toLowerCase();
+    return localStorage.getItem("inventoryBalanceFullNamesV1") === "true"
+        ? window.formatInventoryNumberLong(value)
+        : window.formatInventoryNumber(value);
+};
 window.getInventoryBalance = key => {
-    const value = Number(localStorage.getItem(key));
-    return Number.isFinite(value) && value >= 0 ? value : 0;
+    return readInventoryBalanceNumber(key);
 };
 
-document.getElementById("apBalance").textContent = window.formatInventoryNumber(ap);
-document.getElementById("mpBalance").textContent = window.formatInventoryNumber(mp);
+document.getElementById("apBalance").textContent = window.formatInventoryBalance(ap, "ap");
+document.getElementById("mpBalance").textContent = window.formatInventoryBalance(mp, "mp");
+document.getElementById("apBalance").classList.toggle("is-infinity", String(localStorage.getItem("ap") || "").trim().toLowerCase() === "infinity");
+document.getElementById("mpBalance").classList.toggle("is-infinity", String(localStorage.getItem("mp") || "").trim().toLowerCase() === "infinity");
 
 window.addEventListener("DOMContentLoaded", () => {
 
@@ -225,8 +265,8 @@ function chooseStarter(weapon){
     ap += 100;
     mp += 20;
 
-    localStorage.setItem("ap", ap);
-    localStorage.setItem("mp", mp);
+    if (Number.isFinite(ap)) localStorage.setItem("ap", ap);
+    if (Number.isFinite(mp)) localStorage.setItem("mp", mp);
 
     localStorage.setItem("starterWeapon", weapon);
     localStorage.setItem("starterClaimed", "true");
@@ -257,6 +297,25 @@ function showItem(
 ){
 
     baseDamage = damage;
+
+    const raritySelectionColors = {
+        common: "#aaaaaa", rare: "#3aa0ff", epic: "#a335ee", electric: "#00ffff",
+        unique: "#ff9a00", magma: "#ff6600", terror: "#9900d1", dark: "#4b2d63",
+        mythical: "#3a339e", divine: "#c9c624", void: "#ff00e2", "void+": "#ff2e8f",
+        pixel: "#00ff33", frozen: "#8dfffb", flamed: "#ff0000", artifact: "#8b8186",
+        forgotten: "#362424", gravity: "#ee35ff", dominance: "#ffa2ee", shadow: "#5c1082",
+        seasonal: "#ff0381", special: "#007bff", none: "#7b2828"
+    };
+    const selectedCard = Array.from(document.querySelectorAll(".items .item")).find(card =>
+        card.dataset.itemName === name || (card.getAttribute("onclick") || "").includes(`'${String(name).replace(/'/g, "\\'")}'`)
+    );
+    if (selectedCard) {
+        document.querySelectorAll(".items .item.selected").forEach(card => card.classList.remove("selected"));
+        selectedCard.dataset.itemName = name;
+        selectedCard.dataset.rarity = rarity;
+        selectedCard.style.setProperty("--item-selection-color", raritySelectionColors[String(rarity).trim().toLowerCase()] || "#ffffff");
+        selectedCard.classList.add("selected");
+    }
 
 
 
@@ -388,7 +447,7 @@ if(maxLvl === "∞"){
     powerEl.style.color = "#00ff88";
     powerEl.style.textShadow = "0 0 8px #00A303";
 }
-    let r = rarity.toLowerCase();
+    let r = String(rarity || "").trim().toLowerCase();
 
     // reset
     nameEl.style.color = "white";
@@ -420,6 +479,7 @@ if(maxLvl === "∞"){
          dominance: "#ffa2ee",
          shadow: "#5c1082",
          seasonal: "#ff0381",
+        special: "#007BFF",
     none: "#7B2828"
 };
 
@@ -602,7 +662,7 @@ document.querySelectorAll(".item").forEach(item => {
 
         // force correct rarity color after click
         requestAnimationFrame(() => {
-            let rarity = document.getElementById("rarity").textContent.toLowerCase();
+            let rarity = document.getElementById("rarity").textContent.trim().toLowerCase();
 
             const rarityColors = {
                 common: "#aaaaaa",
@@ -626,6 +686,7 @@ document.querySelectorAll(".item").forEach(item => {
        dominance: "#ffa2ee",
         shadow: "#5c1082",
         seasonal: "#ff0381",
+special: "#007BFF",
                 none: "#7B2828"
             };
 

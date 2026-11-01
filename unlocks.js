@@ -52,8 +52,11 @@
     const eventItemHistory = readEventItemHistory();
     function markEventItemUnlocked(name) {
         if (!name || !eventForItem.has(name)) return false;
-        eventItemHistory.add(String(name).trim().toLowerCase());
+        const normalizedName = String(name).trim().toLowerCase();
+        const isNewUnlock = !eventItemHistory.has(normalizedName);
+        eventItemHistory.add(normalizedName);
         localStorage.setItem(eventItemHistoryStorageKey, JSON.stringify(Array.from(eventItemHistory)));
+        if (isNewUnlock) window.triggerBadgeAction?.("event-item-unlock", 1);
         return true;
     }
     let ownedItems;
@@ -86,6 +89,93 @@
         ownedItems = new Set(currentNames);
         localStorage.setItem(storageKey, JSON.stringify(Array.from(ownedItems)));
     }
+    let knownOwnedItems = new Set(ownedItems);
+
+    const unlockAnimationsKey = "inventoryUnlockAnimationsEnabledV1";
+    const itemUnlockToast = document.createElement("div");
+    itemUnlockToast.id = "itemUnlockToast";
+    itemUnlockToast.setAttribute("role", "status");
+    itemUnlockToast.setAttribute("aria-live", "polite");
+    const itemUnlockToastStyle = document.createElement("style");
+    itemUnlockToastStyle.textContent = `
+        #itemUnlockToast{position:fixed;z-index:2147482500;top:16px;left:16px;width:min(340px,calc(100vw - 32px));max-height:60vh;overflow:hidden;display:grid;gap:8px;pointer-events:none}
+        .item-unlock-notice{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid #00eaff;border-radius:12px;color:#eaffff;background:linear-gradient(120deg,#07151feF,#0d0a18f5);box-shadow:0 0 18px #00d9ff66;animation:itemUnlockEnter .42s cubic-bezier(.2,.8,.2,1) both;font:14px system-ui,sans-serif}
+        .item-unlock-notice.is-locked{border-color:#ed45d4;box-shadow:0 0 18px #ed45d466}
+        .item-unlock-notice img{width:52px;height:52px;flex:none;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 7px #00d9ff88)}
+        .item-unlock-copy{display:grid;gap:3px;min-width:0}.item-unlock-copy strong{color:#73f7ff;font-size:11px;letter-spacing:.08em}.item-unlock-copy span{overflow-wrap:anywhere;font-weight:700}
+        .item-unlock-notice.is-leaving{animation:itemUnlockExit .4s ease both}
+        .item-lock-shards{position:absolute;inset:50% auto auto 50%;width:0;height:0;z-index:4;pointer-events:none}
+        .item-lock-shards span{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border:1px solid #ffe4ff;border-radius:2px;background:linear-gradient(145deg,#ffb8f4,#9d26e5);box-shadow:0 0 6px #ff00ed}
+        .item.is-unlocking .item-lock-shards span{animation:itemLockBreak .62s cubic-bezier(.16,.7,.35,1) both}
+        .item.is-locking .item-lock-shards span{animation:itemLockRestore .62s cubic-bezier(.16,.7,.35,1) both}
+        .item.has-lock-animation::before,.item.has-lock-animation::after{z-index:5}
+        .item.is-unlocking::before{animation:itemLockShackleBreak .5s ease-in both}
+        .item.is-unlocking::after{animation:itemLockBodyBreak .48s ease-in both}
+        .item.is-locking::before{animation:itemLockShackleRestore .62s cubic-bezier(.2,.8,.2,1) both}
+        .item.is-locking::after{animation:itemLockBodyRestore .55s cubic-bezier(.2,.8,.2,1) .08s both}
+        @keyframes itemUnlockEnter{from{opacity:0;transform:translateX(-28px) scale(.94)}to{opacity:1;transform:translateX(0) scale(1)}}
+        @keyframes itemUnlockExit{to{opacity:0;transform:translateX(-24px) scale(.96)}}
+        @keyframes itemLockShackleBreak{to{opacity:0;transform:translate(-10%,-155%) rotate(-35deg) scale(.65)}}
+        @keyframes itemLockBodyBreak{to{opacity:0;transform:translate(25%,-15%) rotate(22deg) scale(.55)}}
+        @keyframes itemLockShackleRestore{from{opacity:0;transform:translate(-10%,-155%) rotate(-35deg) scale(.65)}to{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(1)}}
+        @keyframes itemLockBodyRestore{from{opacity:0;transform:translate(25%,-15%) rotate(22deg) scale(.55)}to{opacity:1;transform:translate(-50%,-50%) rotate(0) scale(1)}}
+        @keyframes itemLockBreak{to{opacity:0;transform:translate(var(--shard-x),var(--shard-y)) rotate(var(--shard-turn)) scale(.25)}}
+        @keyframes itemLockRestore{from{opacity:0;transform:translate(var(--shard-x),var(--shard-y)) rotate(var(--shard-turn)) scale(.25)}55%{opacity:1}to{opacity:1;transform:translate(0,0) rotate(0) scale(1)}}`;
+    document.head.append(itemUnlockToastStyle);
+    document.body.append(itemUnlockToast);
+
+    function showItemStateToast(name, isLocked) {
+        if (localStorage.getItem(unlockAnimationsKey) === "false") return;
+        const normalizedName = String(name || "").trim().toLowerCase();
+        const card = cards.find(candidate => cardName(candidate).trim().toLowerCase() === normalizedName);
+        const image = card?.querySelector("img");
+        const notice = document.createElement("article");
+        notice.className = `item-unlock-notice${isLocked ? " is-locked" : ""}`;
+        if (image?.src) {
+            const icon = document.createElement("img");
+            icon.src = image.src;
+            icon.alt = "";
+            notice.append(icon);
+        }
+        const copy = document.createElement("div");
+        copy.className = "item-unlock-copy";
+        const heading = document.createElement("strong");
+        heading.textContent = isLocked ? "item locked" : "unlocked item";
+        const label = document.createElement("span");
+        label.textContent = name;
+        copy.append(heading, label);
+        notice.append(copy);
+        itemUnlockToast.prepend(notice);
+        window.setTimeout(() => {
+            notice.classList.add("is-leaving");
+            notice.addEventListener("animationend", () => notice.remove(), { once: true });
+            window.setTimeout(() => notice.remove(), 500);
+        }, 5000);
+    }
+
+    function animateItemLock(card, isLocked) {
+        if (!card || localStorage.getItem(unlockAnimationsKey) === "false") return;
+        card.querySelector(".item-lock-shards")?.remove();
+        card.classList.remove("is-unlocking", "is-locking", "has-lock-animation");
+        const shards = document.createElement("span");
+        shards.className = "item-lock-shards";
+        for (let index = 0; index < 7; index += 1) {
+            const piece = document.createElement("span");
+            const angle = (Math.PI * 2 * index) / 7 - Math.PI / 2;
+            const distance = 20 + (index % 3) * 9;
+            piece.style.setProperty("--shard-x", `${Math.round(Math.cos(angle) * distance)}px`);
+            piece.style.setProperty("--shard-y", `${Math.round(Math.sin(angle) * distance)}px`);
+            piece.style.setProperty("--shard-turn", `${(index % 2 ? 1 : -1) * (35 + index * 9)}deg`);
+            piece.style.animationDelay = `${index * 22}ms`;
+            shards.append(piece);
+        }
+        card.append(shards);
+        card.classList.add("has-lock-animation", isLocked ? "is-locking" : "is-unlocking");
+        window.setTimeout(() => {
+            card.classList.remove("has-lock-animation", "is-locking", "is-unlocking");
+            shards.remove();
+        }, 850);
+    }
 
     function saveOwnedItems() {
         localStorage.setItem(storageKey, JSON.stringify(Array.from(ownedItems)));
@@ -104,17 +194,23 @@
         }
         localStorage.setItem(eventRelockMigrationKey, "true");
     }
+    knownOwnedItems = new Set(ownedItems);
 
     function updateBalances() {
-        const format = window.formatInventoryNumber || (value => String(value));
-        document.getElementById("apBalance").textContent = format(ap);
-        document.getElementById("mpBalance").textContent = format(mp);
-        localStorage.setItem("ap", ap);
-        localStorage.setItem("mp", mp);
+        const format = window.formatInventoryBalance || window.formatInventoryNumber || (value => String(value));
+        document.getElementById("apBalance").textContent = format(ap, "ap");
+        document.getElementById("mpBalance").textContent = format(mp, "mp");
+        document.getElementById("apBalance").classList.toggle("is-infinity", /^infinity$/i.test(String(localStorage.getItem("ap") || "").trim()));
+        document.getElementById("mpBalance").classList.toggle("is-infinity", /^infinity$/i.test(String(localStorage.getItem("mp") || "").trim()));
+        if (Number.isFinite(ap)) localStorage.setItem("ap", ap);
+        if (Number.isFinite(mp)) localStorage.setItem("mp", mp);
     }
+    window.refreshInventoryBalances = updateBalances;
 
     function readStoredBalance(key, fallback) {
-        const stored = Number(localStorage.getItem(key));
+        const raw = String(localStorage.getItem(key) || "").trim();
+        if (/^tree\(\s*\d+\s*\)$/i.test(raw) || /^infinity$/i.test(raw)) return Infinity;
+        const stored = Number(raw);
         return Number.isFinite(stored) && stored >= 0 ? stored : fallback;
     }
 
@@ -184,6 +280,33 @@
         return true;
     };
 
+    window.setInventoryBalance = function (key, amount) {
+        if (!['ap', 'mp'].includes(key)) return false;
+        const normalized = String(amount || "").trim();
+        if (/^infinity$/i.test(normalized)) {
+            if (key === 'ap') ap = Infinity;
+            else mp = Infinity;
+            localStorage.setItem(key, "infinity");
+            updateBalances();
+            return true;
+        }
+        const symbolic = normalized.match(/^tree\(\s*(\d+)\s*\)$/i);
+        if (symbolic) {
+            const canonical = `tree(${BigInt(symbolic[1])})`;
+            if (key === 'ap') ap = Infinity;
+            else mp = Infinity;
+            localStorage.setItem(key, canonical);
+            updateBalances();
+            return true;
+        }
+        const value = Number(amount);
+        if (!Number.isFinite(value) || value < 0) return false;
+        if (key === 'ap') ap = value;
+        else mp = value;
+        updateBalances();
+        return true;
+    };
+
     window.spendCurrency = function (apCost = 0, mpCost = 0) {
         ap = readStoredBalance("ap", ap);
         mp = readStoredBalance("mp", mp);
@@ -235,6 +358,15 @@
     function updateCards() {
         cards = Array.from(document.querySelectorAll(cardSelector));
         cards.forEach(rememberCardOrder);
+        const nextOwnedItems = new Set(ownedItems);
+        for (const card of cards) {
+            const name = cardName(card);
+            if (!name || knownOwnedItems.has(name) === nextOwnedItems.has(name)) continue;
+            const isLocked = !nextOwnedItems.has(name);
+            animateItemLock(card, isLocked);
+            showItemStateToast(name, isLocked);
+        }
+        knownOwnedItems = nextOwnedItems;
         const namedCards = cards
             .map(card => ({ card, name: cardName(card) }))
             .filter(item => item.name);
@@ -353,7 +485,7 @@
             border: 1px solid #ff00d4;
             box-shadow: inset 0 0 14px #ff00d433;
         }
-        .item.locked::before {
+        .item.locked::before, .item.has-lock-animation::before {
             content: "";
             position: absolute;
             left: 50%;
@@ -369,7 +501,7 @@
             transform: translate(-50%, -50%);
             z-index: 2;
         }
-        .item.locked::after {
+        .item.locked::after, .item.has-lock-animation::after {
             content: "";
             position: absolute;
             left: 50%;
@@ -745,10 +877,35 @@
     }
 
     window.unlockItem = grantItem;
+    window.lockItem = function (name) {
+        const existing = Array.from(ownedItems).find(item => String(item).toLowerCase() === String(name || '').toLowerCase());
+        if (!existing) return false;
+        ownedItems.delete(existing);
+        saveOwnedItems();
+        updateCards();
+        return true;
+    };
+    window.lockAllItems = function () {
+        ownedItems.clear();
+        saveOwnedItems();
+        updateCards();
+        return true;
+    };
     window.wasEventItemUnlocked = name => eventItemHistory.has(String(name || "").trim().toLowerCase());
     window.markEventItemUnlocked = markEventItemUnlocked;
     window.isItemUnlocked = name => ownedItems.has(name);
     window.refreshUnlockCards = updateCards;
+    window.addEventListener("storage", event => {
+        if (event.key === storageKey) {
+            try { ownedItems = new Set(JSON.parse(event.newValue || "[]")); } catch { ownedItems = new Set(); }
+            updateCards();
+        }
+        if (event.key === "ap" || event.key === "mp") {
+            ap = readStoredBalance("ap", ap);
+            mp = readStoredBalance("mp", mp);
+            updateBalances();
+        }
+    });
 
     document.getElementById("unlockButton").addEventListener("click", () => {
         if (!selectedItem || selectedItem.seasonal) return;

@@ -1,0 +1,94 @@
+:root {
+    --event-accent: #d985ff;
+    --event-glow: rgba(190, 90, 255, .25);
+    --event-border: #873fba;
+    --event-panel: #17101f;
+    --event-muted: #bdacd0;
+}
+
+#dailyMissions[data-event-theme="deep-dark"] {
+    --event-accent: #8df5ce;
+    --event-glow: rgba(32, 224, 172, .28);
+    --event-border: #287b6d;
+    --event-panel: #071815;
+    --event-muted: #a5d8cd;
+}
+
+#dailyMissions[data-event-theme="birthday"] {
+    --event-accent: #ff8de1;
+    --event-glow: rgba(255, 76, 192, .3);
+    --event-border: #a83e8f;
+    --event-panel: #210d20;
+    --event-muted: #f0b6dc;
+}
+
+#dailyMissions[data-event-theme="sifting"] {
+    --event-accent: #a8ffc1;
+    --event-glow: rgba(76, 220, 123, .27);
+    --event-border: #418052;
+    --event-panel: #0e1b12;
+    --event-muted: #b8d6bd;
+}
+
+#dailyMissions[data-event-theme="frosting-winter"] {
+    --event-accent: #a8e8ff;
+    --event-glow: rgba(87, 183, 255, .3);
+    --event-border: #4386ae;
+    --event-panel: #0b1721;
+    --event-muted: #b4d5e8;
+}
+
+#dailyMissions[data-event-theme="voiding-age"] {
+    --event-accent: #dbadff;
+    --event-glow: rgba(153, 81, 255, .32);
+    --event-border: #7545ad;
+    --event-panel: #140d22;
+    --event-muted: #c6b4df;
+}
+
+#dailyMissions[data-event-theme="starring-space"] {
+    --event-accent: #91dfff;
+    --event-glow: rgba(88, 146, 255, .3);
+    --event-border: #4265ad;
+    --event-panel: #0b1222;
+    --event-muted: #b5c8e8;
+}
+
+#dailyMissions[data-event-theme="amethyst-clustering"] {
+    --event-accent: #e3a0ff;
+    --event-glow: rgba(186, 63, 255, .32);
+    --event-border: #8b44b2;
+    --event-panel: #1b0d24;
+    --event-muted: #d4b5e6;
+}
+
+#dailyMissions[data-event-theme] > h3,
+#dailyMissions[data-event-theme] .mission-card h4,
+#dailyMissions[data-event-theme] .mission-reward {
+    color: var(--event-accent);
+    text-shadow: 0 0 9px var(--event-glow);
+}
+
+#dailyMissions[data-event-theme] .mission-card {
+    border-color: var(--event-border);
+    background: linear-gradient(145deg, var(--event-panel), #050a10 78%);
+    box-shadow: 0 0 14px var(--event-glow);
+}
+
+#dailyMissions[data-event-theme] .mission-objective,
+#dailyMissions[data-event-theme] .mission-status,
+#dailyMissions[data-event-theme] .mission-progress {
+    color: var(--event-muted);
+}
+
+#dailyMissions[data-event-theme] .mission-meter span {
+    background: linear-gradient(90deg, var(--event-accent), var(--event-border));
+    box-shadow: 0 0 8px var(--event-glow);
+}
+
+#dailyMissions[data-event-theme] .mission-refresh-button[data-event-quest] {
+    border-color: var(--event-border);
+    color: var(--event-accent);
+    background: color-mix(in srgb, var(--event-panel) 80%, #000);
+    box-shadow: 0 0 8px var(--event-glow);
+}

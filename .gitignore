@@ -1,2 +1,12 @@
 serve.py
 serve
+
+# local owner-only editors
+item-editor.html
+event-editor.html
+quest-editor.html
+save-editor.html
+badge-editor.html
+item-editor.ico
+item-editor-icon.png
+v3ico-quest-editor.png
