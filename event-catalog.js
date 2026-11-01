@@ -70,11 +70,24 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
+        "id": "amethyst-clustering-mv5r2h27",
+        "name": "amethyst clustering",
+        "theme": "amethyst",
+        "themeColor": "#5900ff",
+        "start": "2026-11-06T22:13:00.000Z",
+        "end": "2026-11-09T22:14:00.000Z",
+        "items": [
+            "Huge Amethyst Cluster",
+            "Medium Amethyst Bud",
+            "Smol Amethyst Shard"
+        ]
+    },
+    {
         "id": "deep-dark-mv5q9qqp",
         "name": "deep dark",
         "theme": "deepdarkv2",
         "themeColor": "#0011ff",
-        "start": "2026-11-01T19:50:00.000Z",
+        "start": "2026-11-01T18:50:00.000Z",
         "end": "2026-11-06T01:50:00.000Z",
         "items": [
             "Awesomeaxe",
@@ -89,19 +102,6 @@ window.INVENTORY_EVENT_CATALOG = [
             "Slaymore",
             "Soul Reaper",
             "Twilight Dagger"
-        ]
-    },
-    {
-        "id": "amethyst-clustering-mv5r2h27",
-        "name": "amethyst clustering",
-        "theme": "amethyst",
-        "themeColor": "#5900ff",
-        "start": "2026-11-06T22:13:00.000Z",
-        "end": "2026-11-09T22:14:00.000Z",
-        "items": [
-            "Huge Amethyst Cluster",
-            "Medium Amethyst Bud",
-            "Smol Amethyst Shard"
         ]
     }
 ];
