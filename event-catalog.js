@@ -57,22 +57,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "deep-dark-mv5q9qqp",
-        "name": "deep dark",
-        "start": "2026-10-31T20:50:00.000Z",
-        "end": "2026-11-05T01:50:00.000Z",
-        "items": [
-            "Awesomeaxe",
-            "Blue Crucible",
-            "Lunar Sickle",
-            "Pride of the Plains",
-            "Sculker Claws",
-            "Sculker's Bane",
-            "Soul Reaper",
-            "Twilight Dagger"
-        ]
-    },
-    {
         "id": "birthday-mv5qbt0e",
         "name": "birthday",
         "start": "2027-09-29T20:59:00.000Z",
@@ -83,5 +67,46 @@ window.INVENTORY_EVENT_CATALOG = [
             "Gray Crucible",
             "Sparkler"
         ]
+    },
+    {
+        "id": "mscm-ultimated-mvww81zz",
+        "name": "mscm ultimated",
+        "theme": "ultimated",
+        "themeColor": "#ff0000",
+        "start": "2026-12-21T22:07:00.000Z",
+        "end": "2026-12-22T22:08:00.000Z",
+        "items": [
+            "Ultimate Pickaxe",
+            "Ultimate Sword"
+        ]
+    },
+    {
+        "id": "deep-dark-mv5q9qqp",
+        "name": "deep dark",
+        "theme": "auto",
+        "themeColor": "",
+        "start": "2026-11-02T21:50:00.000Z",
+        "end": "2026-11-05T01:50:00.000Z",
+        "items": [
+            "Awesomeaxe",
+            "Blue Crucible",
+            "Corrupted Beacon (MCDII)",
+            "Firework Arrow (MCDII)",
+            "Lightning Rod (MCDII)",
+            "Lunar Sickle",
+            "Pride of the Plains",
+            "Sculker Claws",
+            "Sculker's Bane",
+            "Slaymore",
+            "Soul Reaper",
+            "Twilight Dagger"
+        ]
+    }
+];
+window.INVENTORY_EVENT_PRESETS = [
+    {
+        "id": "ultimated",
+        "name": "ultimated",
+        "color": "#ff0000"
     }
 ];
