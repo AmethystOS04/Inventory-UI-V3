@@ -83,10 +83,10 @@ window.INVENTORY_EVENT_CATALOG = [
     {
         "id": "deep-dark-mv5q9qqp",
         "name": "deep dark",
-        "theme": "auto",
-        "themeColor": "",
+        "theme": "deepdarkv2",
+        "themeColor": "#0011ff",
         "start": "2026-11-01T19:50:00.000Z",
-        "end": "2026-11-05T01:50:00.000Z",
+        "end": "2026-11-06T01:50:00.000Z",
         "items": [
             "Awesomeaxe",
             "Blue Crucible",
@@ -104,6 +104,11 @@ window.INVENTORY_EVENT_CATALOG = [
     }
 ];
 window.INVENTORY_EVENT_PRESETS = [
+    {
+        "id": "deepdarkv2",
+        "name": "deepdarkv2",
+        "color": "#0011ff"
+    },
     {
         "id": "ultimated",
         "name": "ultimated",
