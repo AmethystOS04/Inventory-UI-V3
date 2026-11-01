@@ -361,6 +361,7 @@ html[data-reality="deepdark"] .info-panel::after {
     align-items: center;
     gap: 8px;
 }
+#soulUsageRow[hidden] { display: none; }
 .info-panel::before{
 
     content:"";
@@ -1339,6 +1340,9 @@ border-radius:12px;
     text-shadow:0 0 8px #ff00ff;
     text-shadow:0 3px 8px #721a72;
 }
+.soul-stat-icon { width:40px; height:40px; flex:0 0 40px; object-fit:contain; }
+.soul-label { color:#59ADFF; text-shadow:0 0 8px #59ADFF; }
+#soulUsage { background:linear-gradient(to bottom,#5EA8FF,#114C8F); background-clip:text; -webkit-background-clip:text; color:transparent; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 4px #5EA8FF) drop-shadow(0 0 7px #114C8F); }
 .damage-label{
     color:#ff0000;
     text-shadow:0 0 8px #ff0000;
@@ -2299,8 +2303,7 @@ transition: filter .2s ease;
             <span id="seasonalLevel"></span>
         </p>
         </div>
-<!-- seasonal mission level?-->
-
+        <p id="soulUsageRow" hidden><img class="stat-icon soul-stat-icon" src="Dungeons2Sprite_artifact.png" alt=""><span class="soul-label">Soul Usage:</span><span id="soulUsage"></span></p>
 </div>
   
 
@@ -2527,7 +2530,7 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
 </div>
 
   <script src="weapon-cost.js"></script>
-  <script src="scriptv3.js?v=20261012-compact-balances1"></script>
+  <script src="scriptv3.js?v=20261031-soul-usage1"></script>
   <script src="event-catalog.js?v=20261012-shared-events1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
   <script src="unlocks.js?v=20261012-compact-balances1"></script>
@@ -2535,6 +2538,6 @@ onclick="window.open('https://modrinth.com/mod/amethyststupidstuff','_blank')">
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
   <script src="missions.js?v=20261012-compact-balances1"></script>
-      <script src="item-sheet.js?v=20261012-eventschedule3"></script>
+      <script src="item-sheet.js?v=20261031-soul-usage1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261012-player-save1"></script>

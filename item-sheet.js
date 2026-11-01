@@ -2,13 +2,39 @@
     const sheetUrl = "items.csv";
     const refreshEveryMs = 2500;
     const inventory = document.querySelector(".items");
-    const knownItems = new Set(
-        Array.from(inventory.querySelectorAll(".item"), card => {
-            if (card.dataset.itemName) return card.dataset.itemName;
-            const call = (card.getAttribute("onclick") || "").match(/showItem\(\s*'((?:\\.|[^'\\])*)'/);
-            return call ? call[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\") : "";
-        }).filter(Boolean)
-    );
+    const itemCards = new Map();
+    inventory.addEventListener("click", event => {
+        const card = event.target.closest(".item");
+        if (!card) return;
+        inventory.querySelectorAll(".item").forEach(item => {
+            item.classList.remove("selected");
+            item.style.borderColor = "";
+            item.style.boxShadow = "";
+        });
+        card.classList.add("selected");
+        requestAnimationFrame(() => {
+            const rarity = (card.dataset.rarity || document.getElementById("rarity")?.textContent || "").trim().toLowerCase();
+            const color = {
+                common: "#aaaaaa", rare: "#3aa0ff", epic: "#a335ee", electric: "#00ffff",
+                unique: "#ff9a00", magma: "#ff6600", terror: "#9900d1", dark: "#4b2d63",
+                mythical: "#3a339e", divine: "#c9c624", void: "#ff00e2", "void+": "#ff2e8f",
+                pixel: "#00ff33", frozen: "#8dfffb", gravity: "#ee35ff", flamed: "#ff0000",
+                artifact: "#8b8186", forgotten: "#2f1515", dominance: "#ffa2ee", shadow: "#5c1082",
+                seasonal: "#ff0381", special: "#007bff", none: "#7b2828"
+            }[rarity] || "white";
+            card.style.setProperty("--item-selection-color", color);
+            card.style.borderColor = color;
+            card.style.boxShadow = `0 0 12px ${color}`;
+        });
+    });
+    for (const card of inventory.querySelectorAll(".item")) {
+        const call = (card.getAttribute("onclick") || "").match(/showItem\(\s*'((?:\\.|[^'\\])*)'/);
+        const name = card.dataset.itemName || (call ? call[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\") : "");
+        if (name) {
+            card.dataset.itemName = name;
+            itemCards.set(name, card);
+        }
+    }
 
     function parseCsv(text) {
         const rows = [];
@@ -58,7 +84,7 @@
     }
 
     function addItem(item) {
-        if (!item.name || !item.image || knownItems.has(item.name)) return;
+        if (!item.name || !item.image) return;
 
         const seasonal = parseBoolean(item.seasonal);
         const args = [
@@ -70,30 +96,42 @@
             numberValue(item.artifact_power),
             seasonal,
             seasonal ? numberValue(item.seasonal_level, 1) : 0,
-            item.description || ""
+            item.description || "",
+            item.soul_usage || ""
         ];
 
-        const card = document.createElement("div");
-        card.className = "item";
+        let card = itemCards.get(item.name);
+        let created = false;
+        if (!card) {
+            card = document.createElement("div");
+            card.className = "item";
+            inventory.appendChild(card);
+            itemCards.set(item.name, card);
+            created = true;
+        }
         card.dataset.itemName = item.name;
         card.dataset.seasonal = String(seasonal);
         card.dataset.rarity = item.rarity || "common";
+        card.dataset.damage = String(numberValue(item.damage));
+        card.dataset.artifactPower = String(numberValue(item.artifact_power));
+        card.dataset.protection = String(numberValue(item.protection));
         if (item.event) card.dataset.catalogEvent = item.event.trim().toLowerCase();
         card.dataset.originalOrder = String(inventory.querySelectorAll(".item").length);
         card.setAttribute("aria-label", item.name);
         card.title = item.name;
 
-        const image = document.createElement("img");
+        let image = card.querySelector("img");
+        if (!image) {
+            image = document.createElement("img");
+            card.replaceChildren(image);
+        }
         image.src = item.image;
         image.alt = item.name;
-        card.appendChild(image);
-
-        card.addEventListener("click", () => window.showItem(...args));
-        inventory.appendChild(card);
-        knownItems.add(item.name);
+        card.onclick = () => window.showItem(...args);
 
         icons[item.name] = item.image;
         if (window.refreshUnlockCards) window.refreshUnlockCards();
+        return created;
     }
 
     async function loadSheet() {
@@ -107,10 +145,12 @@
                 (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
             );
 
+            let addedItems = false;
             for (const values of rows) {
                 const item = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
-                addItem(item);
+                addedItems = addItem(item) || addedItems;
             }
+            if (addedItems) window.dispatchEvent(new Event("inventory-catalog-updated"));
         } catch (error) {
             console.warn("item sheet could not be loaded", error);
         }

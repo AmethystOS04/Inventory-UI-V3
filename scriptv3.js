@@ -252,7 +252,8 @@ function showItem(
     artifactEffectPower = 0,
     seasonalEvent = false,
     seasonalLevel = 0,
-    quote = ""
+    quote = "",
+    soulUsage = ""
 ){
 
     baseDamage = damage;
@@ -270,6 +271,7 @@ iconEl.src = icons[name] || "icons/default.png";
     let artifactEffectPowerEl = document.getElementById("artifactEffectPower");
     let seasonalEventEl = document.getElementById("seasonalEvent");
     let seasonalLevelEl = document.getElementById("seasonalLevel");
+    let soulUsageEl = document.getElementById("soulUsage");
 
     nameEl.textContent = name;
     dmgEl.textContent = damage;
@@ -278,6 +280,8 @@ iconEl.src = icons[name] || "icons/default.png";
     artifactEffectPowerEl.textContent = artifactEffectPower;
     seasonalEventEl.textContent = seasonalEvent;
     seasonalLevelEl.textContent = seasonalLevel;
+    soulUsageEl.textContent = soulUsage;
+    document.getElementById("soulUsageRow").hidden = !String(soulUsage).trim();
 
     document.getElementById("max power lvl").textContent = maxLvl;
    const quoteEl = document.getElementById("itemQuote");
