@@ -95,10 +95,12 @@ window.INVENTORY_EVENT_CATALOG = [
             "Corrupted Beacon (MCDII)",
             "Firework Arrow (MCDII)",
             "Lightning Rod (MCDII)",
+            "Lullaby Blade",
             "Lunar Sickle",
             "Pride of the Plains",
             "Sculker Claws",
             "Sculker's Bane",
+            "Sift Sickles",
             "Slaymore",
             "Soul Reaper",
             "Twilight Dagger"
