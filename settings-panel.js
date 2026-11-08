@@ -17,6 +17,15 @@
     button.textContent = 'settings';
     panel.append(button);
 
+    const wikiButton = document.createElement('a');
+    wikiButton.id = 'openInventoryWiki';
+    wikiButton.href = 'wiki.html';
+    wikiButton.target = '_blank';
+    wikiButton.rel = 'noopener';
+    wikiButton.textContent = 'wiki';
+    wikiButton.title = 'open the inventory wiki';
+    button.after(wikiButton);
+
     const dialog = document.createElement('dialog');
     dialog.id = 'inventorySettingsDialog';
     dialog.setAttribute('aria-labelledby', 'inventorySettingsTitle');
@@ -34,7 +43,7 @@
 
     const style = document.createElement('style');
     style.textContent = `
-        #openSettingsPanel,#inventorySettingsDialog button{border:1px solid var(--reality-border,#00f7ff);border-radius:8px;padding:8px 11px;color:var(--reality-accent-2,#70eaff);background:var(--reality-panel,#15121d);font:inherit;cursor:pointer}
+        #openSettingsPanel,#openInventoryWiki,#inventorySettingsDialog button{display:inline-block;border:1px solid var(--reality-border,#00f7ff);border-radius:8px;padding:8px 11px;color:var(--reality-accent-2,#70eaff);background:var(--reality-panel,#15121d);font:inherit;cursor:pointer;text-decoration:none}
         #inventorySettingsDialog{width:min(480px,92vw);max-height:86vh;overflow:auto;padding:18px;border:1px solid var(--reality-border,#00f7ff);border-radius:14px;color:var(--reality-text,#fff);background:var(--reality-panel,#080c13);box-shadow:0 0 28px color-mix(in srgb,var(--reality-border,#00f7ff) 32%,transparent)}
         #inventorySettingsDialog::backdrop{background:rgba(2,4,12,.78);backdrop-filter:blur(4px)}
         #inventorySettingsDialog .settings-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
