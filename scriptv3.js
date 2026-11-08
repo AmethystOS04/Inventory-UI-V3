@@ -323,6 +323,7 @@ function showItem(
 
 
 iconEl.src = icons[name] || "icons/default.png";
+iconEl.dataset.itemName = name;
 
 // [[ show weapon data ]] \\
 

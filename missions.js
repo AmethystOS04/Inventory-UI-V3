@@ -166,6 +166,15 @@
     function eventItemIsOwned(name) {
         return typeof window.isItemUnlocked === "function" && window.isItemUnlocked(name);
     }
+    function eventMissionsFinished(event = activeEvent) {
+        if (!event) return false;
+        const names = Array.from(new Set(event.items.map(name => String(name).trim()).filter(Boolean)));
+        const progress = progressForEvent(event);
+        return names.every(name => progress.completed.includes(name) || eventItemWasEarned(name) || eventItemIsOwned(name));
+    }
+    function eventMissionsActive() {
+        return Boolean(activeEvent && !eventMissionsFinished(activeEvent));
+    }
     function getEventAssignments(event) {
         const progress = progressForEvent(event);
         const eligible = Array.from(new Set(event.items.map(name => String(name).trim()).filter(name =>
@@ -269,7 +278,7 @@
     save();
 
     function updateMission(id) {
-        if (activeEvent) {
+        if (eventMissionsActive()) {
             updateEventMission(id);
             return;
         }
@@ -321,7 +330,7 @@
     function syncRefreshControls() {
         const balance = getBalance("ap");
         const missionsPanel = document.getElementById("dailyMissions");
-        if (activeEvent) {
+        if (eventMissionsActive()) {
             const theme = String(activeEvent.theme || "auto").trim().toLowerCase();
             const eventTheme = theme && theme !== "auto"
                 ? theme
@@ -343,17 +352,17 @@
             delete missionsPanel.dataset.eventId;
             ["--event-accent", "--event-border", "--event-panel", "--event-muted", "--event-glow"].forEach(property => missionsPanel.style.removeProperty(property));
         }
-        document.getElementById("dailyMissionsHeading").textContent = activeEvent ? "event missions" : "daily missions";
-        document.getElementById("dailyRefreshTimer").hidden = Boolean(activeEvent);
+        document.getElementById("dailyMissionsHeading").textContent = eventMissionsActive() ? "event missions" : "daily missions";
+        document.getElementById("dailyRefreshTimer").hidden = eventMissionsActive();
         document.querySelectorAll("[data-refresh-quest]").forEach(button => {
             const baseCost = refreshCosts[button.dataset.refreshQuest];
             const cost = baseCost * (badgePeekPenaltyActive() ? 9 : 1);
-            button.hidden = Boolean(activeEvent);
-            button.disabled = Boolean(activeEvent) || balance < cost;
-            button.title = activeEvent ? "event quests cannot be refreshed" : button.disabled ? `need ${cost - balance} more ap` : `spend ${cost} ap to get a new quest`;
+            button.hidden = eventMissionsActive();
+            button.disabled = eventMissionsActive() || balance < cost;
+            button.title = eventMissionsActive() ? "event quests cannot be refreshed" : button.disabled ? `need ${cost - balance} more ap` : `spend ${cost} ap to get a new quest`;
             button.textContent = `refresh quest ${questSlots.indexOf(button.dataset.refreshQuest) + 1} · ${formatAmount(cost)} ap`;
         });
-        document.querySelectorAll("[data-event-quest]").forEach(button => { button.hidden = !activeEvent; });
+        document.querySelectorAll("[data-event-quest]").forEach(button => { button.hidden = !eventMissionsActive(); });
     }
 
     function updateAll() {
@@ -363,7 +372,7 @@
 
     document.querySelectorAll("[data-refresh-quest]").forEach(button => {
         button.addEventListener("click", () => {
-            if (activeEvent) return;
+            if (eventMissionsActive()) return;
             const slot = button.dataset.refreshQuest;
             const message = button.closest(".mission-card").querySelector(".mission-refresh-message");
             const balance = getBalance("ap");
@@ -610,6 +619,20 @@
     const arenaArtifactStorageKey = "riftArenaSelectedArtifactV1";
     const arenaDifficultyStorageKey = "riftArenaDifficultyV1";
     const artifactCooldownDisabledKey = "riftArenaDisableArtifactCooldownV1";
+    const arenaProjectileCountStorageKey = "riftArenaProjectileCountV1";
+    const arenaLightningStrikeCountStorageKey = "riftArenaLightningStrikeCountV1";
+    function arenaConfiguredCount(key, fallback) {
+        const count = Number(localStorage.getItem(key));
+        return Number.isFinite(count) && count >= 1 ? Math.min(100, Math.floor(count)) : fallback;
+    }
+    function fireProjectileVolley({ angle, speed, damage, life, kind, rarity, sprite, radius }) {
+        const count = arenaConfiguredCount(arenaProjectileCountStorageKey, 1);
+        const spread = 0.07;
+        for (let index = 0; index < count; index++) {
+            const shotAngle = angle + (index - (count - 1) / 2) * spread;
+            bolts.push({ x: player.x, y: player.y, vx: Math.cos(shotAngle) * speed, vy: Math.sin(shotAngle) * speed, damage, rarity, life, kind, sprite, radius });
+        }
+    }
     const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)"]);
     const cooldownsDisabled = () => localStorage.getItem(artifactCooldownDisabledKey) === "true";
     const setAbilityCooldown = seconds => { abilityCooldown = cooldownsDisabled() ? 0 : seconds; };
@@ -689,18 +712,25 @@
         const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem);
         return Math.max(0, Number(card?.dataset.protection) || 0);
     }
-    function getArenaSprite(image, size) {
+    function getArenaSprite(image, size, preserveAspect = false) {
         if (!image?.complete || !image.naturalWidth || !image.naturalHeight) return null;
         const source = image.currentSrc || image.src;
         const cached = arenaSpriteCache.get(image);
-        if (cached?.source === source && cached.width === image.naturalWidth && cached.height === image.naturalHeight && cached.size === size) return cached.canvas;
+        if (cached?.source === source && cached.width === image.naturalWidth && cached.height === image.naturalHeight && cached.size === size && cached.preserveAspect === preserveAspect) return cached.canvas;
         const sprite = document.createElement("canvas");
         sprite.width = size;
         sprite.height = size;
         const spriteContext = sprite.getContext("2d");
         spriteContext.imageSmoothingEnabled = false;
-        spriteContext.drawImage(image, 0, 0, size, size);
-        arenaSpriteCache.set(image, { source, width: image.naturalWidth, height: image.naturalHeight, size, canvas: sprite });
+        if (preserveAspect) {
+            const scale = Math.min(size / image.naturalWidth, size / image.naturalHeight);
+            const width = image.naturalWidth * scale;
+            const height = image.naturalHeight * scale;
+            spriteContext.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
+        } else {
+            spriteContext.drawImage(image, 0, 0, size, size);
+        }
+        arenaSpriteCache.set(image, { source, width: image.naturalWidth, height: image.naturalHeight, size, preserveAspect, canvas: sprite });
         return sprite;
     }
     function updateWeaponDisplay() {
@@ -774,21 +804,32 @@
             sparks.push({ x: player.x, y: player.y, life: 1, color: "#9cf8ff" });
             setAbilityCooldown(7);
         } else if (item.startsWith("lightning rod")) {
-            const strikePoint = cooldownsDisabled() && aimTarget ? aimTarget : player;
-            const nearby = [...enemies].filter(enemy => Math.hypot(enemy.x - strikePoint.x, enemy.y - strikePoint.y) <= 320);
-            const targets = nearby.sort((a, b) => Math.hypot(a.x - strikePoint.x, a.y - strikePoint.y) - Math.hypot(b.x - strikePoint.x, b.y - strikePoint.y)).slice(0, Math.min(nearby.length, 6));
-            if (!targets.length && strikePoint !== player) lightningEffects.push({ x: strikePoint.x, y: strikePoint.y, life: .9, start: performance.now() / 1000 });
-            targets.forEach(target => {
-                lightningEffects.push({ x: target.x, y: target.y, life: .9, start: performance.now() / 1000 });
-                enemies.filter(enemy => Math.hypot(enemy.x - target.x, enemy.y - target.y) < 92).forEach(enemy => damageEnemy(enemy, selectedArtifactDamage(), "#eaff75"));
-            });
+            const strikePoint = aimTarget || player;
+            const strikeCount = arenaConfiguredCount(arenaLightningStrikeCountStorageKey, 6);
+            const strikeOffsets = [[0, 0], [-96, -96], [96, -96], [-96, 96], [96, 96], [0, -96], [96, 0], [0, 96], [-96, 0]];
+            for (let index = 0; index < strikeCount; index++) {
+                const [offsetX, offsetY] = strikeOffsets[index % strikeOffsets.length];
+                const strikeX = Math.max(0, Math.min(arena.width, strikePoint.x + offsetX));
+                const strikeY = Math.max(0, Math.min(arena.height, strikePoint.y + offsetY));
+                lightningEffects.push({
+                    x: strikeX,
+                    y: strikeY,
+                    life: .8,
+                    wait: index * .07,
+                    rodStrike: true,
+                    damageApplied: false,
+                    damage: selectedArtifactDamage(),
+                    areaRadius: 80 + index % 3 * 16,
+                    boltWidth: 14 + index % 3 * 5
+                });
+            }
             setAbilityCooldown(8);
         } else if (item === "firework arrow (mcdii)") {
             const dx = (aimTarget?.x ?? player.x + facing.x) - player.x;
             const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
             const distance = Math.hypot(dx, dy) || 1;
             facing = { x: dx / distance, y: dy / distance };
-            bolts.push({ x: player.x, y: player.y, vx: facing.x * 360, vy: facing.y * 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178 });
+            fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178 });
             setAbilityCooldown(4);
         }
         updateArenaAbilityControl();
@@ -1029,6 +1070,81 @@
         });
         ctx.globalAlpha = 1;
         lightningEffects.forEach(effect => {
+            if (effect.rodStrike) {
+                if (effect.wait > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = .22 + Math.sin(performance.now() / 55) * .08;
+                    ctx.setLineDash([12, 9]);
+                    ctx.strokeStyle = "#8df7ff";
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, effect.areaRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+                    return;
+                }
+                const progress = Math.max(0, Math.min(1, 1 - effect.life / .8));
+                const fade = 1 - progress;
+                const seed = Math.floor(effect.x * 13 + effect.y * 7);
+                const boltStartY = -90;
+                ctx.save();
+                ctx.globalAlpha = fade;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                const drawBolt = (offset, width, color, glow) => {
+                    ctx.beginPath();
+                    ctx.moveTo(effect.x + offset, boltStartY);
+                    for (let step = 1; step < 7; step++) {
+                        const y = boltStartY + (effect.y - boltStartY) * step / 7;
+                        const zigzag = ((step * 17 + seed) % 23) - 11;
+                        ctx.lineTo(effect.x + offset + zigzag, y);
+                    }
+                    ctx.lineTo(effect.x, effect.y);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = width;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = glow;
+                    ctx.stroke();
+                };
+                drawBolt(0, effect.boltWidth || 18, "#8df7ff", 32);
+                drawBolt(0, Math.max(4, (effect.boltWidth || 18) * .3), "#ffffff", 16);
+                ctx.shadowBlur = 0;
+                for (const branch of [-1, 1]) {
+                    const branchY = effect.y * .58;
+                    ctx.beginPath();
+                    ctx.moveTo(effect.x, branchY);
+                    ctx.lineTo(effect.x + branch * 28, branchY + 14);
+                    ctx.lineTo(effect.x + branch * 43, branchY + 8);
+                    ctx.strokeStyle = "#bafaff";
+                    ctx.lineWidth = Math.max(4, (effect.boltWidth || 18) * .3);
+                    ctx.shadowColor = "#8df7ff";
+                    ctx.shadowBlur = 24;
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+                for (const branch of [-1, 1]) {
+                    ctx.beginPath();
+                    ctx.moveTo(effect.x, effect.y - 12);
+                    ctx.lineTo(effect.x + branch * 12, effect.y - 6);
+                    ctx.lineTo(effect.x + branch * 22, effect.y - 11);
+                    ctx.strokeStyle = "#c3fbff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                const areaRadius = effect.areaRadius || 92;
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(141,247,255,${.14 * fade})`;
+                ctx.arc(effect.x, effect.y, areaRadius * (.82 + progress * .18), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(220,255,255,${.95 * fade})`;
+                ctx.lineWidth = 5 * fade;
+                ctx.arc(effect.x, effect.y, areaRadius * (.9 + progress * .1), 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+                return;
+            }
             ctx.globalAlpha = Math.max(0, effect.life / .35);
             if (effect.fire) {
                 const effectColor = effect.color || "#ff7b32";
@@ -1080,7 +1196,7 @@
         enemies.forEach(enemy => {
             const renderY = enemy.y - (enemy.airHeight || 0);
             if (enemy.airHeight > 0) { ctx.beginPath(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.ellipse(enemy.x, enemy.y + enemy.radius * .6, enemy.radius * 1.25, enemy.radius * .45, 0, 0, Math.PI * 2); ctx.fill(); }
-            const enemyColor = enemy.frozen > 0 ? "#5bbaff" : enemy.color;
+            const enemyColor = enemy.frozen > 0 ? "#5bbaff" : enemy.voidTime > 0 ? "#bd68ff" : enemy.burnTime > 0 ? "#ff7138" : enemy.color;
             ctx.beginPath(); ctx.fillStyle = enemyColor; ctx.shadowColor = enemyColor; ctx.shadowBlur = 15;
             ctx.arc(enemy.x, renderY, enemy.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
             ctx.beginPath(); ctx.fillStyle = "#07101a";
@@ -1098,7 +1214,7 @@
         ctx.shadowBlur = 0;
         ctx.beginPath(); ctx.fillStyle = "#e9d9ff"; ctx.arc(player.x, player.y, 5, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
-        const weaponSprite = selectedArenaItem ? getArenaSprite(selectedWeaponImage, 64) : null;
+        const weaponSprite = selectedArenaItem ? getArenaSprite(selectedWeaponImage, 64, selectedArenaItem === "Stormlander V2") : null;
         if (weaponSprite) {
             ctx.save();
             ctx.translate(player.x + facing.x * 31, player.y + facing.y * 31);
@@ -1142,7 +1258,7 @@
         const y = edge === 2 ? -20 : edge === 3 ? arena.height + 20 : Math.random() * arena.height;
         const difficulty = difficultySettings();
         const maxHp = Math.round((45 + Math.random() * 65 + wave * 5) * difficulty.hp);
-        enemies.push({ x, y, radius: 11 + Math.min(5, wave), speed: (38 + wave * 5 + Math.random() * 12) * difficulty.speed, hp: maxHp, maxHp, frozen: 0, color: wave > 4 ? "#48d7dd" : "#56b8d5" });
+        enemies.push({ x, y, radius: 11 + Math.min(5, wave), speed: (38 + wave * 5 + Math.random() * 12) * difficulty.speed, hp: maxHp, maxHp, frozen: 0, burnTime: 0, burnDamage: 0, burnTick: .5, voidTime: 0, voidDamage: 0, voidTick: .5, color: wave > 4 ? "#48d7dd" : "#56b8d5" });
     }
 
     function nearestEnemy() {
@@ -1168,14 +1284,109 @@
         if (!card) return 0;
         const storedDamage = Number(card.dataset.damage);
         if (Number.isFinite(storedDamage) && card.dataset.damage !== undefined) return Math.max(0, storedDamage);
-        const match = (card.getAttribute("onclick") || "").match(/showItem\(\s*(?:'[^']*'|"[^"]*")\s*,\s*(∞|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)/i);
+        const match = (card.getAttribute("onclick") || "").match(/showItem\(\s*'(?:\\.|[^'\\])*'\s*,\s*(∞|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)/i);
         if (match?.[1] === "∞") return Infinity;
         const parsedDamage = Number(match?.[1]);
         return Number.isFinite(parsedDamage) ? Math.max(0, parsedDamage) : 0;
     }
 
     function selectedWeaponDamage() {
-        return catalogItemDamage(selectedArenaItem);
+        const baseDamage = catalogItemDamage(selectedArenaItem);
+        const rarity = selectedWeaponRarity();
+        const multiplier = {
+            "magma": 1.2,
+            "flamed": 1.2,
+            "flame": 1.2,
+            "magma+flamed": 1.2,
+            "frozen": 1.2,
+            "void": 1.2,
+            "special": 1.5,
+            "divine": 2.5,
+            "mystical": 2.5,
+            "mythical": 2.5,
+            "electric": 1.15,
+            "shadow": 1.1,
+            "dominance": 8,
+            "void+": 1.35,
+            "void plus": 1.35
+        }[rarity] || 1;
+        return baseDamage * multiplier;
+    }
+
+    function selectedWeaponRarity() {
+        const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem || (item.getAttribute("onclick") || "").includes(selectedArenaItem));
+        return String(card?.dataset.rarity || "").trim().toLowerCase().replace(/\s+/g, " ").replace(/\s*\+\s*/g, "+");
+    }
+
+    function applyRarityEffect(enemy, rarity, damage) {
+        if (!enemy || !enemies.includes(enemy)) return;
+        if (rarity === "magma" || rarity === "flamed" || rarity === "flame" || rarity === "magma+flamed") {
+            enemy.burnTime = Math.max(enemy.burnTime || 0, 3);
+            enemy.burnDamage = Math.max(enemy.burnDamage || 0, damage * .12);
+            sparks.push({ x: enemy.x, y: enemy.y, life: .65, color: "#ff7138" });
+        } else if (rarity === "void" || rarity === "void+" || rarity === "void plus") {
+            const duration = rarity === "void" ? 3 : 7;
+            const dps = damage * (rarity === "void" ? .18 : .28);
+            enemy.voidTime = Math.max(enemy.voidTime || 0, duration);
+            enemy.voidDamage = Math.max(enemy.voidDamage || 0, dps);
+            sparks.push({ x: enemy.x, y: enemy.y, life: .7, color: "#bd68ff" });
+        } else if (rarity === "frozen") {
+            enemy.frozen = Math.max(enemy.frozen || 0, 4);
+            sparks.push({ x: enemy.x, y: enemy.y, life: .7, color: "#68dfff" });
+        } else if (rarity === "electric") {
+            sparks.push({ x: enemy.x, y: enemy.y, life: .6, color: "#65eaff" });
+            lightningEffects.push({ x: enemy.x, y: enemy.y, life: .3, chains: [] });
+        }
+    }
+
+    function rarityHitColor(rarity, fallback = "#d69cff") {
+        return ({ magma: "#ff7138", flamed: "#ff7138", flame: "#ff7138", "magma+flamed": "#ff7138", gravity: "#ad8bff", shadow: "#7180c9", void: "#bd68ff", "void+": "#df55ff", frozen: "#68dfff", electric: "#65eaff", divine: "#ffe98a", mystical: "#d993ff", mythical: "#d993ff", dominance: "#ff5ce4", special: "#ffb65e" })[rarity] || fallback;
+    }
+
+    function applyRarityImpact(center, rarity, damage, includeArea = true) {
+        if (!center || !rarity) return;
+        if (!includeArea) {
+            if (rarity === "shadow") ghostTime = Math.max(ghostTime, 3.5);
+            if (rarity === "gravity") {
+                enemies.forEach(enemy => {
+                    const dx = center.x - enemy.x;
+                    const dy = center.y - enemy.y;
+                    const distance = Math.hypot(dx, dy) || 1;
+                    if (distance <= 210) {
+                        enemy.x += dx / distance * Math.min(52, distance * .35);
+                        enemy.y += dy / distance * Math.min(52, distance * .35);
+                    }
+                });
+            }
+            applyRarityEffect(center, rarity, damage);
+            return;
+        }
+        const color = rarityHitColor(rarity);
+        const nearby = enemies.slice().filter(enemy => Math.hypot(enemy.x - center.x, enemy.y - center.y) <= (rarity === "dominance" ? 220 : 100));
+        if (rarity === "gravity") {
+            enemies.forEach(enemy => {
+                const dx = center.x - enemy.x;
+                const dy = center.y - enemy.y;
+                const distance = Math.hypot(dx, dy) || 1;
+                if (distance <= 210) {
+                    enemy.x += dx / distance * Math.min(52, distance * .35);
+                    enemy.y += dy / distance * Math.min(52, distance * .35);
+                }
+            });
+        } else if (rarity === "shadow") {
+            ghostTime = Math.max(ghostTime, 3.5);
+        } else if (rarity === "electric") {
+            const chains = nearby.filter(enemy => enemy !== center).slice(0, 4).map(enemy => ({ x: enemy.x, y: enemy.y }));
+            lightningEffects.push({ x: center.x, y: center.y, life: .38, chains });
+            nearby.filter(enemy => enemy !== center).forEach(enemy => damageEnemy(enemy, damage * .35, color));
+        } else if (rarity === "dominance") {
+            nearby.filter(enemy => enemy !== center).forEach(enemy => damageEnemy(enemy, damage * 2, color));
+        }
+        if (includeArea || ["magma", "flamed", "flame", "magma+flamed", "void", "void+", "frozen"].includes(rarity)) {
+            nearby.forEach(enemy => applyRarityEffect(enemy, rarity, damage));
+        } else {
+            applyRarityEffect(center, rarity, damage);
+        }
     }
 
     function selectedArtifactDamage() {
@@ -1198,19 +1409,21 @@
         if (!target || !enemies.includes(target)) return;
         const weapon = normalizedItemName(selectedArenaItem);
         const damage = selectedWeaponDamage();
+        const rarity = selectedWeaponRarity();
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
         facing = { x: Math.cos(angle), y: Math.sin(angle) };
         const frostHeart = weapon === "frost slayer" || weapon === "heartstealer";
         const starless = weapon === "the starless night";
         const comboIndex = weaponCombo++ % (frostHeart ? 3 : starless ? 2 : 1);
-        const slam = frostHeart ? comboIndex === 2 : starless ? comboIndex === 1 : ["hammer of gravity", "stormlander", "electric hammer v2", "great hammer"].includes(weapon);
-        const color = weapon === "flame sword" ? "#ff7438" : frostHeart ? "#68dfff" : weapon.includes("crucible") || weapon === "awesomeaxe" ? "#ff572e" : "#d69cff";
-        const impactRadius = weapon === "hammer of gravity" ? 150 : weapon === "stormlander" ? 95 : weapon === "great hammer" ? 62 : weapon === "cursed axe" ? 104 : weapon === "awesomeaxe" || weapon === "axe" ? 82 : weapon === "frost slayer" || weapon === "heartstealer" ? 84 : starless ? 96 : weapon.includes("crucible") ? 96 : weapon === "flame sword" ? 64 : 0;
+        const slam = frostHeart ? comboIndex === 2 : starless ? comboIndex === 1 : ["hammer of gravity", "stormlander", "stormlander v2", "electric hammer v2", "great hammer"].includes(weapon);
+        const color = weapon === "flame sword" ? "#ff7438" : frostHeart ? "#68dfff" : weapon.includes("crucible") || weapon === "awesomeaxe" ? "#ff572e" : rarityHitColor(rarity);
+        const impactRadius = weapon === "hammer of gravity" ? 150 : weapon === "stormlander" || weapon === "stormlander v2" ? 95 : weapon === "great hammer" ? 62 : weapon === "cursed axe" ? 104 : weapon === "awesomeaxe" || weapon === "axe" ? 82 : weapon === "frost slayer" || weapon === "heartstealer" ? 84 : starless ? 96 : weapon.includes("crucible") ? 96 : weapon === "flame sword" ? 64 : 0;
         const attackType = slam ? "slam" : frostHeart ? ["swing", "stab"][comboIndex] : starless ? "swing" : "swing";
         attackEffects.push({ x: player.x, y: player.y, angle, life: .34, type: slam ? "slam" : "swing", stab: attackType === "stab", radius: impactRadius || 62, color });
 
         const hitDamage = damage;
         damageEnemy(target, hitDamage, color);
+        applyRarityImpact(target, rarity, hitDamage, true);
         if (impactRadius > 0) {
             if (weapon === "hammer of gravity") {
                 enemies.forEach(enemy => {
@@ -1225,6 +1438,7 @@
                 enemies.slice().forEach(enemy => {
                     if (enemy !== target && Math.hypot(enemy.x - target.x, enemy.y - target.y) <= impactRadius) {
                         damageEnemy(enemy, hitDamage, color);
+                        applyRarityImpact(enemy, rarity, hitDamage, false);
                     }
                 });
             }
@@ -1232,8 +1446,8 @@
         if (frostHeart) enemies.forEach(enemy => {
             if (Math.hypot(enemy.x - target.x, enemy.y - target.y) <= impactRadius || enemy === target) enemy.frozen = 2.8;
         });
-        if (weapon === "stormlander" || weapon === "electric hammer v2") {
-            const chains = weapon === "electric hammer v2" ? enemies.filter(enemy => enemy !== target && Math.hypot(enemy.x - target.x, enemy.y - target.y) < 190).slice(0, 3).map(enemy => ({ x: enemy.x, y: enemy.y })) : [];
+        if (["stormlander", "stormlander v2", "electric hammer v2"].includes(weapon)) {
+            const chains = ["stormlander v2", "electric hammer v2"].includes(weapon) ? enemies.filter(enemy => enemy !== target && Math.hypot(enemy.x - target.x, enemy.y - target.y) < 190).slice(0, 3).map(enemy => ({ x: enemy.x, y: enemy.y })) : [];
             lightningEffects.push({ x: target.x, y: target.y, life: .38, chains });
             chains.forEach(point => {
                 const chained = enemies.find(enemy => Math.hypot(enemy.x - point.x, enemy.y - point.y) < 2);
@@ -1320,8 +1534,18 @@
             const soulsText = `${Math.floor(souls)} souls`;
             if (arenaSoulsLabel.textContent !== soulsText) arenaSoulsLabel.textContent = soulsText;
         }
-        lightningEffects.forEach(effect => { effect.life -= dt; });
-        lightningEffects = lightningEffects.filter(effect => effect.life > 0);
+        lightningEffects.forEach(effect => {
+            if (effect.rodStrike && effect.wait > 0) {
+                effect.wait = Math.max(0, effect.wait - dt);
+                return;
+            }
+            if (effect.rodStrike && !effect.damageApplied) {
+                effect.damageApplied = true;
+                [...enemies].filter(enemy => Math.hypot(enemy.x - effect.x, enemy.y - effect.y) <= effect.areaRadius).forEach(enemy => damageEnemy(enemy, effect.damage, "#eaff75"));
+            }
+            effect.life -= dt;
+        });
+        lightningEffects = lightningEffects.filter(effect => effect.life > 0 || (effect.rodStrike && effect.wait > 0));
         attackEffects.forEach(effect => { effect.life -= dt; });
         attackEffects = attackEffects.filter(effect => effect.life > 0);
         playerTrail.forEach(point => { point.life -= dt; });
@@ -1350,6 +1574,21 @@
         enemies.forEach(enemy => {
             enemy.frozen = Math.max(0, (enemy.frozen || 0) - dt);
             enemy.stunned = Math.max(0, (enemy.stunned || 0) - dt);
+            for (const status of ["burn", "void"]) {
+                const timeKey = `${status}Time`;
+                const damageKey = `${status}Damage`;
+                const tickKey = `${status}Tick`;
+                if (enemy[timeKey] > 0) {
+                    enemy[timeKey] = Math.max(0, enemy[timeKey] - dt);
+                    enemy[tickKey] = (enemy[tickKey] || .5) - dt;
+                    while (enemy[timeKey] > 0 && enemy[tickKey] <= 0 && enemies.includes(enemy)) {
+                        damageEnemy(enemy, (enemy[damageKey] || 0) * .5, status === "burn" ? "#ff7138" : "#bd68ff");
+                        enemy[tickKey] += .5;
+                    }
+                    if (enemy[timeKey] <= 0) enemy[damageKey] = 0;
+                }
+            }
+            if (!enemies.includes(enemy)) return;
             const ex = player.x - enemy.x; const ey = player.y - enemy.y; const distance = Math.hypot(ex, ey) || 1;
             if (enemy.air > 0) {
                 enemy.air -= dt;
@@ -1392,7 +1631,7 @@
                 const distance = Math.hypot(target.x - player.x, target.y - player.y) || 1;
                 const terror = normalizedItemName(selectedArenaItem) === "staff of terror";
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
-                bolts.push({ x: player.x + facing.x * 20, y: player.y + facing.y * 20, vx: facing.x * 390, vy: facing.y * 390, damage: selectedWeaponDamage(), life: 2, kind: terror ? "terror" : "dominance", radius: terror ? 44 : 132 });
+                bolts.push({ x: player.x + facing.x * 20, y: player.y + facing.y * 20, vx: facing.x * 390, vy: facing.y * 390, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2, kind: terror ? "terror" : "dominance", radius: terror ? 44 : 132 });
                 player.fireDelay = terror ? 1.05 : .82;
             } else if (normalizedItemName(selectedArenaItem) === "firework arrow (mcdii)") {
                 const dx = (aimTarget?.x ?? target.x) - player.x;
@@ -1400,7 +1639,7 @@
                 const distance = Math.hypot(dx, dy) || 1;
                 const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === "firework arrow (mcdii)");
                 facing = { x: dx / distance, y: dy / distance };
-                bolts.push({ x: player.x, y: player.y, vx: facing.x * 360, vy: facing.y * 360, damage: selectedWeaponDamage(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178 });
+                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178 });
                 player.fireDelay = 1.05;
             } else if (isArenaBow()) {
                 const distance = Math.hypot(target.x - player.x, target.y - player.y) || 1;
@@ -1408,8 +1647,8 @@
                 const compatibleBow = ["bow", "winter's touch", "shivering bow"].includes(normalizedItemName(selectedArenaItem));
                 const flaming = compatibleBow && artifact === "flaming quiver";
                 const electric = compatibleBow && artifact === "thundering quiver";
-                bolts.push({ x: player.x, y: player.y, vx: (target.x - player.x) / distance * 430, vy: (target.y - player.y) / distance * 430, damage: selectedWeaponDamage(), life: 1.8, kind: flaming ? "fire" : electric ? "electric" : "arrow" });
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
+                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 430, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 1.8, kind: flaming ? "fire" : electric ? "electric" : "arrow" });
                 player.fireDelay = .7;
             } else if (selectedArenaItem && !artifactNames.has(normalizedItemName(selectedArenaItem))) {
                 const range = normalizedItemName(selectedArenaItem) === "the starless night" ? 112 : 92;
@@ -1430,20 +1669,30 @@
                 const blastY = hit ? hit.y : Math.max(0, Math.min(arena.height, bolt.y));
                 const blastRadius = bolt.radius || 178;
                 lightningEffects.push({ x: blastX, y: blastY, life: .8, fire: true, radius: blastRadius });
-                enemies.slice().filter(enemy => Math.hypot(enemy.x - blastX, enemy.y - blastY) <= blastRadius).forEach(enemy => damageEnemy(enemy, bolt.damage, "#ff7b32"));
+                enemies.slice().filter(enemy => Math.hypot(enemy.x - blastX, enemy.y - blastY) <= blastRadius).forEach(enemy => {
+                    damageEnemy(enemy, bolt.damage, "#ff7b32");
+                    applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
+                });
             } else if (hit) {
                 bolt.life = 0;
                 if (bolt.kind === "dominance") {
                     const radius = bolt.radius || 132;
-                    enemies.slice().filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= radius).forEach(enemy => damageEnemy(enemy, bolt.damage, "#ff75ed"));
+                    enemies.slice().filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= radius).forEach(enemy => {
+                        damageEnemy(enemy, bolt.damage, "#ff75ed");
+                        applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
+                    });
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .65, fire: true, radius, color: "#ed55ff" });
                 } else if (bolt.kind === "terror") {
                     damageEnemy(hit, bolt.damage, "#aaff63");
+                    applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
                     hit.stunned = 2;
                     hit.fleeAt = elapsed + 2;
                     hit.despawnAt = elapsed + 3.5;
                 } else if (bolt.kind === "fire") {
-                    enemies.filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= 78).slice().forEach(enemy => damageEnemy(enemy, bolt.damage, "#ff7b32"));
+                    enemies.filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= 78).slice().forEach(enemy => {
+                        damageEnemy(enemy, bolt.damage, "#ff7b32");
+                        applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
+                    });
                     sparks.push({ x: hit.x, y: hit.y, life: .8, color: "#ff7b32" });
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .2, fire: true });
                 } else if (bolt.kind === "electric") {
@@ -1451,7 +1700,11 @@
                     const chains = enemies.filter(enemy => enemy !== hit && Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= 120).slice(0, 2);
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .35, chains: chains.map(enemy => ({ x: enemy.x, y: enemy.y })) });
                     chains.forEach(enemy => damageEnemy(enemy, bolt.damage, "#65eaff"));
-                } else damageEnemy(hit, bolt.damage);
+                    applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
+                } else {
+                    damageEnemy(hit, bolt.damage);
+                    applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
+                }
             }
         });
         bolts = bolts.filter(bolt => bolt.life > 0 && bolt.x > -20 && bolt.y > -20 && bolt.x < arena.width + 20 && bolt.y < arena.height + 20);
@@ -1592,7 +1845,7 @@
     });
     document.querySelectorAll("[data-event-quest]").forEach(button => {
         button.addEventListener("click", () => {
-            if (!activeEvent) return;
+            if (!eventMissionsActive()) return;
             const slot = button.dataset.eventQuest;
             const item = getEventAssignments(activeEvent)[slot];
             if (!item) return;

@@ -779,6 +779,10 @@
         localStorage.setItem("inventoryBadgeViewModeV1", badgeViewMode.value);
         render();
     });
+    window.addEventListener("inventory-badge-view-setting-changed", () => {
+        badgeViewMode.value = localStorage.getItem("inventoryBadgeViewModeV1") === "list" ? "list" : "grid";
+        render();
+    });
     dialog.querySelector("#badgeCategoryTabs").addEventListener("click", event => {
         const tab = event.target.closest("[data-badge-category]");
         if (!tab) return;

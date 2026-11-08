@@ -70,11 +70,33 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
+        "id": "deep-dark-mv5q9qqp",
+        "name": "deep dark",
+        "theme": "auto",
+        "themeColor": "",
+        "start": "2026-11-02T21:50:00.000Z",
+        "end": "2026-11-05T01:50:00.000Z",
+        "items": [
+            "Awesomeaxe",
+            "Blue Crucible",
+            "Corrupted Beacon (MCDII)",
+            "Firework Arrow (MCDII)",
+            "Lightning Rod (MCDII)",
+            "Lunar Sickle",
+            "Pride of the Plains",
+            "Sculker Claws",
+            "Sculker's Bane",
+            "Slaymore",
+            "Soul Reaper",
+            "Twilight Dagger"
+        ]
+    },
+    {
         "id": "amethyst-clustering-mv5r2h27",
         "name": "amethyst clustering",
         "theme": "amethyst",
-        "themeColor": "#5900ff",
-        "start": "2026-11-06T22:13:00.000Z",
+        "themeColor": "#4c00ff",
+        "start": "2026-11-07T19:42:00.000Z",
         "end": "2026-11-09T22:14:00.000Z",
         "items": [
             "Huge Amethyst Cluster",
@@ -83,27 +105,19 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "deep-dark-mv5q9qqp",
-        "name": "deep dark",
-        "theme": "deepdarkv2",
-        "themeColor": "#0011ff",
-        "start": "2026-11-01T18:50:00.000Z",
-        "end": "2026-11-06T01:50:00.000Z",
+        "id": "lightning-mvxbu24r",
+        "name": "Lightning",
+        "theme": "lightning",
+        "themeColor": "#ffbb00",
+        "start": "2026-11-26T05:23:00.000Z",
+        "end": "2026-11-28T11:23:00.000Z",
         "items": [
-            "Awesomeaxe",
-            "Blue Crucible",
-            "Corrupted Beacon (MCDII)",
-            "Firework Arrow (MCDII)",
+            "Electric Hammer V1",
+            "Electric Hammer V2",
             "Lightning Rod (MCDII)",
-            "Lullaby Blade",
-            "Lunar Sickle",
-            "Pride of the Plains",
-            "Sculker Claws",
-            "Sculker's Bane",
-            "Sift Sickles",
-            "Slaymore",
-            "Soul Reaper",
-            "Twilight Dagger"
+            "Stormlander",
+            "Stormlander V2",
+            "Thundering Quiver"
         ]
     }
 ];
@@ -111,12 +125,37 @@ window.INVENTORY_EVENT_PRESETS = [
     {
         "id": "amethyst",
         "name": "amethyst",
-        "color": "#5900ff"
+        "color": "#4c00ff"
     },
     {
-        "id": "deepdarkv2",
-        "name": "deepdarkv2",
-        "color": "#0011ff"
+        "id": "aura",
+        "name": "aura",
+        "color": "#fff700"
+    },
+    {
+        "id": "golden-hour",
+        "name": "golden hour",
+        "color": "#cda618"
+    },
+    {
+        "id": "lightning",
+        "name": "lightning",
+        "color": "#ffbb00"
+    },
+    {
+        "id": "moon",
+        "name": "moon",
+        "color": "#172a8c"
+    },
+    {
+        "id": "ransom",
+        "name": "ransom",
+        "color": "#cd1818"
+    },
+    {
+        "id": "twilight",
+        "name": "twilight",
+        "color": "#17548c"
     },
     {
         "id": "ultimated",

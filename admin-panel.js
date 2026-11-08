@@ -7,8 +7,9 @@
     const privateBadgeCatalogKey = 'inventoryPrivateBadgeCatalogV1';
     const badgeUnlockedKey = 'inventoryBadgesUnlockedV1';
     const badgeLockedKey = 'inventoryAdminLockedBadgesV1';
-    const animationsKey = 'inventoryUnlockAnimationsEnabledV1';
     const arenaCooldownKey = 'riftArenaDisableArtifactCooldownV1';
+    const arenaProjectileCountKey = 'riftArenaProjectileCountV1';
+    const arenaLightningStrikeCountKey = 'riftArenaLightningStrikeCountV1';
     const badgePeekPenaltyDisabledKey = 'badgePeekPenaltiesDisabledV1';
     const revealSecretBadgeDetailsKey = 'badgeRevealSecretDetailsV1';
     const balanceNamesKey = 'inventoryBalanceFullNamesV1';
@@ -21,8 +22,9 @@
             <section><h3>balances</h3><div class="iap-balance"><label for="iapAp">ap</label><input id="iapAp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="ap">set</button></div><div class="iap-balance"><label for="iapMp">mp</label><input id="iapMp" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="mp">set</button></div><div class="iap-balance"><label for="iapStardust">dust</label><input id="iapStardust" type="text" inputmode="decimal" placeholder="amount"><button type="button" data-set-balance="stardust">set</button></div></section>
             <section><h3>items</h3><select id="iapItem" aria-label="choose item"><option value="">loading items</option></select><div class="iap-actions"><button type="button" data-item-action="give">give item</button><button type="button" data-item-action="lock">lock item</button></div><button class="iap-wide" type="button" data-item-action="give-all">give all items</button><details id="iapMultiItemDropdown"><summary>choose multiple items</summary><input id="iapMultiItemSearch" type="search" placeholder="search items" aria-label="search items"><div id="iapMultiItemOptions" role="group" aria-label="items to select"></div></details><div class="iap-actions"><button type="button" data-item-action="give-selected">give items</button><button type="button" data-item-action="lock-selected">lock items</button></div><button class="iap-wide" type="button" data-item-action="lock-all">lock all items</button></section>
             <section><h3>badges</h3><select id="iapBadge" aria-label="choose badge"><option value="">choose badge</option></select><div class="iap-actions"><button type="button" data-badge-action="give">give badge</button><button type="button" data-badge-action="lock">lock badge</button></div><div class="iap-actions"><button type="button" data-badge-action="normal">give all normal</button><button type="button" data-badge-action="secret">give all secret</button></div><button class="iap-wide" type="button" data-badge-action="all">give all badges</button><button class="iap-wide" type="button" data-badge-action="lock-all">lock all badges</button></section>
-            <section><label class="iap-toggle"><input id="iapAnimations" type="checkbox"><span>unlock animations</span></label></section>
             <section><label class="iap-toggle"><input id="iapDisableCooldown" type="checkbox"><span>disable artifact cooldowns</span></label></section>
+            <section><h3>arena projectile count</h3><div class="iap-balance"><label for="iapProjectileCount">shots</label><input id="iapProjectileCount" type="number" min="1" max="100" step="1"><button type="button" data-set-arena-count="projectiles">set</button></div><small>firework arrows and bows</small></section>
+            <section><h3>lightning rod strikes</h3><div class="iap-balance"><label for="iapLightningStrikeCount">strikes</label><input id="iapLightningStrikeCount" type="number" min="1" max="100" step="1"><button type="button" data-set-arena-count="lightning">set</button></div></section>
             <section><label class="iap-toggle"><input id="iapDisableBadgePeekPenalties" type="checkbox"><span>disable badge peek penalties · peeks are free</span></label></section>
             <section><label class="iap-toggle"><input id="iapRevealSecretBadgeDetails" type="checkbox"><span>show secret badge descriptions and unlock methods</span></label></section>
             <section><button class="iap-wide" type="button" data-balance-names></button></section>
@@ -212,6 +214,8 @@
         const itemButton = event.target.closest('[data-item-action]');
         const badgeButton = event.target.closest('[data-badge-action]');
         const refreshButton = event.target.closest('[data-refresh-tab]');
+        const arenaCountButton = event.target.closest('[data-set-arena-count]');
+        if (arenaCountButton) setArenaCount(arenaCountButton.dataset.setArenaCount);
         if (balanceButton) setBalance(balanceButton.dataset.setBalance);
         if (itemButton) itemAction(itemButton.dataset.itemAction);
         if (badgeButton) {
@@ -234,10 +238,6 @@
             else giveBadges(action);
         }
         if (refreshButton) location.reload();
-        if (event.target.id === 'iapAnimations') {
-            localStorage.setItem(animationsKey, String(event.target.checked));
-            say(`unlock animations ${event.target.checked ? 'enabled' : 'disabled'}`);
-        }
         if (event.target.closest('[data-balance-names]')) {
             const showFullNames = localStorage.getItem(balanceNamesKey) !== 'true';
             localStorage.setItem(balanceNamesKey, String(showFullNames));
@@ -328,20 +328,37 @@
 
     const savedAp = localStorage.getItem('ap');
     const savedMp = localStorage.getItem('mp');
+    const savedStardust = localStorage.getItem('stardust');
     if (savedAp !== null) root.querySelector('#iapAp').placeholder = window.formatInventoryBalance?.(Number(savedAp), 'ap') || savedAp;
     if (savedMp !== null) root.querySelector('#iapMp').placeholder = window.formatInventoryBalance?.(Number(savedMp), 'mp') || savedMp;
+    if (savedStardust !== null) root.querySelector('#iapStardust').placeholder = window.formatInventoryBalance?.(Number(savedStardust), 'stardust') || savedStardust;
     refreshBadgeChoices();
-    const animationsToggle = root.querySelector('#iapAnimations');
     const cooldownToggle = root.querySelector('#iapDisableCooldown');
     const badgePeekPenaltyToggle = root.querySelector('#iapDisableBadgePeekPenalties');
     const revealSecretBadgeDetailsToggle = root.querySelector('#iapRevealSecretBadgeDetails');
+    const arenaCountSettings = {
+        projectiles: { input: root.querySelector('#iapProjectileCount'), key: arenaProjectileCountKey, fallback: 1, label: 'projectile count' },
+        lightning: { input: root.querySelector('#iapLightningStrikeCount'), key: arenaLightningStrikeCountKey, fallback: 6, label: 'lightning strikes' }
+    };
+    const readArenaCount = setting => {
+        const stored = Number(localStorage.getItem(setting.key));
+        return Number.isFinite(stored) && stored >= 1 ? Math.min(100, Math.floor(stored)) : setting.fallback;
+    };
+    Object.values(arenaCountSettings).forEach(setting => { setting.input.value = readArenaCount(setting); });
+    function setArenaCount(name) {
+        const setting = arenaCountSettings[name];
+        if (!setting) return;
+        const value = Math.max(1, Math.min(100, Math.floor(Number(setting.input.value) || setting.fallback)));
+        setting.input.value = value;
+        localStorage.setItem(setting.key, String(value));
+        say(`${setting.label} set to ${value}`);
+    }
     const balanceNameButton = root.querySelector('[data-balance-names]');
     function setBalanceNameButton() {
         const showFullNames = localStorage.getItem(balanceNamesKey) === 'true';
         balanceNameButton.textContent = `balance names: ${showFullNames ? 'full' : 'short'}`;
         document.querySelector('.balance-container')?.classList.toggle('balance-full-names', showFullNames);
     }
-    animationsToggle.checked = localStorage.getItem(animationsKey) !== 'false';
     cooldownToggle.checked = localStorage.getItem(arenaCooldownKey) === 'true';
     badgePeekPenaltyToggle.checked = localStorage.getItem(badgePeekPenaltyDisabledKey) === 'true';
     revealSecretBadgeDetailsToggle.checked = localStorage.getItem(revealSecretBadgeDetailsKey) === 'true';
@@ -363,8 +380,10 @@
     setBalanceNameButton();
     window.refreshInventoryBalances?.();
     window.addEventListener('storage', event => {
-        if (event.key === animationsKey) animationsToggle.checked = event.newValue !== 'false';
         if (event.key === arenaCooldownKey) cooldownToggle.checked = event.newValue === 'true';
+        Object.values(arenaCountSettings).forEach(setting => {
+            if (event.key === setting.key) setting.input.value = readArenaCount(setting);
+        });
         if (event.key === badgePeekPenaltyDisabledKey) badgePeekPenaltyToggle.checked = event.newValue === 'true';
         if (event.key === revealSecretBadgeDetailsKey) revealSecretBadgeDetailsToggle.checked = event.newValue === 'true';
         if (event.key === balanceNamesKey) {

@@ -257,7 +257,14 @@
         ordered.forEach(card => itemsGrid.appendChild(card));
     }
 
-    if (itemSort) itemSort.addEventListener("change", sortAndFilterItems);
+    if (itemSort) {
+        const rememberedSort = localStorage.getItem("inventoryItemSortModeV1");
+        if (["all", "rarity", "unlocked", "locked", "seasonal", "regular"].includes(rememberedSort)) itemSort.value = rememberedSort;
+        itemSort.addEventListener("change", () => {
+            localStorage.setItem("inventoryItemSortModeV1", itemSort.value);
+            sortAndFilterItems();
+        });
+    }
     const refreshItemGridButton = document.getElementById("refreshItemGrid");
     if (refreshItemGridButton) {
         refreshItemGridButton.addEventListener("click", async () => {

@@ -266,6 +266,16 @@ html[data-reality="amethyst"] .amethyst-decor {
     height: 80%;
 }
 
+.item[data-item-name="Stormlander V2"] img {
+    width: auto;
+    height: 90%;
+    max-height: 63px;
+    max-width: none;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
 /* info panel */
 .info-panel {
     flex: 1;
@@ -416,6 +426,13 @@ html[data-reality="deepdark"] .info-panel::after {
   right: 10px;
   width: 60px;
   
+}
+
+#itemIcon[data-item-name="Stormlander V2"] {
+    width: 59px;
+    height: 98px;
+    object-fit: contain;
+    image-rendering: pixelated;
 }
 .stat-icon {
     width: 60px;
@@ -1928,7 +1945,7 @@ transition: filter .2s ease;
     }
 
     #name {
-        padding-right: 60px !important;
+        padding-right: 76px !important;
         overflow-wrap: anywhere;
     }
 
@@ -2487,7 +2504,13 @@ transition: filter .2s ease;
         <span id="nextEventTime"></span>
     </div>
 
-    <div class="portal-grid">
+<div class="portal-grid">
+        <div class="portal-card"
+             onclick="window.open('wiki.html','_blank')">
+            <img src="1wikiico.png" alt="">
+            <span>inventory wiki</span>
+        </div>
+
         <div class="portal-card"
              onclick="window.open('weaponmaker.html','_blank')">
             <img src="wmfavicon.png">
@@ -2709,18 +2732,19 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
 </div>
 
   <script src="weapon-cost.js"></script>
-  <script src="scriptv3.js?v=20261031-infinity-balance-rainbow1"></script>
+  <script src="scriptv3.js?v=20261107-stormlander-v2-icon-size1"></script>
   <script src="event-catalog.js?v=20261031-event-countdown1"></script>
   <script src="event-countdown.js?v=20261031-event-countdown1"></script>
   <script src="badge-catalog.js?v=20261031-what-ap-requirement1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
-  <script src="unlocks.js?v=20261031-infinity-balance-rainbow1"></script>
+  <script src="unlocks.js?v=20261107-remember-item-filter1"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
-  <script src="missions.js?v=20261031-badge-peek-admin1"></script>
+  <script src="missions.js?v=20261107-admin-projectile-counts9"></script>
       <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
-  <script src="badge-system.js?v=20261101-secret-amethyst-condition1"></script>
+  <script src="badge-system.js?v=20261107-settings-badge-view1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261012-player-save1"></script>
-<script src="admin-panel.js?v=20261031-private-badges1"></script>
+<script src="admin-panel.js?v=20261107-arena-count-settings1"></script>
+<script src="settings-panel.js?v=20261107-more-settings1"></script>
