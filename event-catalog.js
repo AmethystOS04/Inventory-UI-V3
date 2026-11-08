@@ -70,28 +70,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "deep-dark-mv5q9qqp",
-        "name": "deep dark",
-        "theme": "auto",
-        "themeColor": "",
-        "start": "2026-11-02T21:50:00.000Z",
-        "end": "2026-11-05T01:50:00.000Z",
-        "items": [
-            "Awesomeaxe",
-            "Blue Crucible",
-            "Corrupted Beacon (MCDII)",
-            "Firework Arrow (MCDII)",
-            "Lightning Rod (MCDII)",
-            "Lunar Sickle",
-            "Pride of the Plains",
-            "Sculker Claws",
-            "Sculker's Bane",
-            "Slaymore",
-            "Soul Reaper",
-            "Twilight Dagger"
-        ]
-    },
-    {
         "id": "amethyst-clustering-mv5r2h27",
         "name": "amethyst clustering",
         "theme": "amethyst",
@@ -118,6 +96,29 @@ window.INVENTORY_EVENT_CATALOG = [
             "Stormlander",
             "Stormlander V2",
             "Thundering Quiver"
+        ]
+    },
+    {
+        "id": "deep-dark-mv5q9qqp",
+        "name": "deep dark",
+        "theme": "auto",
+        "themeColor": "",
+        "start": "2026-11-02T21:50:00.000Z",
+        "end": "2026-11-05T01:50:00.000Z",
+        "items": [
+            "Awesomeaxe",
+            "Blue Crucible",
+            "Corrupted Beacon (MCDII)",
+            "Firework Arrow (MCDII)",
+            "Lightning Rod (MCDII)",
+            "Lunar Sickle",
+            "Pride of the Plains",
+            "Sculker Claws",
+            "Sculker's Bane",
+            "Sift Sickles",
+            "Slaymore",
+            "Soul Reaper",
+            "Twilight Dagger"
         ]
     }
 ];
