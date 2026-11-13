@@ -10,6 +10,8 @@
     const arenaCooldownKey = 'riftArenaDisableArtifactCooldownV1';
     const arenaProjectileCountKey = 'riftArenaProjectileCountV1';
     const arenaLightningStrikeCountKey = 'riftArenaLightningStrikeCountV1';
+    const arenaStormlanderThrowKey = 'riftArenaStormlanderThrowModeV1';
+    const arenaStormlanderBounceCountKey = 'riftArenaStormlanderBounceCountV1';
     const badgePeekPenaltyDisabledKey = 'badgePeekPenaltiesDisabledV1';
     const revealSecretBadgeDetailsKey = 'badgeRevealSecretDetailsV1';
     const balanceNamesKey = 'inventoryBalanceFullNamesV1';
@@ -25,6 +27,7 @@
             <section><label class="iap-toggle"><input id="iapDisableCooldown" type="checkbox"><span>disable artifact cooldowns</span></label></section>
             <section><h3>arena projectile count</h3><div class="iap-balance"><label for="iapProjectileCount">shots</label><input id="iapProjectileCount" type="number" min="1" max="100" step="1"><button type="button" data-set-arena-count="projectiles">set</button></div><small>firework arrows and bows</small></section>
             <section><h3>lightning rod strikes</h3><div class="iap-balance"><label for="iapLightningStrikeCount">strikes</label><input id="iapLightningStrikeCount" type="number" min="1" max="100" step="1"><button type="button" data-set-arena-count="lightning">set</button></div></section>
+            <section><label class="iap-toggle"><input id="iapStormlanderThrowMode" type="checkbox"><span>stormlander v2 throw mode</span></label><small>right click throws stormlander v2 for a large lightning strike</small><div class="iap-balance"><label for="iapStormlanderBounces">bounces</label><input id="iapStormlanderBounces" type="number" min="0" max="100" step="1"><button type="button" data-set-stormlander-bounces>set</button></div></section>
             <section><label class="iap-toggle"><input id="iapDisableBadgePeekPenalties" type="checkbox"><span>disable badge peek penalties · peeks are free</span></label></section>
             <section><label class="iap-toggle"><input id="iapRevealSecretBadgeDetails" type="checkbox"><span>show secret badge descriptions and unlock methods</span></label></section>
             <section><button class="iap-wide" type="button" data-balance-names></button></section>
@@ -334,6 +337,8 @@
     if (savedStardust !== null) root.querySelector('#iapStardust').placeholder = window.formatInventoryBalance?.(Number(savedStardust), 'stardust') || savedStardust;
     refreshBadgeChoices();
     const cooldownToggle = root.querySelector('#iapDisableCooldown');
+    const stormlanderThrowToggle = root.querySelector('#iapStormlanderThrowMode');
+    const stormlanderBounceInput = root.querySelector('#iapStormlanderBounces');
     const badgePeekPenaltyToggle = root.querySelector('#iapDisableBadgePeekPenalties');
     const revealSecretBadgeDetailsToggle = root.querySelector('#iapRevealSecretBadgeDetails');
     const arenaCountSettings = {
@@ -360,12 +365,28 @@
         document.querySelector('.balance-container')?.classList.toggle('balance-full-names', showFullNames);
     }
     cooldownToggle.checked = localStorage.getItem(arenaCooldownKey) === 'true';
+    stormlanderThrowToggle.checked = localStorage.getItem(arenaStormlanderThrowKey) === 'true';
+    const readStormlanderBounceCount = () => {
+        const stored = Number(localStorage.getItem(arenaStormlanderBounceCountKey));
+        return Number.isFinite(stored) && stored >= 0 ? Math.min(100, Math.floor(stored)) : 2;
+    };
+    stormlanderBounceInput.value = readStormlanderBounceCount();
     badgePeekPenaltyToggle.checked = localStorage.getItem(badgePeekPenaltyDisabledKey) === 'true';
     revealSecretBadgeDetailsToggle.checked = localStorage.getItem(revealSecretBadgeDetailsKey) === 'true';
     cooldownToggle.addEventListener('change', () => {
         localStorage.setItem(arenaCooldownKey, String(cooldownToggle.checked));
         window.dispatchEvent(new Event('inventory-arena-cooldown-setting-changed'));
         say(`artifact cooldowns ${cooldownToggle.checked ? 'disabled' : 'enabled'}`);
+    });
+    stormlanderThrowToggle.addEventListener('change', () => {
+        localStorage.setItem(arenaStormlanderThrowKey, String(stormlanderThrowToggle.checked));
+        say(`stormlander v2 throw mode ${stormlanderThrowToggle.checked ? 'enabled' : 'disabled'}`);
+    });
+    root.querySelector('[data-set-stormlander-bounces]').addEventListener('click', () => {
+        const value = Math.max(0, Math.min(100, Math.floor(Number(stormlanderBounceInput.value) || 0)));
+        stormlanderBounceInput.value = value;
+        localStorage.setItem(arenaStormlanderBounceCountKey, String(value));
+        say(`stormlander wall bounces set to ${value}`);
     });
     badgePeekPenaltyToggle.addEventListener('change', () => {
         localStorage.setItem(badgePeekPenaltyDisabledKey, String(badgePeekPenaltyToggle.checked));
@@ -381,6 +402,8 @@
     window.refreshInventoryBalances?.();
     window.addEventListener('storage', event => {
         if (event.key === arenaCooldownKey) cooldownToggle.checked = event.newValue === 'true';
+        if (event.key === arenaStormlanderThrowKey) stormlanderThrowToggle.checked = event.newValue === 'true';
+        if (event.key === arenaStormlanderBounceCountKey) stormlanderBounceInput.value = readStormlanderBounceCount();
         Object.values(arenaCountSettings).forEach(setting => {
             if (event.key === setting.key) setting.input.value = readArenaCount(setting);
         });

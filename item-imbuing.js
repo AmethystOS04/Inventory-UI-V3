@@ -41,6 +41,15 @@
         return window.formatInventoryNumber ? window.formatInventoryNumber(value) : String(Number(value.toFixed(2)));
     }
 
+    function effectDescription(name) {
+        const item = keyFor(name);
+        if (item === "firework arrow (mcdii)") return "level 10 fires 5 arrows per volley";
+        if (item.startsWith("lightning rod")) return "level 10 calls 3 strikes";
+        if (item === "ghost cloak") return "each level adds half a second of ghost mode";
+        if (item === "updraft tome") return "each level widens and strengthens the lift";
+        return "imbues also improve this item’s arena effect";
+    }
+
     function render() {
         if (!selectedName) {
             panel.hidden = true;
@@ -51,7 +60,7 @@
         const bonus = window.getItemImbueDamageBonus(selectedName, selectedBaseDamage);
         const cost = (level + 1) * 10;
         const owned = typeof window.isItemUnlocked === "function" ? window.isItemUnlocked(selectedName) : false;
-        details.textContent = `level ${level}/${maxLevel} · +${format(bonus)} damage · ${level < maxLevel ? `next level costs ${cost} stardust` : "maximum level"}`;
+        details.textContent = `level ${level}/${maxLevel} · +${format(bonus)} damage · ${effectDescription(selectedName)} · ${level < maxLevel ? `next level costs ${cost} stardust` : "maximum level"}`;
         button.disabled = !owned || level >= maxLevel;
         button.textContent = level >= maxLevel ? "maximum imbue reached" : owned ? `imbue · ${cost} stardust` : "unlock this item to imbue it";
         const damage = document.getElementById("damage");
@@ -65,7 +74,7 @@
             selectedName = String(args[0] || "");
             selectedBaseDamage = Number(args[1]);
             if (!Number.isFinite(selectedBaseDamage)) selectedBaseDamage = 0;
-            status.textContent = "each level adds five percent of this item’s catalog damage";
+            status.textContent = `each level adds five percent of catalog damage · ${effectDescription(selectedName)}`;
             render();
             return result;
         };

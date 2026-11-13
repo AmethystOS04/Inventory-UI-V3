@@ -17,7 +17,7 @@
   const wikiPagesKey = "inventoryWikiItemPagesV1";
   const questGuideKey = "inventoryWikiQuestGuideV1";
   const wikiDraftKey = "inventoryWikiDraftV1";
-  let wikiDocument = { version: 1, sections: [], itemPages: {}, sectionPages: {}, sectionIcons: {}, questGuide: "" };
+  let wikiDocument = { version: 1, sections: [], sectionPages: {}, sectionIcons: {}, removedBuiltinSections: [], itemPages: {}, questGuide: "" };
   const progressKeys = new Set(["inventoryBadgeCatalogV1", "inventoryPrivateBadgeCatalogV1", "inventoryBadgesUnlockedV1", "ownedItemsV2"]);
 
   function readJson(key, fallback) {
@@ -28,7 +28,7 @@
   }
 
   function normalizeWikiDocument(value) {
-    if (!value || typeof value !== "object" || !Array.isArray(value.sections)) return { version: 1, sections: [], itemPages: {}, sectionPages: {}, sectionIcons: {}, questGuide: "" };
+    if (!value || typeof value !== "object" || !Array.isArray(value.sections)) return { version: 1, sections: [], sectionPages: {}, sectionIcons: {}, removedBuiltinSections: [], itemPages: {}, questGuide: "" };
     const sections = value.sections.filter(section => section && typeof section.id === "string" && typeof section.title === "string" && Array.isArray(section.pages)).map(section => ({
       id: section.id,
       title: section.title.slice(0, 80),
@@ -40,6 +40,7 @@
       itemPages: value.itemPages && typeof value.itemPages === "object" && !Array.isArray(value.itemPages) ? value.itemPages : {},
       sectionPages: value.sectionPages && typeof value.sectionPages === "object" && !Array.isArray(value.sectionPages) ? value.sectionPages : {},
       sectionIcons: value.sectionIcons && typeof value.sectionIcons === "object" && !Array.isArray(value.sectionIcons) ? value.sectionIcons : {},
+      removedBuiltinSections: Array.isArray(value.removedBuiltinSections) ? [...new Set(value.removedBuiltinSections.filter(key => typeof key === "string" && key !== "home" && key !== "itemPage"))] : [],
       questGuide: typeof value.questGuide === "string" ? value.questGuide : ""
     };
   }
@@ -82,7 +83,7 @@
       const sectionTools = localDraft ? `<span class="article-edit-links"><button type="button" data-custom-edit-title="${esc(section.id)}">edit</button><button type="button" data-section-shift="${sectionIndex}:up" ${sectionIndex === 0 ? "disabled" : ""}>move up</button><button type="button" data-section-shift="${sectionIndex}:down" ${sectionIndex === wikiDocument.sections.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-section-remove="${esc(section.id)}">remove section</button></span>` : "";
       const pages = section.pages.map((page,index) => {
         const editing = editingWikiPages.has(page.id);
-        return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-edit-page="${esc(section.id)}:${esc(page.id)}">edit</button><button type="button" data-page-shift="${esc(section.id)}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-page-shift="${esc(section.id)}:${index}:down" ${index === section.pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-page-remove="${esc(section.id)}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-custom-page-form="${esc(section.id)}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-page-images="${esc(page.id)}">choose image files</button><input id="customWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><button type="button" data-page-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-cancel-page="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-page-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, and rarity preview links</p></form>` : ""}</article>`;
+        return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-edit-page="${esc(section.id)}:${esc(page.id)}">edit</button><button type="button" data-page-shift="${esc(section.id)}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-page-shift="${esc(section.id)}:${index}:down" ${index === section.pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-page-remove="${esc(section.id)}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-custom-page-form="${esc(section.id)}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-page-images="${esc(page.id)}">choose image files</button><input id="customWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><select aria-label="banner label" data-wiki-banner-kind><option value="placeholder">placeholder</option><option value="not-updated">not updated</option></select><button type="button" data-wiki-banner>add image banner</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" data-wiki-banner-input hidden><button type="button" data-page-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-cancel-page="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-page-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, rarity, and section preview links</p></form>` : ""}</article>`;
       }).join("") || '<p class="muted">this section has no pages yet</p>';
       view.innerHTML = `<div class="page-heading"><p class="eyebrow">wiki section</p><h1>${wikiDocument.sectionIcons?.[`custom:${section.id}`] ? `<img class="wiki-heading-icon" src="${esc(wikiDocument.sectionIcons[`custom:${section.id}`])}" alt="">` : ""}${esc(section.title)} ${sectionTools}${localDraft ? `<button type="button" class="section-icon-button" data-choose-section-icon="custom:${esc(section.id)}">${wikiDocument.sectionIcons?.[`custom:${section.id}`] ? "change icon" : "set icon"}</button><input type="file" accept="image/*" data-section-icon-input="custom:${esc(section.id)}" hidden>` : ""}</h1><div class="inline-title-editor" data-section-title-editor="${esc(section.id)}" hidden><input maxlength="80" value="${esc(section.title)}" aria-label="section title"><button type="button" data-save-section-title="${esc(section.id)}">save title</button><button type="button" data-cancel-section-title="${esc(section.id)}">cancel</button></div>${localDraft ? `<button type="button" class="article-edit-link" data-add-page="${esc(section.id)}">add page</button>` : ""}</div><div class="custom-wiki-pages">${pages}</div>`;
       $("#wikiContent").insertBefore(view, $("#emptySearch"));
@@ -113,7 +114,33 @@
       } else if (localDraft) {
         const choose = heading.querySelector("[data-choose-section-icon]"); if (choose) choose.textContent = icon ? "change icon" : "set icon";
       }
+      if (localDraft && key !== "home" && !heading.querySelector("[data-remove-builtin-section]")) {
+        const remove = document.createElement("button");
+        remove.type = "button"; remove.className = "section-icon-button"; remove.dataset.removeBuiltinSection = key; remove.textContent = "remove built-in section";
+        heading.append(remove);
+      }
     }
+  }
+
+  function applyRemovedBuiltinSections() {
+    const removed = new Set(wikiDocument.removedBuiltinSections || []);
+    document.querySelectorAll(".wiki-section[data-page]").forEach(section => {
+      const key = section.dataset.page;
+      if (key === "home" || key === "itemPage" || section.hasAttribute("data-custom-wiki-section")) return;
+      section.hidden = removed.has(key);
+    });
+    document.querySelectorAll("#wikiNav .nav-button[data-section]").forEach(button => {
+      button.hidden = removed.has(button.dataset.section);
+    });
+    document.querySelectorAll("[data-go]").forEach(button => {
+      const key = button.dataset.go;
+      button.hidden = removed.has(key);
+      const listEntry = button.closest("li");
+      if (listEntry) listEntry.hidden = removed.has(key);
+    });
+    if (removed.has(activePage)) activePage = "home";
+    document.querySelectorAll(".wiki-section[data-page]").forEach(section => section.classList.toggle("active", section.dataset.page === activePage));
+    document.querySelectorAll(".nav-button[data-section]").forEach(button => button.classList.toggle("active", button.dataset.section === activePage));
   }
 
   const editingBuiltinPages = new Set();
@@ -171,7 +198,7 @@
     const pages = Array.isArray(wikiDocument.sectionPages?.[sectionKey]) ? wikiDocument.sectionPages[sectionKey] : [];
     root.innerHTML = `${localDraft ? `<button type="button" class="article-edit-link builtin-add-page" data-builtin-add="${sectionKey}">add wiki page</button>` : ""}${pages.map((page,index) => {
       const editing = editingBuiltinPages.has(page.id);
-      return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-builtin-edit="${sectionKey}:${esc(page.id)}">edit</button><button type="button" data-builtin-shift="${sectionKey}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-builtin-shift="${sectionKey}:${index}:down" ${index === pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-builtin-remove="${sectionKey}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-builtin-form="${sectionKey}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-builtin-images="${esc(page.id)}">choose image files</button><input id="builtinWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><button type="button" data-builtin-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-builtin-cancel="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-builtin-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, and rarity preview links</p></form>` : ""}</article>`;
+      return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-builtin-edit="${sectionKey}:${esc(page.id)}">edit</button><button type="button" data-builtin-shift="${sectionKey}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-builtin-shift="${sectionKey}:${index}:down" ${index === pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-builtin-remove="${sectionKey}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-builtin-form="${sectionKey}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-builtin-images="${esc(page.id)}">choose image files</button><input id="builtinWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><select aria-label="banner label" data-wiki-banner-kind><option value="placeholder">placeholder</option><option value="not-updated">not updated</option></select><button type="button" data-wiki-banner>add image banner</button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" data-wiki-banner-input hidden><button type="button" data-builtin-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-builtin-cancel="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-builtin-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, rarity, and section preview links</p></form>` : ""}</article>`;
     }).join("")}`;
   }
 
@@ -235,6 +262,7 @@
   }
 
   function go(page) {
+    if (!document.querySelector(`.wiki-section[data-page="${CSS.escape(page)}"]`)) page = "home";
     activePage = page;
     document.querySelectorAll(".wiki-section").forEach(section => section.classList.toggle("active", section.dataset.page === page));
     document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.section === page));
@@ -285,7 +313,7 @@
     value = value.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, rawTarget) => {
       const rawHref = rawTarget.trim().replace(/\s+"[^"]*"$/, "");
       const title = rawTarget.trim().match(/\s+"([^"]*)"$/)?.[1] || "";
-      const entity = rawHref.match(/^(item|badge|rarity):(.+)$/i);
+      const entity = rawHref.match(/^(item|badge|rarity|section):(.+)$/i);
       if (entity) return keep(previewLink(entity[1].toLowerCase(), entity[2].trim(), label));
       const href = safeWebUrl(rawHref);
       if (!href) return esc(label);
@@ -293,7 +321,7 @@
     });
     value = value.replace(/\[\[([^\]]+)\]\]/g, (_, rawTarget) => {
       const [targetPart, label] = rawTarget.split("|");
-      const typed = targetPart.trim().match(/^(item|badge|rarity):(.+)$/i);
+      const typed = targetPart.trim().match(/^(item|badge|rarity|section):(.+)$/i);
       return keep(typed
         ? previewLink(typed[1].toLowerCase(), typed[2].trim(), (label || typed[2]).trim())
         : previewLink("item", targetPart.trim(), (label || targetPart).trim()));
@@ -314,6 +342,19 @@
     const startsBlock = line => /^(\s*```|\s{0,3}#{1,6}\s|\s{0,3}(?:[-*_]){3,}\s*$|\s*>\s?|\s*(?:[-+*]|\d+\.)\s+)/.test(line);
     while (index < lines.length) {
       const line = lines[index];
+      const banner = line.match(/^\s*:::banner\s+(placeholder|not-updated)\s*$/i);
+      if (banner) {
+        const kind = banner[1].toLowerCase();
+        index++;
+        const bannerLines = [];
+        while (index < lines.length && !/^\s*:::\s*$/.test(lines[index])) bannerLines.push(lines[index++]);
+        if (index < lines.length) index++;
+        const imageLine = bannerLines.find(entry => /^\s*!\[[^\]]*\]\([^)]+\)\s*$/.test(entry)) || "";
+        const image = imageLine.match(/^\s*(!\[[^\]]*\]\([^)]+\))\s*$/);
+        const label = kind === "placeholder" ? "placeholder" : "not updated";
+        blocks.push(`<aside class="wiki-image-banner wiki-image-banner-${kind}"><span class="wiki-image-banner-label">${label}</span>${image ? renderInlineMarkdown(image[1]) : ""}</aside>`);
+        continue;
+      }
       if (!line.trim()) { index++; continue; }
       if (/^\s*!\[[^\]]*\]\([^)]+\)\s*$/.test(line)) {
         const images = [];
@@ -369,6 +410,20 @@
       .find(entry => entry.title.toLowerCase() === query || entry.title.toLowerCase().split(/,\s*|\s+and\s+/).includes(query));
   }
 
+  function wikiSectionForLink(target) {
+    const query = String(target || "").trim().toLowerCase();
+    const custom = wikiDocument.sections.find(section => section.id.toLowerCase() === query || section.title.toLowerCase() === query);
+    if (custom) return { key: `custom:${custom.id}`, title: custom.title, description: `${custom.pages.length} wiki pages`, pages: custom.pages.map(page => page.title).filter(Boolean) };
+    const navButton = [...document.querySelectorAll("#wikiNav .nav-button[data-section]")].find(button => button.dataset.section.toLowerCase() === query || (button.dataset.sectionLabel || button.textContent).trim().toLowerCase() === query);
+    if (!navButton || navButton.hidden) return null;
+    const key = navButton.dataset.section;
+    const page = [...document.querySelectorAll(".wiki-section[data-page]")].find(section => section.dataset.page === key && !section.hidden);
+    if (!page) return null;
+    const description = page.querySelector(".page-heading > p:not(.eyebrow), .hero .article-lead")?.textContent.trim() || "open this wiki section";
+    const pages = [...page.querySelectorAll(".article-card h2, .wiki-article-heading")].map(heading => heading.textContent.trim()).filter(Boolean).slice(0, 8);
+    return { key, title: (navButton.dataset.sectionLabel || navButton.textContent).trim(), description, pages };
+  }
+
   function openWikiPreview(type, target) {
     const title = $("#wikiPreviewTitle");
     const kind = $("#wikiPreviewKind");
@@ -400,6 +455,13 @@
       title.textContent = rarity.title;
       kind.textContent = "arena rarity preview";
       body.innerHTML = `<article class="preview-entity"><p>${esc(rarity.description)}</p></article>`;
+    } else if (type === "section") {
+      const section = wikiSectionForLink(target);
+      if (!section) return;
+      title.textContent = section.title;
+      kind.textContent = "wiki section preview";
+      body.innerHTML = `<article class="preview-entity"><p>${esc(section.description)}</p>${section.pages.length ? `<p><strong>pages and topics</strong></p><ul>${section.pages.map(page => `<li>${esc(page)}</li>`).join("")}</ul>` : ""}</article>`;
+      actions.innerHTML = `<button type="button" data-preview-open-section="${esc(section.key)}">open section</button>`;
     } else return;
     $("#wikiPreviewDialog").showModal();
   }
@@ -507,6 +569,54 @@
       status.textContent = error.message || "could not add those images";
     });
   }
+
+  async function insertWikiBanner(file, textarea, kind, status) {
+    if (!file || !textarea) return;
+    if (!/^image\/(?:png|jpeg|gif|webp|avif|svg\+xml)$/i.test(file.type)) {
+      if (status) status.textContent = "choose a png, jpg, gif, webp, avif, or svg image file";
+      return;
+    }
+    try {
+      if (status) status.textContent = "preparing image banner…";
+      const dataUrl = await wikiImageDataUrl(file);
+      const alt = file.name.replace(/\.[^.]+$/, "").replace(/[\[\]\r\n]/g, " ").trim() || "banner image";
+      const block = `:::banner ${kind}\n![${alt}](${dataUrl})\n:::`;
+      const start = textarea.dataset.bannerStart ? Number(textarea.dataset.bannerStart) : textarea.value.length;
+      const end = textarea.dataset.bannerEnd ? Number(textarea.dataset.bannerEnd) : start;
+      const prefix = start > 0 && !textarea.value.slice(0, start).endsWith("\n") ? "\n\n" : "";
+      const suffix = end < textarea.value.length && !textarea.value.slice(end).startsWith("\n") ? "\n\n" : "";
+      textarea.setRangeText(`${prefix}${block}${suffix}`, start, end, "end");
+      delete textarea.dataset.bannerStart; delete textarea.dataset.bannerEnd;
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      textarea.focus();
+      if (status) status.textContent = `${kind === "placeholder" ? "placeholder" : "not updated"} banner added · save the page to keep it`;
+    } catch (error) {
+      if (status) status.textContent = error.message || "could not add that banner";
+    }
+  }
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest("[data-wiki-banner], #chooseWikiBanner, #chooseQuestBanner");
+    if (!button || !localDraft) return;
+    const form = button.closest("form");
+    const textarea = form?.querySelector('textarea[name="content"], #wikiSubpageText, #questGuideMarkdown');
+    const input = form?.querySelector("[data-wiki-banner-input]") || (button.id === "chooseQuestBanner" ? $("#questBannerImage") : $("#wikiBannerImage"));
+    if (!textarea || !input) return;
+    textarea.dataset.bannerStart = String(textarea.selectionStart ?? textarea.value.length);
+    textarea.dataset.bannerEnd = String(textarea.selectionEnd ?? textarea.selectionStart ?? textarea.value.length);
+    input.click();
+  });
+
+  document.addEventListener("change", event => {
+    const input = event.target.closest("[data-wiki-banner-input], #wikiBannerImage, #questBannerImage");
+    if (!input || !localDraft || !input.files?.[0]) return;
+    const form = input.closest("form");
+    const textarea = form?.querySelector('textarea[name="content"], #wikiSubpageText, #questGuideMarkdown');
+    const kind = form?.querySelector("[data-wiki-banner-kind]")?.value || (form?.id === "questGuideForm" ? $("#questBannerKind")?.value : $("#wikiBannerKind")?.value) || "placeholder";
+    const status = form?.querySelector("#questGuideSaveStatus, #wikiSaveStatus") || $("#wikiAuthorStatus") || $("#wikiSaveStatus");
+    insertWikiBanner(input.files[0], textarea, kind, status);
+    input.value = "";
+  });
 
   async function readApiJson(response) {
     const contentType = response.headers.get("content-type") || "";
@@ -765,6 +875,7 @@
 
   function markWikiDraftSaved(message = "local wiki draft saved") {
     $("#wikiAuthorStatus").textContent = saveWikiDraft() ? message : "could not save the local draft, download a backup";
+    applyRemovedBuiltinSections();
     renderCustomSections();
     renderAll();
   }
@@ -893,6 +1004,20 @@
       const section = wikiDocument.sections.find(entry => entry.id === removeSection.dataset.sectionRemove);
       if (!section || !confirm(`remove section “${section.title}” and all its pages from the local draft?`)) return;
       wikiDocument.sections = wikiDocument.sections.filter(entry => entry.id !== section.id); markWikiDraftSaved("section removed from the local wiki"); go("home"); return;
+    }
+    const removeBuiltinSection = event.target.closest("[data-remove-builtin-section]");
+    if (removeBuiltinSection) {
+      const key = removeBuiltinSection.dataset.removeBuiltinSection;
+      const title = document.querySelectorAll("#wikiNav .nav-button[data-section]");
+      const navButton = [...title].find(button => button.dataset.section === key);
+      if (!confirm(`remove the hardcoded “${navButton?.dataset.sectionLabel || key}” section and its wiki pages from the local wiki?`)) return;
+      wikiDocument.removedBuiltinSections ||= [];
+      if (!wikiDocument.removedBuiltinSections.includes(key)) wikiDocument.removedBuiltinSections.push(key);
+      delete wikiDocument.sectionPages?.[key];
+      delete wikiDocument.sectionIcons?.[key];
+      if (activePage === key) activePage = "home";
+      markWikiDraftSaved("hardcoded section removed from the local wiki");
+      return;
     }
     const shiftSection = event.target.closest("[data-section-shift]");
     if (shiftSection) {
@@ -1069,9 +1194,15 @@
   });
   $("#wikiPreviewActions").addEventListener("click", event => {
     const button = event.target.closest("[data-preview-open-item]");
-    if (!button) return;
+    if (button) {
+      $("#wikiPreviewDialog").close();
+      openItemPage(button.dataset.previewOpenItem);
+      return;
+    }
+    const sectionButton = event.target.closest("[data-preview-open-section]");
+    if (!sectionButton) return;
     $("#wikiPreviewDialog").close();
-    openItemPage(button.dataset.previewOpenItem);
+    go(sectionButton.dataset.previewOpenSection);
   });
   $("#closeWikiPreview").addEventListener("click", () => $("#wikiPreviewDialog").close());
   $("#editQuestGuide").addEventListener("click", () => {
@@ -1183,6 +1314,7 @@
     items = mergeItems(baseItems, catalogItems);
     window.INVENTORY_WIKI_CONTENT = publicWiki;
     loadWikiDocument();
+    applyRemovedBuiltinSections();
     renderCustomSections();
     $("#itemCount").textContent = items.length;
     $("#eventCount").textContent = (window.INVENTORY_EVENT_CATALOG || []).length;

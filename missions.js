@@ -558,6 +558,9 @@
     const healthLabel = document.getElementById("arenaHealth");
     const waveLabel = document.getElementById("arenaWave");
     const killsLabel = document.getElementById("arenaKills");
+    const arenaGoalLabel = document.getElementById("arenaGoal");
+    const arenaGoalWrap = document.getElementById("arenaGoalWrap");
+    const arenaTimeWrap = document.getElementById("arenaTimeWrap");
     const timeLabel = document.getElementById("arenaTime");
     const arenaItemPicker = document.getElementById("arenaWeaponPicker");
     const arenaArtifactPicker = document.getElementById("arenaArtifactPicker");
@@ -572,6 +575,9 @@
     const arenaArtifactName = document.getElementById("arenaArtifactName");
     const arenaHealthFill = document.getElementById("arenaHealthFill");
     const arenaDifficultyPicker = document.getElementById("arenaDifficulty");
+    const arenaModePicker = document.getElementById("arenaModePicker");
+    const arenaBossGoalPicker = document.getElementById("arenaBossGoal");
+    const arenaBossGoalField = document.getElementById("arenaBossGoalField");
     const startButton = document.getElementById("startSurvivalGame");
     const arena = { width: canvas.width, height: canvas.height };
     const arenaUpgradeStorageKey = "riftArenaUpgradesV1";
@@ -604,6 +610,20 @@
     let running = false;
     let loadoutSelectionActive = false;
     let activeEventQuest = null;
+    const arenaModeStorageKey = "riftArenaModeV1";
+    const arenaModeIds = new Set(["survival", "survival-endless", "boss-hunt", "boss-hunt-endless", "soul-rush", "soul-rush-endless"]);
+    const savedArenaMode = localStorage.getItem(arenaModeStorageKey);
+    if (arenaModePicker) arenaModePicker.value = arenaModeIds.has(savedArenaMode) ? savedArenaMode : "survival";
+    const arenaBossGoalStorageKey = "riftArenaBossGoalV1";
+    const savedBossGoal = Number(localStorage.getItem(arenaBossGoalStorageKey));
+    if (arenaBossGoalPicker) arenaBossGoalPicker.value = Number.isFinite(savedBossGoal) && savedBossGoal >= 1 ? String(Math.floor(savedBossGoal)) : "10";
+    let activeRunMode = "survival";
+    let activeRunEndless = false;
+    let bossesSpawned = 0;
+    let bossesDefeated = 0;
+    let bossSpawnClock = 0;
+    let riftShards = [];
+    let riftShardsCollected = 0;
     let elapsed = 0;
     let spawnClock = 0;
     let kills = 0;
@@ -623,12 +643,26 @@
     const artifactCooldownDisabledKey = "riftArenaDisableArtifactCooldownV1";
     const arenaProjectileCountStorageKey = "riftArenaProjectileCountV1";
     const arenaLightningStrikeCountStorageKey = "riftArenaLightningStrikeCountV1";
+    const arenaStormlanderThrowStorageKey = "riftArenaStormlanderThrowModeV1";
+    const arenaStormlanderBounceCountStorageKey = "riftArenaStormlanderBounceCountV1";
+    function stormlanderBounceCount() {
+        const count = Number(localStorage.getItem(arenaStormlanderBounceCountStorageKey));
+        return Number.isFinite(count) && count >= 0 ? Math.min(100, Math.floor(count)) : 2;
+    }
     function arenaConfiguredCount(key, fallback) {
         const count = Number(localStorage.getItem(key));
         return Number.isFinite(count) && count >= 1 ? Math.min(100, Math.floor(count)) : fallback;
     }
-    function fireProjectileVolley({ angle, speed, damage, life, kind, rarity, sprite, radius }) {
-        const count = arenaConfiguredCount(arenaProjectileCountStorageKey, 1);
+    function itemImbueLevel(name) {
+        return Math.max(0, Math.min(10, Math.floor(Number(window.getItemImbueLevel?.(name)) || 0)));
+    }
+    function imbuedProjectileCount(name) {
+        const configured = arenaConfiguredCount(arenaProjectileCountStorageKey, 1);
+        const level = itemImbueLevel(name);
+        return level ? Math.max(configured, Math.ceil(level / 2)) : configured;
+    }
+    function fireProjectileVolley({ angle, speed, damage, life, kind, rarity, sprite, radius, itemName = selectedArenaItem }) {
+        const count = imbuedProjectileCount(itemName);
         const spread = 0.07;
         for (let index = 0; index < count; index++) {
             const shotAngle = angle + (index - (count - 1) / 2) * spread;
@@ -637,12 +671,21 @@
     }
     const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)"]);
     const cooldownsDisabled = () => localStorage.getItem(artifactCooldownDisabledKey) === "true";
-    const setAbilityCooldown = seconds => { abilityCooldown = cooldownsDisabled() ? 0 : seconds; };
+    const setAbilityCooldown = seconds => {
+        const imbue = itemImbueLevel(selectedArenaArtifact);
+        const reduced = Math.max(2, seconds * (1 - imbue * .03));
+        abilityCooldown = cooldownsDisabled() ? 0 : reduced;
+    };
     let selectedArenaItem = "";
     let selectedArenaArtifact = "";
     let selectedWeaponImage = null;
     let selectedArtifactImage = null;
     const arenaSpriteCache = new WeakMap();
+    const sculkerClawSprites = ["SculkerClaw1.png", "SculkerClaw2.png"].map(src => {
+        const image = new Image();
+        image.src = src;
+        return image;
+    });
     let attackEffects = [];
     let weaponCombo = 0;
     let souls = 100;
@@ -708,7 +751,7 @@
     function selectedArtifactProtection() {
         const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === selectedArtifact());
         const catalogProtection = Math.max(0, Number(card?.dataset.protection) || 0);
-        return selectedArtifact() === "golden crown" ? Math.max(4, catalogProtection) : catalogProtection;
+        return selectedArtifact() === "golden crown" ? Math.max(4, catalogProtection) + itemImbueLevel(selectedArenaArtifact) * .5 : catalogProtection;
     }
     function selectedWeaponProtection() {
         const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem);
@@ -766,6 +809,10 @@
         }
     }
     window.addEventListener("inventory-arena-cooldown-setting-changed", updateArenaAbilityControl);
+    window.addEventListener("inventory-item-imbue-changed", () => {
+        updateArenaAbilityControl();
+        drawArena();
+    });
     arenaItemPicker?.addEventListener("change", () => {
         clearArenaMovement();
         selectedArenaItem = arenaItemPicker.value;
@@ -788,26 +835,58 @@
         drawArena();
     });
     arenaDifficultyPicker?.addEventListener("change", () => localStorage.setItem(arenaDifficultyStorageKey, arenaDifficultyPicker.value));
+    arenaModePicker?.addEventListener("change", () => {
+        localStorage.setItem(arenaModeStorageKey, arenaModePicker.value);
+        activeRunMode = selectedRunMode();
+        activeRunEndless = selectedRunIsEndless();
+        bossesSpawned = 0;
+        bossesDefeated = 0;
+        gameStatus.textContent = arenaModeDescription();
+        updateArenaModeGoal();
+        drawArena();
+    });
+    arenaBossGoalPicker?.addEventListener("change", () => {
+        const goal = arenaBossGoal();
+        arenaBossGoalPicker.value = String(goal);
+        localStorage.setItem(arenaBossGoalStorageKey, String(goal));
+        gameStatus.textContent = arenaModeDescription();
+        updateArenaModeGoal();
+    });
     function activateSelectedArtifact() {
         const item = selectedArtifact();
         if (!running || (!cooldownsDisabled() && abilityCooldown > 0)) return;
+        if (localStorage.getItem(arenaStormlanderThrowStorageKey) === "true" && normalizedItemName(selectedArenaItem) === "stormlander v2") {
+            const dx = (aimTarget?.x ?? player.x + facing.x) - player.x;
+            const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            facing = { x: dx / distance, y: dy / distance };
+            bolts.push({ x: player.x + facing.x * 26, y: player.y + facing.y * 26, vx: facing.x * 560, vy: facing.y * 560, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.4, kind: "stormlander-throw", sprite: selectedWeaponImage, returning: false, bouncesRemaining: stormlanderBounceCount() });
+            setAbilityCooldown(3.5);
+            gameStatus.textContent = "stormlander thrown · big lightning strike on impact";
+            updateArenaAbilityControl();
+            drawArena();
+            return;
+        }
         if (item.startsWith("corrupted beacon")) {
             beaconActive = !beaconActive;
             return;
         }
         if (item === "ghost cloak") {
-            ghostTime = 4;
+            ghostTime = 4 + itemImbueLevel(item) * .5;
             setAbilityCooldown(8);
         } else if (item === "updraft tome") {
+            const level = itemImbueLevel(item);
+            const liftRange = 250 + level * 15;
             enemies.forEach(enemy => {
                 const distance = Math.hypot(enemy.x - player.x, enemy.y - player.y);
-                if (distance <= 250) { enemy.air = 1.15; enemy.airHeight = 1; enemy.airVelocity = 360; enemy.fallDamage = selectedArtifactDamage(); }
+                if (distance <= liftRange) { enemy.air = 1.15 + level * .1; enemy.airHeight = 1; enemy.airVelocity = 360 + level * 12; enemy.fallDamage = selectedArtifactDamage(); }
             });
             sparks.push({ x: player.x, y: player.y, life: 1, color: "#9cf8ff" });
             setAbilityCooldown(7);
         } else if (item.startsWith("lightning rod")) {
             const strikePoint = aimTarget || player;
-            const strikeCount = arenaConfiguredCount(arenaLightningStrikeCountStorageKey, 6);
+            const level = itemImbueLevel(item);
+            const strikeCount = level ? Math.max(1, Math.ceil(level * .3)) : arenaConfiguredCount(arenaLightningStrikeCountStorageKey, 6);
             const strikeOffsets = [[0, 0], [-96, -96], [96, -96], [-96, 96], [96, 96], [0, -96], [96, 0], [0, 96], [-96, 0]];
             for (let index = 0; index < strikeCount; index++) {
                 const [offsetX, offsetY] = strikeOffsets[index % strikeOffsets.length];
@@ -831,7 +910,7 @@
             const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
             const distance = Math.hypot(dx, dy) || 1;
             facing = { x: dx / distance, y: dy / distance };
-            fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178 });
+            fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178, itemName: item });
             setAbilityCooldown(4);
         }
         updateArenaAbilityControl();
@@ -845,6 +924,42 @@
     function currentRunChallenge() {
         const challenge = activeEventQuest ? { seconds: 45 } : currentWeeklyChallenge();
         return badgePeekPenaltyActive() ? { ...challenge, seconds: Number(challenge.seconds) * 3 } : challenge;
+    }
+
+    function selectedRunMode() {
+        const selected = activeEventQuest ? "survival" : arenaModePicker?.value || "survival";
+        const normalized = selected.replace(/-endless$/, "");
+        return arenaModeIds.has(selected) ? normalized : "survival";
+    }
+
+    function selectedRunIsEndless() {
+        return !activeEventQuest && String(arenaModePicker?.value || "").endsWith("-endless");
+    }
+
+    function arenaBossGoal() {
+        const goal = Number(arenaBossGoalPicker?.value);
+        return Number.isFinite(goal) && goal >= 1 ? Math.floor(goal) : 10;
+    }
+
+    function arenaModeDescription(mode = selectedRunMode(), endless = selectedRunIsEndless()) {
+        if (endless) return mode === "boss-hunt" ? "endless boss hunt · defeat brutes and survive the escalating waves" : mode === "soul-rush" ? "endless shard rush · collect shards and survive the escalating waves" : "endless survival · survive the escalating rift waves";
+        if (mode === "boss-hunt") return `boss hunt · defeat ${arenaBossGoal()} rift brutes before time runs out`;
+        if (mode === "soul-rush") return "shard rush · collect 10 rift shards before time runs out";
+        return activeEventQuest ? `survive for ${currentRunChallenge().seconds} seconds to unlock ${activeEventQuest.item}` : weeklyObjective.textContent;
+    }
+
+    function updateArenaModeGoal() {
+        const endless = running ? activeRunEndless : selectedRunIsEndless();
+        const mode = running ? activeRunMode : selectedRunMode();
+        if (arenaGoalWrap) arenaGoalWrap.hidden = endless;
+        if (arenaTimeWrap) arenaTimeWrap.hidden = endless;
+        if (arenaBossGoalField) arenaBossGoalField.hidden = mode !== "boss-hunt" || endless;
+        if (arenaBossGoalPicker) arenaBossGoalPicker.disabled = running;
+        if (!arenaGoalLabel) return;
+        let value = "survive";
+        if (mode === "boss-hunt") value = `${bossesDefeated} / ${arenaBossGoal()} brutes`;
+        else if (mode === "soul-rush") value = `${riftShardsCollected} / 10 shards`;
+        if (arenaGoalLabel.textContent !== value) arenaGoalLabel.textContent = value;
     }
 
     function saveWeekly() {
@@ -1007,6 +1122,8 @@
         if (!running) return;
         running = false;
         if (arenaDifficultyPicker) arenaDifficultyPicker.disabled = false;
+        if (arenaModePicker) arenaModePicker.disabled = false;
+        if (arenaBossGoalPicker) arenaBossGoalPicker.disabled = false;
         cancelAnimationFrame(arenaFrame);
         arenaFrame = 0;
         keys.clear();
@@ -1071,6 +1188,13 @@
             ctx.arc(point.x, point.y, player.radius * point.life / .42, 0, Math.PI * 2); ctx.fill();
         });
         ctx.globalAlpha = 1;
+        riftShards.forEach(shard => {
+            const pulse = .78 + Math.sin(performance.now() / 130 + shard.phase) * .18;
+            ctx.save(); ctx.translate(shard.x, shard.y); ctx.rotate(performance.now() / 450 + shard.phase);
+            ctx.globalAlpha = Math.min(1, shard.life / 2); ctx.fillStyle = "#d88aff"; ctx.shadowColor = "#ad52ff"; ctx.shadowBlur = 18;
+            ctx.beginPath(); ctx.moveTo(0, -9 * pulse); ctx.lineTo(7 * pulse, 0); ctx.lineTo(0, 9 * pulse); ctx.lineTo(-7 * pulse, 0); ctx.closePath(); ctx.fill();
+            ctx.restore();
+        });
         lightningEffects.forEach(effect => {
             if (effect.rodStrike) {
                 if (effect.wait > 0) {
@@ -1199,13 +1323,19 @@
             const renderY = enemy.y - (enemy.airHeight || 0);
             if (enemy.airHeight > 0) { ctx.beginPath(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.ellipse(enemy.x, enemy.y + enemy.radius * .6, enemy.radius * 1.25, enemy.radius * .45, 0, 0, Math.PI * 2); ctx.fill(); }
             const enemyColor = enemy.frozen > 0 ? "#5bbaff" : enemy.voidTime > 0 ? "#bd68ff" : enemy.burnTime > 0 ? "#ff7138" : enemy.color;
+            if (enemy.boss) {
+                ctx.beginPath(); ctx.strokeStyle = "rgba(255, 91, 220, .5)"; ctx.lineWidth = 4; ctx.shadowColor = "#ff3ccf"; ctx.shadowBlur = 22;
+                ctx.arc(enemy.x, renderY, enemy.radius + 9 + Math.sin(performance.now() / 180) * 2, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0;
+            }
             ctx.beginPath(); ctx.fillStyle = enemyColor; ctx.shadowColor = enemyColor; ctx.shadowBlur = 15;
             ctx.arc(enemy.x, renderY, enemy.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
             ctx.beginPath(); ctx.fillStyle = "#07101a";
-            ctx.arc(enemy.x - enemy.radius * .3, renderY - 2, 2.4, 0, Math.PI * 2);
-            ctx.arc(enemy.x + enemy.radius * .3, renderY - 2, 2.4, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "rgba(0,0,0,.75)"; ctx.fillRect(enemy.x - 18, renderY - enemy.radius - 9, 36, 4);
-            ctx.fillStyle = enemy.frozen > 0 ? "#6bdcff" : "#ff647d"; ctx.fillRect(enemy.x - 18, renderY - enemy.radius - 9, 36 * Math.max(0, enemy.hp / enemy.maxHp), 4);
+            ctx.arc(enemy.x - enemy.radius * .3, renderY - 2, enemy.boss ? 3.5 : 2.4, 0, Math.PI * 2);
+            ctx.arc(enemy.x + enemy.radius * .3, renderY - 2, enemy.boss ? 3.5 : 2.4, 0, Math.PI * 2); ctx.fill();
+            const barWidth = enemy.boss ? 82 : 36;
+            ctx.fillStyle = "rgba(0,0,0,.75)"; ctx.fillRect(enemy.x - barWidth / 2, renderY - enemy.radius - 10, barWidth, enemy.boss ? 7 : 4);
+            ctx.fillStyle = enemy.boss ? "#ff5bdc" : enemy.frozen > 0 ? "#6bdcff" : "#ff647d"; ctx.fillRect(enemy.x - barWidth / 2, renderY - enemy.radius - 10, barWidth * Math.max(0, enemy.hp / enemy.maxHp), enemy.boss ? 7 : 4);
+            if (enemy.boss) { ctx.fillStyle = "#ffe0fb"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.fillText("rift brute", enemy.x, renderY - enemy.radius - 15); }
         });
         ctx.beginPath();
         ctx.globalAlpha = ghostTime > 0 ? .38 : 1;
@@ -1216,15 +1346,36 @@
         ctx.shadowBlur = 0;
         ctx.beginPath(); ctx.fillStyle = "#e9d9ff"; ctx.arc(player.x, player.y, 5, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
-        const weaponSprite = selectedArenaItem ? getArenaSprite(selectedWeaponImage, 64, selectedArenaItem === "Stormlander V2") : null;
-        if (weaponSprite) {
-            ctx.save();
-            ctx.translate(player.x + facing.x * 31, player.y + facing.y * 31);
-            ctx.rotate(Math.atan2(facing.y, facing.x));
-            ctx.globalAlpha = ghostTime > 0 ? .5 : 1;
-            ctx.shadowColor = "#c677ff"; ctx.shadowBlur = 13;
-            ctx.drawImage(weaponSprite, -32, -32, 64, 64);
-            ctx.restore();
+        const weaponName = normalizedItemName(selectedArenaItem);
+        const weaponAngle = Math.atan2(facing.y, facing.x);
+        if (weaponName === "sculker claws") {
+            sculkerClawSprites.forEach((image, index) => {
+                const sprite = getArenaSprite(image, 48, true);
+                if (!sprite) return;
+                const side = index === 0 ? -1 : 1;
+                ctx.save();
+                ctx.translate(player.x + side * 34, player.y);
+                ctx.globalAlpha = ghostTime > 0 ? .5 : 1;
+                ctx.shadowColor = "#c677ff"; ctx.shadowBlur = 13;
+                ctx.drawImage(sprite, -17, -20, 34, 40);
+                ctx.restore();
+            });
+        } else {
+            const stormlanderInFlight = bolts.some(bolt => bolt.kind === "stormlander-throw");
+            const weaponSprite = selectedArenaItem && !(normalizedItemName(selectedArenaItem) === "stormlander v2" && stormlanderInFlight) ? getArenaSprite(selectedWeaponImage, 64, selectedArenaItem === "Stormlander V2" || isArenaBow()) : null;
+            if (weaponSprite) {
+                ctx.save();
+                ctx.translate(player.x + facing.x * 31, player.y + facing.y * 31);
+                const bowAngleOffset = weaponName === "shivering bow" ? Math.PI / 4 : weaponName === "bow" ? Math.PI / 7 : 0;
+                const bow = isArenaBow();
+                const angleOffset = bow ? bowAngleOffset : 0;
+                ctx.rotate(weaponAngle + angleOffset);
+                if (bow) ctx.scale(-1, 1);
+                ctx.globalAlpha = ghostTime > 0 ? .5 : 1;
+                ctx.shadowColor = "#c677ff"; ctx.shadowBlur = 13;
+                ctx.drawImage(weaponSprite, -32, -32, 64, 64);
+                ctx.restore();
+            }
         }
         const artifactSprite = selectedArenaArtifact ? getArenaSprite(selectedArtifactImage, 48) : null;
         if (artifactSprite) {
@@ -1239,7 +1390,10 @@
         }
         ctx.globalAlpha = 1;
         bolts.forEach(bolt => {
-            if (bolt.kind === "firework") {
+            if (bolt.kind === "stormlander-throw") {
+                const sprite = getArenaSprite(bolt.sprite, 48, true);
+                if (sprite) { ctx.save(); ctx.translate(bolt.x, bolt.y); ctx.rotate(Math.atan2(bolt.vy, bolt.vx)); ctx.shadowColor = "#54eaff"; ctx.shadowBlur = 20; ctx.drawImage(sprite, -30, -30, 60, 60); ctx.restore(); }
+            } else if (bolt.kind === "firework") {
                 const sprite = getArenaSprite(bolt.sprite, 32);
                 if (sprite) { ctx.save(); ctx.translate(bolt.x, bolt.y); ctx.rotate(Math.atan2(bolt.vy, bolt.vx)); ctx.drawImage(sprite, -20, -16, 40, 32); ctx.restore(); }
             } else if (bolt.kind === "dominance" || bolt.kind === "terror") {
@@ -1259,11 +1413,31 @@
         const x = edge === 0 ? -20 : edge === 1 ? arena.width + 20 : Math.random() * arena.width;
         const y = edge === 2 ? -20 : edge === 3 ? arena.height + 20 : Math.random() * arena.height;
         const difficulty = difficultySettings();
-        const maxHp = Math.round((45 + Math.random() * 65 + wave * 5) * difficulty.hp);
-        enemies.push({ x, y, radius: 11 + Math.min(5, wave), speed: (38 + wave * 5 + Math.random() * 12) * difficulty.speed, hp: maxHp, maxHp, frozen: 0, burnTime: 0, burnDamage: 0, burnTick: .5, voidTime: 0, voidDamage: 0, voidTick: .5, color: wave > 4 ? "#48d7dd" : "#56b8d5" });
+        const hpScale = 1 + Math.max(0, wave - 1) * .12;
+        const speedScale = 1 + Math.max(0, wave - 1) * .055;
+        const maxHp = Math.round((45 + Math.random() * 65 + wave * 5) * difficulty.hp * hpScale);
+        enemies.push({ x, y, radius: 11 + Math.min(5, wave), speed: (38 + wave * 5 + Math.random() * 12) * difficulty.speed * speedScale, hp: maxHp, maxHp, air: 0, frozen: 0, burnTime: 0, burnDamage: 0, burnTick: .5, voidTime: 0, voidDamage: 0, voidTick: .5, color: wave > 4 ? "#48d7dd" : "#56b8d5" });
+    }
+
+    function spawnRiftBrute(wave = Math.floor(elapsed / 15) + 1) {
+        const edge = Math.floor(Math.random() * 4);
+        const x = edge === 0 ? -30 : edge === 1 ? arena.width + 30 : arena.width / 2;
+        const y = edge === 2 ? -30 : edge === 3 ? arena.height + 30 : arena.height / 2;
+        const difficulty = difficultySettings();
+        const selectedDamage = selectedWeaponDamage();
+        const baseDamage = Number.isFinite(selectedDamage) ? selectedDamage : 14;
+        const bruteScale = 1 + Math.max(0, wave - 1) * .2 + bossesSpawned * .14;
+        const speedScale = 1 + Math.max(0, wave - 1) * .055 + bossesSpawned * .025;
+        const maxHp = Math.round(Math.max(320, baseDamage * 26) * difficulty.hp * bruteScale);
+        enemies.push({ x, y, radius: 27, speed: 34 * difficulty.speed * speedScale, hp: maxHp, maxHp, air: 0, frozen: 0, burnTime: 0, burnDamage: 0, burnTick: .5, voidTime: 0, voidDamage: 0, voidTick: .5, color: "#e847c2", boss: true });
+        bossesSpawned += 1;
     }
 
     function nearestEnemy() {
+        if (activeRunMode === "boss-hunt") {
+            const boss = enemies.find(enemy => enemy.boss);
+            if (boss) return boss;
+        }
         let target = null;
         let best = Infinity;
         enemies.forEach(enemy => {
@@ -1399,7 +1573,8 @@
     }
 
     function isArenaBow() {
-        return ["bow", "winter's touch", "shivering bow"].includes(normalizedItemName(selectedArenaItem));
+        const weapon = normalizedItemName(selectedArenaItem);
+        return weapon.includes("bow") || weapon === "winter's touch";
     }
 
     function updatePlayerHealth() {
@@ -1475,6 +1650,13 @@
             killsLabel.textContent = kills;
             souls += 10;
             window.triggerBadgeAction?.("arena-kill", 1);
+            if (activeRunMode === "soul-rush") riftShards.push({ x: enemy.x, y: enemy.y, life: 16, phase: Math.random() * Math.PI * 2 });
+            if (enemy.boss && activeRunMode === "boss-hunt") {
+                bossesDefeated += 1;
+                updateArenaModeGoal();
+                if (!activeRunEndless && bossesDefeated >= arenaBossGoal()) finishRun(true, `rift brutes defeated · ${bossesDefeated} cleared · rewards claimed`);
+                else bossSpawnClock = Math.min(bossSpawnClock, .35);
+            }
         }
     }
 
@@ -1499,9 +1681,10 @@
         }
         const challenge = currentRunChallenge();
         elapsed += dt;
+        updateArenaModeGoal();
         const wave = Math.floor(elapsed / 15) + 1;
         if (waveLabel.textContent !== String(wave)) waveLabel.textContent = wave;
-        const remaining = Math.max(0, Math.ceil(challenge.seconds - elapsed));
+        const remaining = activeRunEndless ? 0 : Math.max(0, Math.ceil(challenge.seconds - elapsed));
         if (timeLabel.textContent !== String(remaining)) timeLabel.textContent = remaining;
         player.invulnerable = Math.max(0, player.invulnerable - dt);
         player.fireDelay -= dt;
@@ -1558,7 +1741,16 @@
         if (spawnClock <= 0) {
             spawnEnemy(wave);
             if (wave >= 3 && Math.random() < .24) spawnEnemy(wave);
-            spawnClock = Math.max(.38, (1.45 - wave * .12) / difficultySettings().spawn);
+            spawnClock = Math.max(.18, 1.45 / (1 + (wave - 1) * .055) / difficultySettings().spawn);
+        }
+        if (activeRunMode === "boss-hunt") {
+            bossSpawnClock -= dt;
+            const livingBosses = enemies.filter(enemy => enemy.boss).length;
+            const moreBossesNeeded = activeRunEndless || bossesSpawned < arenaBossGoal();
+            if (bossSpawnClock <= 0 && livingBosses < 2 && moreBossesNeeded) {
+                spawnRiftBrute(wave);
+                bossSpawnClock = 6;
+            }
         }
 
         let dx = (keys.has("d") || keys.has("arrowright") ? 1 : 0) - (keys.has("a") || keys.has("arrowleft") ? 1 : 0);
@@ -1574,6 +1766,22 @@
         player.x = Math.max(player.radius, Math.min(arena.width - player.radius, player.x + dx / magnitude * speed * dt));
         player.y = Math.max(player.radius, Math.min(arena.height - player.radius, player.y + dy / magnitude * speed * dt));
         if (ghostTime > 0 && (dx || dy)) playerTrail.push({ x: player.x, y: player.y, life: .42 });
+
+        if (activeRunMode === "soul-rush") {
+            riftShards.forEach(shard => {
+                shard.life -= dt;
+                if (Math.hypot(shard.x - player.x, shard.y - player.y) <= player.radius + 15) {
+                    shard.life = 0;
+                    riftShardsCollected += 1;
+                }
+            });
+            riftShards = riftShards.filter(shard => shard.life > 0);
+            updateArenaModeGoal();
+            if (!activeRunEndless && riftShardsCollected >= 10) {
+                finishRun(true, "rift shards collected · rewards claimed");
+                return;
+            }
+        }
 
         enemies.forEach(enemy => {
             enemy.frozen = Math.max(0, (enemy.frozen || 0) - dt);
@@ -1614,10 +1822,13 @@
                 }
             }
             if (enemy.despawnAt && elapsed >= enemy.despawnAt) { damageEnemy(enemy, enemy.hp, "#aaff63"); return; }
-            if (enemy.air <= 0 && distance < player.radius + enemy.radius && player.invulnerable <= 0) {
+            const contactX = player.x - enemy.x;
+            const contactY = player.y - enemy.y;
+            const contactDistance = Math.hypot(contactX, contactY) || 1;
+            if (!(enemy.air > 0) && contactDistance < player.radius + enemy.radius && player.invulnerable <= 0) {
                 player.health -= Math.max(1, 10 - selectedArtifactProtection()) * difficultySettings().damage; player.invulnerable = 1.15 + arenaUpgrades.resistance * .35;
-                player.x = Math.max(player.radius, Math.min(arena.width - player.radius, player.x + ex / distance * 36));
-                player.y = Math.max(player.radius, Math.min(arena.height - player.radius, player.y + ey / distance * 36));
+                player.x = Math.max(player.radius, Math.min(arena.width - player.radius, player.x + contactX / contactDistance * 36));
+                player.y = Math.max(player.radius, Math.min(arena.height - player.radius, player.y + contactY / contactDistance * 36));
                 updatePlayerHealth();
                 if (player.health <= 0) finishRun(false, "the rift caught you · try again");
             }
@@ -1643,7 +1854,7 @@
                 const distance = Math.hypot(dx, dy) || 1;
                 const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === "firework arrow (mcdii)");
                 facing = { x: dx / distance, y: dy / distance };
-                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178 });
+                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178, itemName: selectedArenaItem });
                 player.fireDelay = 1.05;
             } else if (isArenaBow()) {
                 const distance = Math.hypot(target.x - player.x, target.y - player.y) || 1;
@@ -1652,7 +1863,8 @@
                 const flaming = compatibleBow && artifact === "flaming quiver";
                 const electric = compatibleBow && artifact === "thundering quiver";
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
-                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 430, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 1.8, kind: flaming ? "fire" : electric ? "electric" : "arrow" });
+                const quiverBonus = flaming || electric ? window.getItemImbueDamageBonus?.(artifact, catalogItemDamage(artifact)) || 0 : 0;
+                fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 430, damage: selectedWeaponDamage() + quiverBonus, rarity: selectedWeaponRarity(), life: 1.8, kind: flaming ? "fire" : electric ? "electric" : "arrow", itemName: flaming || electric ? artifact : selectedArenaItem });
                 player.fireDelay = .7;
             } else if (selectedArenaItem && !artifactNames.has(normalizedItemName(selectedArenaItem))) {
                 const range = normalizedItemName(selectedArenaItem) === "the starless night" ? 112 : 92;
@@ -1664,6 +1876,55 @@
             }
         }
         bolts.slice().forEach(bolt => {
+            if (bolt.kind === "stormlander-throw") {
+                if (bolt.returning) {
+                    const dx = player.x - bolt.x;
+                    const dy = player.y - bolt.y;
+                    const distance = Math.hypot(dx, dy) || 1;
+                    const step = Math.min(distance, 720 * dt);
+                    bolt.x += dx / distance * step;
+                    bolt.y += dy / distance * step;
+                    bolt.vx = dx / distance * 720;
+                    bolt.vy = dy / distance * 720;
+                    if (distance <= 20) bolt.life = 0;
+                    else bolt.life = 1;
+                    return;
+                }
+                bolt.x += bolt.vx * dt;
+                bolt.y += bolt.vy * dt;
+                bolt.life = 1;
+                const hit = enemies.find(enemy => Math.hypot(enemy.x - bolt.x, enemy.y - bolt.y) < enemy.radius + 18);
+                const hitLeft = bolt.x <= 2;
+                const hitRight = bolt.x >= arena.width - 2;
+                const hitTop = bolt.y <= 2;
+                const hitBottom = bolt.y >= arena.height - 2;
+                const wallHit = hitLeft || hitRight || hitTop || hitBottom;
+                if (!hit && wallHit && bolt.bouncesRemaining > 0) {
+                    if (hitLeft || hitRight) bolt.vx *= -1;
+                    if (hitTop || hitBottom) bolt.vy *= -1;
+                    bolt.x = Math.max(3, Math.min(arena.width - 3, bolt.x));
+                    bolt.y = Math.max(3, Math.min(arena.height - 3, bolt.y));
+                    bolt.bouncesRemaining -= 1;
+                    bolt.life = 2.4;
+                    sparks.push({ x: bolt.x, y: bolt.y, life: .45, color: "#63edff" });
+                } else if (hit || wallHit) {
+                    const strikeX = hit ? hit.x : Math.max(0, Math.min(arena.width, bolt.x));
+                    const strikeY = hit ? hit.y : Math.max(0, Math.min(arena.height, bolt.y));
+                    const radius = 150;
+                    const strikeDamage = bolt.damage * 2;
+                    lightningEffects.push({ x: strikeX, y: strikeY, life: 1.05, wait: 0, rodStrike: true, damageApplied: true, damage: strikeDamage, areaRadius: radius, boltWidth: 38 });
+                    enemies.slice().filter(enemy => Math.hypot(enemy.x - strikeX, enemy.y - strikeY) <= radius).forEach(enemy => {
+                        damageEnemy(enemy, strikeDamage, "#63edff");
+                        applyRarityImpact(enemy, bolt.rarity, strikeDamage, true);
+                    });
+                    sparks.push({ x: strikeX, y: strikeY, life: 1.1, color: "#63edff" });
+                    bolt.x = strikeX;
+                    bolt.y = strikeY;
+                    bolt.returning = true;
+                    bolt.life = 1;
+                }
+                return;
+            }
             bolt.x += bolt.vx * dt; bolt.y += bolt.vy * dt; bolt.life -= dt;
             const hit = enemies.find(enemy => Math.hypot(enemy.x - bolt.x, enemy.y - bolt.y) < enemy.radius + 5);
             const wallHit = bolt.x <= 2 || bolt.y <= 2 || bolt.x >= arena.width - 2 || bolt.y >= arena.height - 2;
@@ -1718,7 +1979,10 @@
             const soulsText = `${Math.floor(souls)} souls`;
             if (arenaSoulsLabel.textContent !== soulsText) arenaSoulsLabel.textContent = soulsText;
         }
-        if (elapsed >= challenge.seconds) finishRun(true, "you survived the rift waves · rewards claimed");
+        if (!activeRunEndless && elapsed >= challenge.seconds) {
+            if (activeRunMode === "survival") finishRun(true, "you survived the rift waves · rewards claimed");
+            else finishRun(false, activeRunMode === "boss-hunt" ? "the rift brute escaped · try again" : "the shard rush ended · try again");
+        }
     }
 
     function arenaLoop(timestamp) {
@@ -1732,18 +1996,32 @@
 
     function startRun() {
         if (running) return;
+        activeRunMode = selectedRunMode();
+        activeRunEndless = selectedRunIsEndless();
+        riftShards = [];
+        riftShardsCollected = 0;
+        bossesSpawned = 0;
+        bossesDefeated = 0;
+        bossSpawnClock = .2;
         const challenge = currentRunChallenge();
         player.x = arena.width / 2; player.y = arena.height / 2; player.maxHealth = 100 + arenaUpgrades.health * 10; player.health = player.maxHealth; player.invulnerable = 0; player.fireDelay = .25;
         enemies = []; bolts = []; sparks = []; lightningEffects = []; attackEffects = []; playerTrail = []; elapsed = 0; spawnClock = .5; kills = 0; previousFrame = 0; weaponCombo = 0;
         souls = 100; corruption = 0; ghostTime = 0; abilityCooldown = 0; beaconActive = false; facing = { x: 1, y: 0 };
         keys.clear(); moveTarget = null;
-        updatePlayerHealth(); waveLabel.textContent = "1"; killsLabel.textContent = "0"; timeLabel.textContent = challenge.seconds;
+        updatePlayerHealth(); waveLabel.textContent = "1"; killsLabel.textContent = "0"; timeLabel.textContent = activeRunEndless ? "∞" : challenge.seconds;
         if (arenaSoulsLabel) arenaSoulsLabel.textContent = `${souls} souls`;
         refreshArenaItemPicker();
+        if (activeRunMode === "boss-hunt") {
+            const initialBosses = activeRunEndless ? 2 : Math.min(2, arenaBossGoal());
+            for (let index = 0; index < initialBosses; index++) spawnRiftBrute(1);
+        }
         updateArenaAbilityControl();
-        gameStatus.textContent = selectedArtifact() === "void stabilizer" ? "dodge the rift creatures · void stabilizer is halting corruption" : "dodge the rift creatures · your equipped item is ready";
+        gameStatus.textContent = activeRunMode === "survival" && selectedArtifact() === "void stabilizer" ? "dodge the rift creatures · void stabilizer is halting corruption" : arenaModeDescription(activeRunMode);
         startButton.textContent = "arena active";
         if (arenaDifficultyPicker) arenaDifficultyPicker.disabled = true;
+        if (arenaModePicker) arenaModePicker.disabled = true;
+        if (arenaBossGoalPicker) arenaBossGoalPicker.disabled = true;
+        updateArenaModeGoal();
         running = true;
         arenaFrame = requestAnimationFrame(arenaLoop);
     }
@@ -1841,10 +2119,12 @@
 
     weeklyButton.addEventListener("click", () => {
         activeEventQuest = null;
+        if (arenaModePicker) arenaModePicker.disabled = false;
         refreshArenaItemPicker();
         dialog.hidden = false;
         startButton.textContent = "start game";
-        gameStatus.textContent = weeklyObjective.textContent;
+        gameStatus.textContent = arenaModeDescription();
+        updateArenaModeGoal();
         drawArena();
     });
     document.querySelectorAll("[data-event-quest]").forEach(button => {
@@ -1854,10 +2134,12 @@
             const item = getEventAssignments(activeEvent)[slot];
             if (!item) return;
             activeEventQuest = { eventId: activeEvent.id, eventName: activeEvent.name, item, slot };
+            if (arenaModePicker) { arenaModePicker.value = "survival"; arenaModePicker.disabled = true; }
             refreshArenaItemPicker();
             dialog.hidden = false;
             gameTitle.textContent = `${activeEvent.name} · ${item}`;
             gameStatus.textContent = `survive the rift arena for ${currentRunChallenge().seconds} seconds to unlock ${item}`;
+            updateArenaModeGoal();
             startButton.textContent = "start event quest";
             drawArena();
         });

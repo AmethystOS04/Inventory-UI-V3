@@ -731,7 +731,8 @@ html[data-reality="deepdark"] .info-panel::after {
 .survival-controls { margin:8px 2px; color:#b8a8ce; font-size:13px; }
 .arena-loadout { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); align-items:center; gap:8px; margin:10px 2px; color:#b8a8ce; font-size:13px; }
 .arena-loadout-field { display:grid; gap:4px; min-width:0; }
-.arena-loadout select { width:100%; min-width:0; padding:8px 10px; border:1px solid #6843a0; border-radius:8px; background:#171024; color:#fff; }
+.arena-loadout-field[hidden] { display:none; }
+.arena-loadout select,.arena-loadout input { width:100%; min-width:0; padding:8px 10px; border:1px solid #6843a0; border-radius:8px; background:#171024; color:#fff; }
 .arena-souls { color:#8cf5ff; font-weight:700; }
 .arena-combat-stats { display:flex; flex-wrap:wrap; gap:6px 14px; margin:4px 2px 10px; color:#c7b7df; font-size:12px; }
 .arena-combat-stats span { min-width:120px; }
@@ -2711,8 +2712,8 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
             <button id="closeWeeklyGame" type="button" aria-label="close">close</button>
         </div>
         <p id="weeklyGameStatus">survive the rift waves and stay alive until the timer ends</p>
-        <div class="survival-hud"><span>health</span><span class="arena-health-track"><span id="arenaHealthFill" class="arena-health-fill"></span></span><span id="arenaHealth" class="arena-health-number">100 / 100</span><span>wave <span id="arenaWave">1</span></span><span>eliminated <span id="arenaKills">0</span></span><span>void <span id="arenaCorruption">0%</span></span><span>time <span id="arenaTime">60</span>s</span></div>
-        <div class="arena-loadout"><label class="arena-loadout-field" for="arenaWeaponPicker">weapon<select id="arenaWeaponPicker" aria-label="choose an unlocked weapon"></select></label><label class="arena-loadout-field" for="arenaArtifactPicker">artifact<select id="arenaArtifactPicker" aria-label="choose an unlocked artifact"></select></label><label class="arena-loadout-field" for="arenaDifficulty">difficulty<select id="arenaDifficulty" aria-label="choose arena difficulty"><option value="easy">easy</option><option value="normal" selected>normal</option><option value="hard">hard</option></select></label><span class="arena-weapon-preview"><img id="arenaWeaponPreview" alt=""><span id="arenaWeaponName">amethyst orb</span></span><span class="arena-weapon-preview arena-artifact-preview"><img id="arenaArtifactPreview" alt=""><span id="arenaArtifactName">no artifact</span></span><span class="arena-souls" id="arenaSouls">100 souls</span></div>
+        <div class="survival-hud"><span>health</span><span class="arena-health-track"><span id="arenaHealthFill" class="arena-health-fill"></span></span><span id="arenaHealth" class="arena-health-number">100 / 100</span><span>wave <span id="arenaWave">1</span></span><span>eliminated <span id="arenaKills">0</span></span><span id="arenaGoalWrap">goal <span id="arenaGoal">survive</span></span><span>void <span id="arenaCorruption">0%</span></span><span id="arenaTimeWrap">time <span id="arenaTime">60</span>s</span></div>
+        <div class="arena-loadout"><label class="arena-loadout-field" for="arenaWeaponPicker">weapon<select id="arenaWeaponPicker" aria-label="choose an unlocked weapon"></select></label><label class="arena-loadout-field" for="arenaArtifactPicker">artifact<select id="arenaArtifactPicker" aria-label="choose an unlocked artifact"></select></label><label class="arena-loadout-field" for="arenaDifficulty">difficulty<select id="arenaDifficulty" aria-label="choose arena difficulty"><option value="easy">easy</option><option value="normal" selected>normal</option><option value="hard">hard</option></select></label><label class="arena-loadout-field" for="arenaModePicker">minigame mode<select id="arenaModePicker" aria-label="choose a minigame mode"><option value="survival">rift survival</option><option value="survival-endless">rift survival endless</option><option value="boss-hunt">boss hunt</option><option value="boss-hunt-endless">boss hunt endless</option><option value="soul-rush">shard rush</option><option value="soul-rush-endless">shard rush endless</option></select></label><label id="arenaBossGoalField" class="arena-loadout-field" for="arenaBossGoal" hidden>brute goal<input id="arenaBossGoal" type="number" min="1" step="1" value="10" aria-label="number of rift brutes to defeat"></label><span class="arena-weapon-preview"><img id="arenaWeaponPreview" alt=""><span id="arenaWeaponName">amethyst orb</span></span><span class="arena-weapon-preview arena-artifact-preview"><img id="arenaArtifactPreview" alt=""><span id="arenaArtifactName">no artifact</span></span><span class="arena-souls" id="arenaSouls">100 souls</span></div>
         <div class="arena-combat-stats" aria-live="polite"><span id="arenaWeaponDamage">weapon damage: 14</span><span id="arenaArtifactDamage">artifact damage: none</span><span id="arenaArtifactCooldown">artifact ready: none</span></div>
         <canvas id="survivalCanvas" width="960" height="540" tabindex="0" aria-label="wave survival arena"></canvas>
         <p class="survival-controls">move with wasd or arrow keys · click or tap to move</p>
@@ -2739,14 +2740,14 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
   <script src="badge-catalog.js?v=20261031-what-ap-requirement1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
   <script src="unlocks.js?v=20261107-remember-item-filter1"></script>
-  <script src="item-imbuing.js?v=20261112-stardust-imbue2"></script>
+  <script src="item-imbuing.js?v=20261112-stardust-imbue3"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
-  <script src="missions.js?v=20261107-admin-projectile-counts9"></script>
+  <script src="missions.js?v=20261112-stormlander-bounces2"></script>
       <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
   <script src="badge-system.js?v=20261107-settings-badge-view1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261108-reset-save1"></script>
-<script src="admin-panel.js?v=20261107-arena-count-settings1"></script>
+<script src="admin-panel.js?v=20261112-stormlander-bounces1"></script>
 <script src="settings-panel.js?v=20261107-wiki-button2"></script>
