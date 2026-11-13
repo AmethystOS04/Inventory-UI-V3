@@ -15,6 +15,7 @@
         eventMissionProgressV1: "object",
         weeklyChallengeV1: "object",
         riftArenaUpgradesV1: "object",
+        inventoryItemImbuementsV1: "object",
         reality: "text",
         inventoryMusicVolumeV1: "volume"
     };
@@ -85,7 +86,7 @@
     function readStored(key) {
         const raw = localStorage.getItem(key);
         if (raw == null) return null;
-        if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
+        if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1", "inventoryItemImbuementsV1"].includes(key)) {
             try { return JSON.parse(raw); } catch { return null; }
         }
         if (["ap", "mp", "stardust", "inventoryMusicVolumeV1"].includes(key)) {
@@ -108,7 +109,7 @@
             const value = clean[key];
             if (value == null || (key === "starterWeapon" && !value) || (["starterClaimed", "eventItemsRelockedV3"].includes(key) && !value)) {
                 storage.removeItem(key);
-            } else if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1"].includes(key)) {
+            } else if (["ownedItemsV2", "inventoryBadgesUnlockedV1", "inventoryAdminLockedBadgesV1", "inventoryBadgeRewardsClaimedV1", "eventItemHistoryV1", "dailyMissionsV1", "eventMissionProgressV1", "weeklyChallengeV1", "riftArenaUpgradesV1", "inventoryItemImbuementsV1"].includes(key)) {
                 storage.setItem(key, JSON.stringify(value));
             } else {
                 storage.setItem(key, String(value));

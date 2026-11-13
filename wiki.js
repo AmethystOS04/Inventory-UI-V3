@@ -1,11 +1,11 @@
 (() => {
   const $ = selector => document.querySelector(selector);
   const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-  const sections = [...document.querySelectorAll(".wiki-section")];
   let items = [];
   let search = "";
   let activePage = "home";
   let activeItemName = "";
+  let activeEntry = null;
   let activeSubpageId = "";
   let unlockedBadges = new Set();
   let unmatchedUnlockIds = [];
@@ -15,6 +15,9 @@
   let wikiPages = {};
   const localDraft = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
   const wikiPagesKey = "inventoryWikiItemPagesV1";
+  const questGuideKey = "inventoryWikiQuestGuideV1";
+  const wikiDraftKey = "inventoryWikiDraftV1";
+  let wikiDocument = { version: 1, sections: [], itemPages: {}, sectionPages: {}, sectionIcons: {}, questGuide: "" };
   const progressKeys = new Set(["inventoryBadgeCatalogV1", "inventoryPrivateBadgeCatalogV1", "inventoryBadgesUnlockedV1", "ownedItemsV2"]);
 
   function readJson(key, fallback) {
@@ -22,6 +25,164 @@
       const value = JSON.parse(localStorage.getItem(key));
       return value ?? fallback;
     } catch { return fallback; }
+  }
+
+  function normalizeWikiDocument(value) {
+    if (!value || typeof value !== "object" || !Array.isArray(value.sections)) return { version: 1, sections: [], itemPages: {}, sectionPages: {}, sectionIcons: {}, questGuide: "" };
+    const sections = value.sections.filter(section => section && typeof section.id === "string" && typeof section.title === "string" && Array.isArray(section.pages)).map(section => ({
+      id: section.id,
+      title: section.title.slice(0, 80),
+      pages: section.pages.filter(page => page && typeof page.id === "string" && typeof page.title === "string" && typeof page.content === "string").map(page => ({ id: page.id, title: page.title.slice(0, 90), content: page.content }))
+    }));
+    return {
+      version: 1,
+      sections,
+      itemPages: value.itemPages && typeof value.itemPages === "object" && !Array.isArray(value.itemPages) ? value.itemPages : {},
+      sectionPages: value.sectionPages && typeof value.sectionPages === "object" && !Array.isArray(value.sectionPages) ? value.sectionPages : {},
+      sectionIcons: value.sectionIcons && typeof value.sectionIcons === "object" && !Array.isArray(value.sectionIcons) ? value.sectionIcons : {},
+      questGuide: typeof value.questGuide === "string" ? value.questGuide : ""
+    };
+  }
+
+  function loadWikiDocument() {
+    const local = localDraft ? readJson(wikiDraftKey, null) : null;
+    wikiDocument = normalizeWikiDocument(local || window.INVENTORY_WIKI_CONTENT || {});
+    if (localDraft) {
+      const legacyPages = readJson(wikiPagesKey, null);
+      const legacyQuest = readJson(questGuideKey, null);
+      if (legacyPages && Object.keys(wikiDocument.itemPages).length === 0) wikiDocument.itemPages = legacyPages;
+      if (typeof legacyQuest === "string" && !wikiDocument.questGuide) wikiDocument.questGuide = legacyQuest;
+    }
+  }
+
+  function saveWikiDraft() {
+    if (!localDraft) return false;
+    try {
+      localStorage.setItem(wikiDraftKey, JSON.stringify(wikiDocument));
+      return true;
+    } catch { return false; }
+  }
+
+  const editingWikiPages = new Set();
+  const unsavedWikiPages = new Set();
+
+  function renderCustomSections() {
+    document.querySelectorAll("[data-custom-wiki-section]").forEach(node => node.remove());
+    document.querySelectorAll("[data-custom-wiki-nav]").forEach(node => node.remove());
+    const nav = $("#wikiNav"), anchor = $("#addSectionSidebar");
+    for (const [sectionIndex, section] of wikiDocument.sections.entries()) {
+      const button = document.createElement("button");
+      button.className = `nav-button ${activePage === `custom:${section.id}` ? "active" : ""}`;
+      button.dataset.section = `custom:${section.id}`; button.dataset.customWikiNav = "true"; button.dataset.sectionLabel = section.title;
+      button.innerHTML = `${wikiDocument.sectionIcons?.[`custom:${section.id}`] ? `<img class="wiki-nav-icon" src="${esc(wikiDocument.sectionIcons[`custom:${section.id}`])}" alt="">` : ""}<span>${esc(section.title)}</span>`;
+      nav.insertBefore(button, anchor);
+      const view = document.createElement("section");
+      view.className = `wiki-section ${activePage === `custom:${section.id}` ? "active" : ""}`;
+      view.dataset.page = `custom:${section.id}`; view.dataset.customWikiSection = "true";
+      const sectionTools = localDraft ? `<span class="article-edit-links"><button type="button" data-custom-edit-title="${esc(section.id)}">edit</button><button type="button" data-section-shift="${sectionIndex}:up" ${sectionIndex === 0 ? "disabled" : ""}>move up</button><button type="button" data-section-shift="${sectionIndex}:down" ${sectionIndex === wikiDocument.sections.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-section-remove="${esc(section.id)}">remove section</button></span>` : "";
+      const pages = section.pages.map((page,index) => {
+        const editing = editingWikiPages.has(page.id);
+        return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-edit-page="${esc(section.id)}:${esc(page.id)}">edit</button><button type="button" data-page-shift="${esc(section.id)}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-page-shift="${esc(section.id)}:${index}:down" ${index === section.pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-page-remove="${esc(section.id)}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-custom-page-form="${esc(section.id)}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-page-images="${esc(page.id)}">choose image files</button><input id="customWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><button type="button" data-page-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-cancel-page="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-page-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, and rarity preview links</p></form>` : ""}</article>`;
+      }).join("") || '<p class="muted">this section has no pages yet</p>';
+      view.innerHTML = `<div class="page-heading"><p class="eyebrow">wiki section</p><h1>${wikiDocument.sectionIcons?.[`custom:${section.id}`] ? `<img class="wiki-heading-icon" src="${esc(wikiDocument.sectionIcons[`custom:${section.id}`])}" alt="">` : ""}${esc(section.title)} ${sectionTools}${localDraft ? `<button type="button" class="section-icon-button" data-choose-section-icon="custom:${esc(section.id)}">${wikiDocument.sectionIcons?.[`custom:${section.id}`] ? "change icon" : "set icon"}</button><input type="file" accept="image/*" data-section-icon-input="custom:${esc(section.id)}" hidden>` : ""}</h1><div class="inline-title-editor" data-section-title-editor="${esc(section.id)}" hidden><input maxlength="80" value="${esc(section.title)}" aria-label="section title"><button type="button" data-save-section-title="${esc(section.id)}">save title</button><button type="button" data-cancel-section-title="${esc(section.id)}">cancel</button></div>${localDraft ? `<button type="button" class="article-edit-link" data-add-page="${esc(section.id)}">add page</button>` : ""}</div><div class="custom-wiki-pages">${pages}</div>`;
+      $("#wikiContent").insertBefore(view, $("#emptySearch"));
+    }
+    renderBuiltinSectionIconControls();
+  }
+
+  function renderBuiltinSectionIconControls() {
+    for (const button of document.querySelectorAll("#wikiNav .nav-button[data-section]:not([data-custom-wiki-nav])")) {
+      const key = button.dataset.section;
+      if (key === "addSectionSidebar") continue;
+      button.dataset.sectionLabel ||= button.textContent.trim();
+      const label = button.dataset.sectionLabel;
+      const icon = wikiDocument.sectionIcons?.[key] || "";
+      button.innerHTML = `${icon ? `<img class="wiki-nav-icon" src="${esc(icon)}" alt="">` : ""}<span>${esc(label)}</span>`;
+      const page = [...document.querySelectorAll(".wiki-section")].find(section => section.dataset.page === key);
+      const heading = page?.querySelector(".page-heading h1, .hero h1");
+      if (!heading) continue;
+      let image = heading.querySelector(":scope > .wiki-heading-icon");
+      if (!image) { image = document.createElement("img"); image.className = "wiki-heading-icon"; image.alt = ""; heading.prepend(image); }
+      image.hidden = !icon;
+      if (icon) image.src = icon;
+      if (localDraft && !heading.querySelector("[data-choose-section-icon]")) {
+        const choose = document.createElement("button");
+        choose.type = "button"; choose.className = "section-icon-button"; choose.dataset.chooseSectionIcon = key; choose.textContent = icon ? "change icon" : "set icon";
+        const input = document.createElement("input"); input.type = "file"; input.accept = "image/*"; input.hidden = true; input.dataset.sectionIconInput = key;
+        heading.append(choose, input);
+      } else if (localDraft) {
+        const choose = heading.querySelector("[data-choose-section-icon]"); if (choose) choose.textContent = icon ? "change icon" : "set icon";
+      }
+    }
+  }
+
+  const editingBuiltinPages = new Set();
+  const unsavedBuiltinPages = new Set();
+
+  function renderEntryPage(sectionKey, containerId) {
+    const root = $(containerId);
+    if (!root) return;
+    const entry = activeEntry?.sectionKey === sectionKey ? activeEntry : null;
+    const browse = $(`#${sectionKey}BrowseView`);
+    if (browse) browse.hidden = Boolean(entry);
+    root.hidden = !entry;
+    if (!entry) return;
+    const pageKey = `${sectionKey}/${entry.id}`;
+    const extras = entry.details || "";
+    const lockedSecret = sectionKey === "badges" && isSecretBadge(entry.data) && !unlockedBadges.has(entry.data.id);
+    let summary = "";
+    if (sectionKey === "badges") {
+      const badge = entry.data;
+      summary = `<p>${lockedSecret ? "description and unlock method hidden" : esc(badge.description || "no description")}</p>${lockedSecret ? "" : `<p><strong>obtain:</strong> ${esc(requirement(badge))}</p>`}`;
+    }
+    if (sectionKey === "events") summary = `<p>${esc(entry.data.items.join(", "))}</p>${entry.data.theme ? `<p>theme preset: ${esc(entry.data.theme)}${entry.data.themeColor ? ` · ${esc(entry.data.themeColor)}` : ""}</p>` : ""}`;
+    if (sectionKey === "rarities") summary = `<p>${esc(entry.data)}</p>`;
+    if (sectionKey === "currencies") summary = `<p>${esc(entry.data.description)}</p><img class="currency-article-image" src="${esc(entry.data.image)}" alt="">`;
+    root.innerHTML = `<button type="button" class="back-to-items entry-back" data-close-entry="${sectionKey}">← ${sectionKey}</button><article class="entry-article"><p class="eyebrow">${sectionKey === "badges" ? (lockedSecret ? "secret badge" : "badge") : sectionKey === "events" ? "event" : sectionKey === "rarities" ? "arena rarity" : "account resource"}</p><h1>${esc(entry.title)}</h1>${extras}${summary}</article><section class="entry-pages"><h2>wiki pages</h2><div id="activeEntryWikiPages"></div></section>`;
+    renderBuiltinWikiPages(pageKey, "#activeEntryWikiPages");
+  }
+
+  function openEntry(sectionKey, id) {
+    if (sectionKey === "rarities") {
+      const entry = rarityEntries().find(([name]) => name === id);
+      if (!entry) return;
+      activeEntry = { sectionKey, id, title: entry[0], data: entry[1] };
+    } else if (sectionKey === "events") {
+      const entry = (window.INVENTORY_EVENT_CATALOG || []).find(event => String(event.id || event.name) === id);
+      if (!entry) return;
+      const start = new Date(entry.start).getTime(), end = new Date(entry.end).getTime(), now = Date.now();
+      activeEntry = { sectionKey, id, title: entry.name, data: entry, details: `<p class="event-date">${esc(new Date(entry.start).toLocaleString())} – ${esc(new Date(entry.end).toLocaleString())} · ${now < start ? "upcoming" : now <= end ? "live" : "ended"}</p>` };
+    } else if (sectionKey === "badges") {
+      const entry = badgeCatalog.find(badge => badge.id === id);
+      if (!entry) return;
+      activeEntry = { sectionKey, id, title: entry.name, data: entry };
+    } else if (sectionKey === "currencies") {
+      const entries = { ap: { title: "amethyst points", description: "ap is used for daily quest refreshes and other inventory actions", image: "WikiAssets/APBalance.png" }, mp: { title: "mission points", description: "mp comes from missions and is used for selected upgrades and refreshes", image: "WikiAssets/MPBalance.png" }, stardust: { title: "stardust", description: "stardust is a separate resource used for item imbues", image: "Stardust_icon.png" } };
+      if (!entries[id]) return;
+      activeEntry = { sectionKey, id, title: entries[id].title, data: entries[id] };
+    }
+    renderAll();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function renderBuiltinWikiPages(sectionKey, containerId) {
+    const root = $(containerId);
+    if (!root) return;
+    const pages = Array.isArray(wikiDocument.sectionPages?.[sectionKey]) ? wikiDocument.sectionPages[sectionKey] : [];
+    root.innerHTML = `${localDraft ? `<button type="button" class="article-edit-link builtin-add-page" data-builtin-add="${sectionKey}">add wiki page</button>` : ""}${pages.map((page,index) => {
+      const editing = editingBuiltinPages.has(page.id);
+      return `<article class="wiki-page-article"><h2>${esc(page.title || "untitled page")} ${localDraft ? `<span class="article-edit-links"><button type="button" data-builtin-edit="${sectionKey}:${esc(page.id)}">edit</button><button type="button" data-builtin-shift="${sectionKey}:${index}:up" ${index === 0 ? "disabled" : ""}>move up</button><button type="button" data-builtin-shift="${sectionKey}:${index}:down" ${index === pages.length - 1 ? "disabled" : ""}>move down</button><button type="button" data-builtin-remove="${sectionKey}:${esc(page.id)}">remove</button></span>` : ""}</h2><div class="wiki-prose custom-page-rendered" ${editing ? "hidden" : ""}>${renderMarkdown(page.content)}</div>${localDraft ? `<form class="wiki-editor inline-wiki-editor" data-builtin-form="${sectionKey}:${esc(page.id)}" ${editing ? "" : "hidden"}><label>page title<input name="title" maxlength="90" required value="${esc(page.title)}"></label><label>page content<textarea name="content" rows="14">${esc(page.content)}</textarea></label><div class="editor-actions"><button type="button" data-builtin-images="${esc(page.id)}">choose image files</button><input id="builtinWikiImages-${esc(page.id)}" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden><button type="button" data-builtin-preview="${esc(page.id)}">preview</button><button type="submit">save page</button><button type="button" data-builtin-cancel="${esc(page.id)}">cancel</button></div><div class="wiki-prose editor-preview" data-builtin-preview-box="${esc(page.id)}" hidden></div><p class="markdown-help">markdown supports headings, lists, code blocks, images, and item, badge, and rarity preview links</p></form>` : ""}</article>`;
+    }).join("")}`;
+  }
+
+  function addBuiltinWikiPage(sectionKey) {
+    if (!localDraft) return;
+    wikiDocument.sectionPages ||= {};
+    wikiDocument.sectionPages[sectionKey] ||= [];
+    const page = { id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title: "new page", content: "" };
+    wikiDocument.sectionPages[sectionKey].push(page); editingBuiltinPages.add(page.id); unsavedBuiltinPages.add(page.id);
+    markWikiDraftSaved("new article page added");
+    requestAnimationFrame(() => $(`[data-builtin-form="${sectionKey}:${page.id}"] input[name="title"]`)?.focus());
   }
 
   function syncProgress() {
@@ -36,7 +197,7 @@
     unlockedItems = new Set((Array.isArray(ownedList) ? ownedList : []).filter(value => typeof value === "string").map(value => value.toLowerCase()));
     let hasProgress = false;
     try { hasProgress = localStorage.getItem("inventoryBadgesUnlockedV1") !== null || localStorage.getItem("ownedItemsV2") !== null; } catch {}
-    const savedPages = readJson(wikiPagesKey, {});
+    const savedPages = localDraft ? readJson(wikiPagesKey, wikiDocument.itemPages) : wikiDocument.itemPages;
     wikiPages = savedPages && typeof savedPages === "object" && !Array.isArray(savedPages) ? savedPages : {};
     const matchedUnlockedCount = badgeCatalog.filter(badge => unlockedBadges.has(badge.id)).length;
     const unlockedSecretCount = badgeCatalog.filter(badge => isSecretBadge(badge) && unlockedBadges.has(badge.id)).length;
@@ -54,7 +215,9 @@
       ? "amethyst badges are visible only in this local browser · locked secret descriptions and unlock methods stay hidden"
       : "amethyst badges stay in the local version · locked secret descriptions and unlock methods stay hidden";
     if (activePage === "badges") renderBadges();
+    if (activePage === "currencies") renderEntryPage("currencies", "#currencyEntryPage");
     if (activePage === "itemPage") renderItemPage();
+    if (activePage === "quests") renderQuestGuide();
     if (activePage === "items") renderItems();
   }
 
@@ -73,7 +236,7 @@
 
   function go(page) {
     activePage = page;
-    sections.forEach(section => section.classList.toggle("active", section.dataset.page === page));
+    document.querySelectorAll(".wiki-section").forEach(section => section.classList.toggle("active", section.dataset.page === page));
     document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.section === page));
     window.scrollTo({ top: 0, behavior: "smooth" });
     renderAll();
@@ -152,6 +315,15 @@
     while (index < lines.length) {
       const line = lines[index];
       if (!line.trim()) { index++; continue; }
+      if (/^\s*!\[[^\]]*\]\([^)]+\)\s*$/.test(line)) {
+        const images = [];
+        while (index < lines.length) {
+          if (/^\s*!\[[^\]]*\]\([^)]+\)\s*$/.test(lines[index])) images.push(renderInlineMarkdown(lines[index++].trim()));
+          else if (!lines[index].trim() && /^\s*!\[[^\]]*\]\([^)]+\)\s*$/.test(lines[index + 1] || "")) index++;
+          else break;
+        }
+        blocks.push(`<div class="wiki-image-row">${images.join("")}</div>`); continue;
+      }
       const fence = line.match(/^\s*```([\w-]*)\s*$/);
       if (fence) {
         index++;
@@ -243,6 +415,15 @@
     if (show) preview.innerHTML = renderMarkdown(editor.value);
   }
 
+  function renderQuestGuide() {
+    const content = localDraft ? readJson(questGuideKey, wikiDocument.questGuide) : wikiDocument.questGuide;
+    const markdown = typeof content === "string" ? content : "";
+    $("#questGuideContent").innerHTML = markdown.trim()
+      ? renderMarkdown(markdown)
+      : `<p class="muted">this page is empty · choose edit the whole page to write your quest guide</p>`;
+    $("#questGuideMarkdown").value = markdown;
+  }
+
   function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -254,39 +435,60 @@
 
   async function wikiImageDataUrl(file) {
     const directData = () => readFileAsDataUrl(file);
-    if (file.size <= 1_200_000 || /image\/(?:gif|svg\+xml)/i.test(file.type)) {
-      if (file.size > 2_000_000) throw new Error(`${file.name} is too large to embed directly`);
+    if (/image\/svg\+xml/i.test(file.type)) {
+      if (file.size > 500_000) throw new Error(`${file.name} is too large to embed as an svg`);
       return directData();
     }
+    if (/image\/gif/i.test(file.type) && file.size <= 900_000) return directData();
     if (typeof createImageBitmap !== "function") {
-      if (file.size > 2_000_000) throw new Error(`${file.name} cannot be resized and is too large to embed`);
+      if (file.size > 900_000) throw new Error(`${file.name} cannot be resized in this browser`);
       return directData();
     }
     try {
       const bitmap = await createImageBitmap(file);
-      const scale = Math.min(1, 1600 / bitmap.width, 1600 / bitmap.height);
+      const scale = Math.min(1, 1400 / bitmap.width, 1400 / bitmap.height);
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(bitmap.width * scale));
       canvas.height = Math.max(1, Math.round(bitmap.height * scale));
       canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       bitmap.close();
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.86));
-      if (!blob || blob.size > 2_000_000) throw new Error(`${file.name} is still too large after resizing`);
+      let blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.82));
+      if (blob?.size > 900_000) blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.68));
+      if (!blob || blob.size > 1_000_000) throw new Error(`${file.name} is still too large after resizing`);
       return await readFileAsDataUrl(blob);
     } catch (error) {
-      if (error instanceof Error && /too large/.test(error.message)) throw error;
-      if (file.size > 2_000_000) throw new Error(`${file.name} could not be resized and is too large to embed`);
-      return directData();
+      if (error instanceof Error && /too large|cannot be resized/.test(error.message)) throw error;
+      throw new Error(`${file.name} could not be resized for the wiki`);
     }
   }
 
-  function insertWikiImages(files) {
-    const textarea = $("#wikiSubpageText");
-    const selectedFiles = [...files].filter(file => /^image\/(?:png|jpeg|gif|webp|svg\+xml)$/i.test(file.type));
+  async function sectionIconDataUrl(file) {
+    if (!file.type.startsWith("image/")) throw new Error("choose an image file for the section icon");
+    if (/image\/svg\+xml/i.test(file.type)) {
+      if (file.size > 250_000) throw new Error(`${file.name} is too large to use as a section icon`);
+      return readFileAsDataUrl(file);
+    }
+    if (typeof createImageBitmap !== "function") return wikiImageDataUrl(file);
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 128 / bitmap.width, 128 / bitmap.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.86));
+    if (!blob || blob.size > 100_000) throw new Error(`${file.name} could not be saved as a compact icon`);
+    return readFileAsDataUrl(blob);
+  }
+
+  function insertWikiImages(files, textareaTarget = "#wikiSubpageText", statusTarget = "#wikiSaveStatus") {
+    const textarea = typeof textareaTarget === "string" ? $(textareaTarget) : textareaTarget;
+    const status = typeof statusTarget === "string" ? $(statusTarget) : statusTarget;
+    if (!textarea || !status) return;
+    const selectedFiles = [...files].filter(file => /^image\/(?:png|jpeg|gif|webp|avif|svg\+xml)$/i.test(file.type));
     if (!selectedFiles.length) {
-      $("#wikiSaveStatus").textContent = "choose png, jpg, gif, webp, or svg image files";
+      status.textContent = "choose png, jpg, gif, webp, avif, or svg image files";
       return;
     }
+    status.textContent = "preparing selected images…";
     Promise.all(selectedFiles.map(async file => {
       const dataUrl = await wikiImageDataUrl(file);
       const alt = file.name.replace(/\.[^.]+$/, "").replace(/[\[\]\r\n]/g, " ").trim() || "image";
@@ -300,10 +502,22 @@
       textarea.setRangeText(insertion, start, end, "end");
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
       textarea.focus();
-      $("#wikiSaveStatus").textContent = `${images.length} image${images.length === 1 ? "" : "s"} added · save the page to keep them`;
+      status.textContent = `${images.length} image${images.length === 1 ? "" : "s"} added · save the page to keep them`;
     }).catch(error => {
-      $("#wikiSaveStatus").textContent = error.message || "could not add those images";
+      status.textContent = error.message || "could not add those images";
     });
+  }
+
+  async function readApiJson(response) {
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      const body = await response.text();
+      if ([404, 405, 501].includes(response.status)) throw new Error("this server does not provide the editor api · run python serve.py from the project folder");
+      if (/<!doctype\s+html|<html/i.test(body)) throw new Error("the editor server returned an html error · restart it with python serve.py from the project folder");
+      throw new Error("the editor api returned an unreadable response");
+    }
+    try { return await response.json(); }
+    catch { throw new Error("the editor api returned invalid json"); }
   }
 
   function renderItemPage(resetEditor = false) {
@@ -314,7 +528,9 @@
     const images = `<img src="${esc(item.image)}" alt="" loading="lazy">`;
     const itemPages = Array.isArray(wikiPages[item.name.toLowerCase()]) ? wikiPages[item.name.toLowerCase()] : [];
     const activeSubpage = itemPages.find(page => page.id === activeSubpageId);
-    $("#itemArticle").innerHTML = `<article class="item-article"><div class="item-article-head">${images}<div><p class="eyebrow">${family ? "item family" : "item page"} · ${owned ? "unlocked in v3" : "not unlocked in v3"}</p><h1>${esc(family ? family.id === "crucibles" ? "Crucible" : family.id === "electric-hammer" ? "Electric Hammer" : "Stormlander" : item.name)}</h1><p>${esc(item.description || "no description in the catalog")}</p></div></div><div class="tag-row"><span class="tag">variant ${esc(item.name)}</span><span class="tag">rarity ${esc(item.rarity || "unrated")}</span><span class="tag">damage ${esc(item.damage || "0")}</span><span class="tag">max level ${esc(item.max_level || "0")}</span><span class="tag">protection ${esc(item.protection || "0")}</span>${item.artifact_power && item.artifact_power !== "0" ? `<span class="tag">artifact power ${esc(item.artifact_power)}</span>` : ""}${item.event ? `<span class="tag">event ${esc(item.event)}</span>` : ""}</div></article>`;
+    const displayName = family ? family.id === "crucibles" ? "Crucible" : family.id === "electric-hammer" ? "Electric Hammer" : "Stormlander" : item.name;
+    const itemFacts = [["variant", item.name], ["rarity", item.rarity || "unrated"], ["damage", item.damage || "0"], ["maximum level", item.max_level || "0"], ["protection", item.protection || "0"], ...(item.artifact_power && item.artifact_power !== "0" ? [["artifact power", item.artifact_power]] : []), ...(item.event ? [["event", item.event]] : [])];
+    $("#itemArticle").innerHTML = `<h1 class="article-title">${esc(displayName)}</h1><article class="item-article"><aside class="item-infobox"><h2>${esc(displayName)}</h2>${images}<table>${itemFacts.map(([label, value]) => `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>`).join("")}<tr><th>v3 status</th><td>${owned ? "unlocked" : "locked"}</td></tr></table></aside><div class="item-article-head"><p class="article-lead">${esc(item.description || "no description in the catalog")}</p></div></article>`;
     $("#wikiSubpageList").innerHTML = itemPages.length ? itemPages.map(page => `<button type="button" class="subpage-link ${page.id === activeSubpageId ? "active" : ""}" data-open-subpage="${esc(page.id)}">${esc(page.title)}</button>`).join("") : `<p class="muted">no pages for this item yet</p>`;
     $("#wikiSubpageContent").innerHTML = activeSubpage ? `<article class="article-card"><span class="card-kicker">${esc(item.name)} wiki page</span><h2>${esc(activeSubpage.title)}</h2><div class="wiki-prose">${renderMarkdown(activeSubpage.content)}</div></article>` : `<p class="muted">choose a page or add one for this item</p>`;
     if (resetEditor) {
@@ -491,7 +707,8 @@
   }
 
   function renderRarities() {
-    $("#rarityGrid").innerHTML = rarityEntries().map(([name, text]) => `<article class="article-card"><span class="card-kicker">arena rarity</span><h2>${esc(name)}</h2><p>${esc(text)}</p></article>`).join("");
+    $("#rarityGrid").innerHTML = rarityEntries().map(([name, text]) => `<article tabindex="0" role="button" class="article-card wiki-entry-card" data-open-entry="rarities:${esc(name)}"><span class="card-kicker">arena rarity</span><h2>${esc(name)}</h2><p>${esc(text)}</p><span class="entry-open-hint">open article →</span></article>`).join("");
+    renderEntryPage("rarities", "#rarityEntryPage");
   }
 
   function renderEvents() {
@@ -501,9 +718,10 @@
       const start = new Date(event.start).getTime(), end = new Date(event.end).getTime();
       const state = now < start ? "upcoming" : now <= end ? "live" : "ended";
       const dates = `${new Date(event.start).toLocaleString()} – ${new Date(event.end).toLocaleString()}`;
-      return `<article class="article-card"><span class="card-kicker">${state} event</span><h2>${esc(event.name)}</h2><p class="event-date">${esc(dates)}</p><p>featured items</p><div class="tag-row">${event.items.map(name => `<span class="tag">${esc(name)}</span>`).join("")}</div>${event.theme ? `<p>theme preset: ${esc(event.theme)}${event.themeColor ? ` · ${esc(event.themeColor)}` : ""}</p>` : ""}</article>`;
+      return `<article tabindex="0" role="button" class="article-card wiki-entry-card" data-open-entry="events:${esc(event.id || event.name)}"><span class="card-kicker">${state} event</span><h2>${esc(event.name)}</h2><p class="event-date">${esc(dates)}</p><p>featured items</p><div class="tag-row">${event.items.map(name => `<span class="tag">${esc(name)}</span>`).join("")}</div>${event.theme ? `<p>theme preset: ${esc(event.theme)}${event.themeColor ? ` · ${esc(event.themeColor)}` : ""}</p>` : ""}<span class="entry-open-hint">open article →</span></article>`;
     }).join("");
     if (!events.length) $("#eventGrid").innerHTML = `<div class="empty-state">no matching events</div>`;
+    renderEntryPage("events", "#eventEntryPage");
   }
 
   function renderBadges() {
@@ -524,10 +742,11 @@
       const secret = isSecretBadge(badge);
       const amethyst = isAmethystBadge(badge);
       const unlocked = unlockedBadges.has(badge.id);
-      if (secret && !unlocked) return `<article class="article-card badge-secret"><span class="card-kicker">${amethyst ? "secret amethyst badge" : "secret badge"} · locked</span><h2>${esc(badge.name)}</h2><p class="secret-placeholder">description and unlock method hidden</p></article>`;
+      if (secret && !unlocked) return `<article tabindex="0" role="button" class="article-card badge-secret wiki-entry-card" data-open-entry="badges:${esc(badge.id)}"><span class="card-kicker">${amethyst ? "secret amethyst badge" : "secret badge"} · locked</span><h2>${esc(badge.name)}</h2><p class="secret-placeholder">description and unlock method hidden</p><span class="entry-open-hint">open article →</span></article>`;
       const label = secret ? `${amethyst ? "secret amethyst badge" : "secret badge"} · unlocked` : `${amethyst ? "amethyst badge" : "badge"} · ${unlocked ? "unlocked" : "locked"}`;
-      return `<article class="article-card ${secret ? "badge-secret is-unlocked" : ""}"><span class="card-kicker">${label}</span><h2>${esc(badge.name)}</h2><p>${esc(badge.description || "no description")}</p><p><strong>obtain:</strong> ${esc(requirement(badge))}</p>${badge.rewards ? `<p><strong>reward:</strong> ${esc([badge.rewards.ap && `${badge.rewards.ap} ap`, badge.rewards.mp && `${badge.rewards.mp} mp`, badge.rewards.stardust && `${badge.rewards.stardust} stardust`, badge.rewards.item && `item ${badge.rewards.item}`].filter(Boolean).join(" · ") || "configured reward")}</p>` : ""}</article>`;
+      return `<article tabindex="0" role="button" class="article-card ${secret ? "badge-secret is-unlocked" : ""} wiki-entry-card" data-open-entry="badges:${esc(badge.id)}"><span class="card-kicker">${label}</span><h2>${esc(badge.name)}</h2><p>${esc(badge.description || "no description")}</p><p><strong>obtain:</strong> ${esc(requirement(badge))}</p>${badge.rewards ? `<p><strong>reward:</strong> ${esc([badge.rewards.ap && `${badge.rewards.ap} ap`, badge.rewards.mp && `${badge.rewards.mp} mp`, badge.rewards.stardust && `${badge.rewards.stardust} stardust`, badge.rewards.item && `item ${badge.rewards.item}`].filter(Boolean).join(" · ") || "configured reward")}</p>` : ""}<span class="entry-open-hint">open article →</span></article>`;
     }).join("");
+    renderEntryPage("badges", "#badgeEntryPage");
   }
 
   function renderAll() {
@@ -535,6 +754,8 @@
     if (activePage === "rarities") renderRarities();
     if (activePage === "events") renderEvents();
     if (activePage === "badges") renderBadges();
+    if (activePage === "currencies") renderEntryPage("currencies", "#currencyEntryPage");
+    if (activePage === "quests") renderQuestGuide();
     if (activePage === "itemPage") renderItemPage();
     const searchable = [...document.querySelectorAll(".wiki-section.active .item-card, .wiki-section.active .article-card, .wiki-section.active .feature-tile, .wiki-section.active .currency-card")];
     searchable.forEach(card => { card.hidden = Boolean(search) && !card.textContent.toLowerCase().includes(search); });
@@ -542,9 +763,232 @@
     $("#emptySearch").hidden = !search || hasEntries;
   }
 
-  document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", () => go(button.dataset.section)));
+  function markWikiDraftSaved(message = "local wiki draft saved") {
+    $("#wikiAuthorStatus").textContent = saveWikiDraft() ? message : "could not save the local draft, download a backup";
+    renderCustomSections();
+    renderAll();
+  }
+
+  function downloadWiki() {
+    const blob = new Blob([JSON.stringify(wikiDocument, null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "wiki-content.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+    $("#wikiAuthorStatus").textContent = "wiki export downloaded";
+  }
+
+  function safeWikiFile(value) {
+    if (!value || typeof value !== "object" || value.version !== 1 || !Array.isArray(value.sections)) throw new Error("choose a wiki export file with version 1");
+    return normalizeWikiDocument(value);
+  }
+
+
+
+  $("#wikiNav").addEventListener("click", event => {
+    const button = event.target.closest("[data-section]");
+    if (button) go(button.dataset.section);
+  });
   document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => go(button.dataset.go)));
+  $("#wikiAuthorTools").hidden = !localDraft;
+  document.documentElement.dataset.localWiki = String(localDraft);
+  document.querySelectorAll(".local-only").forEach(node => { node.hidden = !localDraft; });
+  function addCustomWikiSection() {
+    if (!localDraft) return;
+    const section = { id: `section-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title: "new section", pages: [] };
+    wikiDocument.sections.push(section);
+    markWikiDraftSaved("new section added to the local wiki");
+    go(`custom:${section.id}`);
+    const titleEditor = $(".wiki-section.active [data-section-title-editor]");
+    if (titleEditor) { titleEditor.hidden = false; titleEditor.querySelector("input")?.focus(); }
+  }
+  $("#addSectionSidebar").addEventListener("click", addCustomWikiSection);
+  $("#wikiContent").addEventListener("click", event => {
+    const openEntryButton = event.target.closest("[data-open-entry]");
+    if (openEntryButton) { const [sectionKey, ...entryId] = openEntryButton.dataset.openEntry.split(":"); openEntry(sectionKey, entryId.join(":")); return; }
+    const closeEntryButton = event.target.closest("[data-close-entry]");
+    if (closeEntryButton) { activeEntry = null; renderAll(); return; }
+    const chooseSectionIcon = event.target.closest("[data-choose-section-icon]");
+    if (chooseSectionIcon) { chooseSectionIcon.parentElement.querySelector("[data-section-icon-input]")?.click(); return; }
+    if (!localDraft) return;
+    const builtinAdd = event.target.closest("[data-builtin-add]");
+    if (builtinAdd) { addBuiltinWikiPage(builtinAdd.dataset.builtinAdd); return; }
+    const builtinEdit = event.target.closest("[data-builtin-edit]");
+    if (builtinEdit) {
+      const [sectionKey, pageId] = builtinEdit.dataset.builtinEdit.split(":"); editingBuiltinPages.add(pageId);
+      if (activeEntry) renderEntryPage(activeEntry.sectionKey, `#${activeEntry.sectionKey === "badges" ? "badge" : activeEntry.sectionKey === "events" ? "event" : activeEntry.sectionKey === "currencies" ? "currency" : "rarity"}EntryPage`);
+      requestAnimationFrame(() => $(`[data-builtin-form="${sectionKey}:${pageId}"] textarea`)?.focus()); return;
+    }
+    const builtinCancel = event.target.closest("[data-builtin-cancel]");
+    if (builtinCancel) {
+      const pageId = builtinCancel.dataset.builtinCancel; editingBuiltinPages.delete(pageId);
+      for (const [key,pages] of Object.entries(wikiDocument.sectionPages || {})) if (unsavedBuiltinPages.has(pageId)) wikiDocument.sectionPages[key] = pages.filter(page => page.id !== pageId);
+      if (unsavedBuiltinPages.delete(pageId)) markWikiDraftSaved("new page discarded"); else { renderBuiltinWikiPagesForAll(); }
+      return;
+    }
+    const builtinImages = event.target.closest("[data-builtin-images]");
+    if (builtinImages) { $(`#builtinWikiImages-${builtinImages.dataset.builtinImages}`)?.click(); return; }
+    const builtinPreview = event.target.closest("[data-builtin-preview]");
+    if (builtinPreview) {
+      const form = builtinPreview.closest("form"), preview = form.querySelector("[data-builtin-preview-box]"); preview.hidden = !preview.hidden;
+      if (!preview.hidden) preview.innerHTML = renderMarkdown(form.elements.content.value); builtinPreview.textContent = preview.hidden ? "preview" : "edit"; return;
+    }
+    const builtinRemove = event.target.closest("[data-builtin-remove]");
+    if (builtinRemove) {
+      const [sectionKey,pageId] = builtinRemove.dataset.builtinRemove.split(":");
+      const page = wikiDocument.sectionPages?.[sectionKey]?.find(entry => entry.id === pageId);
+      if (!page || !confirm(`remove page “${page.title}” from the local draft?`)) return;
+      wikiDocument.sectionPages[sectionKey] = wikiDocument.sectionPages[sectionKey].filter(entry => entry.id !== pageId); markWikiDraftSaved("wiki page removed"); return;
+    }
+    const builtinShift = event.target.closest("[data-builtin-shift]");
+    if (builtinShift) {
+      const [sectionKey,indexText,direction] = builtinShift.dataset.builtinShift.split(":"), pages = wikiDocument.sectionPages?.[sectionKey] || [], index = Number(indexText), target = index + (direction === "up" ? -1 : 1);
+      if (target < 0 || target >= pages.length) return; [pages[index],pages[target]] = [pages[target],pages[index]]; markWikiDraftSaved("wiki page order saved"); return;
+    }
+    const addPage = event.target.closest("[data-add-page]");
+    if (addPage) {
+      const section = wikiDocument.sections.find(entry => entry.id === addPage.dataset.addPage);
+      if (!section) return;
+      const page = { id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title: "new page", content: "" };
+      section.pages.push(page); editingWikiPages.add(page.id); unsavedWikiPages.add(page.id);
+      markWikiDraftSaved("new article page added");
+      requestAnimationFrame(() => $(`[data-custom-page-form="${section.id}:${page.id}"] input[name="title"]`)?.focus());
+      return;
+    }
+    const editPage = event.target.closest("[data-edit-page]");
+    if (editPage) {
+      const [sectionId, pageId] = editPage.dataset.editPage.split(":"); editingWikiPages.add(pageId); renderCustomSections();
+      requestAnimationFrame(() => $(`[data-custom-page-form="${sectionId}:${pageId}"] textarea`)?.focus()); return;
+    }
+    const cancelPage = event.target.closest("[data-cancel-page]");
+    if (cancelPage) {
+      const pageId = cancelPage.dataset.cancelPage; editingWikiPages.delete(pageId);
+      if (unsavedWikiPages.delete(pageId)) {
+        for (const section of wikiDocument.sections) section.pages = section.pages.filter(page => page.id !== pageId);
+        markWikiDraftSaved("new page discarded");
+      } else renderCustomSections();
+      return;
+    }
+    const imageButton = event.target.closest("[data-page-images]");
+    if (imageButton) { $(`#customWikiImages-${imageButton.dataset.pageImages}`)?.click(); return; }
+    const previewButton = event.target.closest("[data-page-preview]");
+    if (previewButton) {
+      const form = previewButton.closest("form"), preview = form.querySelector("[data-page-preview-box]");
+      preview.hidden = !preview.hidden;
+      if (!preview.hidden) preview.innerHTML = renderMarkdown(form.elements.content.value);
+      previewButton.textContent = preview.hidden ? "preview" : "edit"; return;
+    }
+    const editTitle = event.target.closest("[data-custom-edit-title]");
+    if (editTitle) { $(`[data-section-title-editor="${editTitle.dataset.customEditTitle}"]`).hidden = false; return; }
+    const cancelTitle = event.target.closest("[data-cancel-section-title]");
+    if (cancelTitle) { $(`[data-section-title-editor="${cancelTitle.dataset.cancelSectionTitle}"]`).hidden = true; return; }
+    const saveTitle = event.target.closest("[data-save-section-title]");
+    if (saveTitle) {
+      const section = wikiDocument.sections.find(entry => entry.id === saveTitle.dataset.saveSectionTitle), title = saveTitle.parentElement.querySelector("input").value.trim();
+      if (!section || !title) return; section.title = title; markWikiDraftSaved("section title saved"); return;
+    }
+    const removeSection = event.target.closest("[data-section-remove]");
+    if (removeSection) {
+      const section = wikiDocument.sections.find(entry => entry.id === removeSection.dataset.sectionRemove);
+      if (!section || !confirm(`remove section “${section.title}” and all its pages from the local draft?`)) return;
+      wikiDocument.sections = wikiDocument.sections.filter(entry => entry.id !== section.id); markWikiDraftSaved("section removed from the local wiki"); go("home"); return;
+    }
+    const shiftSection = event.target.closest("[data-section-shift]");
+    if (shiftSection) {
+      const [indexText, direction] = shiftSection.dataset.sectionShift.split(":"), index = Number(indexText), target = index + (direction === "up" ? -1 : 1);
+      if (target < 0 || target >= wikiDocument.sections.length) return;
+      [wikiDocument.sections[index], wikiDocument.sections[target]] = [wikiDocument.sections[target], wikiDocument.sections[index]]; markWikiDraftSaved("wiki section order saved"); return;
+    }
+    const removePage = event.target.closest("[data-page-remove]");
+    if (removePage) {
+      const [sectionId, pageId] = removePage.dataset.pageRemove.split(":"), section = wikiDocument.sections.find(entry => entry.id === sectionId), page = section?.pages.find(entry => entry.id === pageId);
+      if (!page || !confirm(`remove page “${page.title}” from the local draft?`)) return;
+      section.pages = section.pages.filter(entry => entry.id !== pageId); editingWikiPages.delete(pageId); markWikiDraftSaved("wiki page removed"); return;
+    }
+    const shiftPage = event.target.closest("[data-page-shift]");
+    if (shiftPage) {
+      const [sectionId, indexText, direction] = shiftPage.dataset.pageShift.split(":"), section = wikiDocument.sections.find(entry => entry.id === sectionId), index = Number(indexText), target = index + (direction === "up" ? -1 : 1);
+      if (!section || target < 0 || target >= section.pages.length) return;
+      [section.pages[index], section.pages[target]] = [section.pages[target], section.pages[index]]; markWikiDraftSaved("wiki page order saved");
+    }
+  });
+  $("#wikiContent").addEventListener("keydown", event => {
+    const card = event.target.closest("[data-open-entry]");
+    if (card && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); card.click(); }
+  });
+  function renderBuiltinWikiPagesForAll() {
+    if (!activeEntry) return;
+    const prefix = activeEntry.sectionKey === "badges" ? "badge" : activeEntry.sectionKey === "events" ? "event" : activeEntry.sectionKey === "currencies" ? "currency" : "rarity";
+    renderEntryPage(activeEntry.sectionKey, `#${prefix}EntryPage`);
+  }
+  $("#wikiContent").addEventListener("submit", event => {
+    const builtinForm = event.target.closest("[data-builtin-form]");
+    if (builtinForm && localDraft) {
+      event.preventDefault(); const [sectionKey,pageId] = builtinForm.dataset.builtinForm.split(":");
+      const page = wikiDocument.sectionPages?.[sectionKey]?.find(entry => entry.id === pageId); if (!page) return;
+      page.title = builtinForm.elements.title.value.trim(); page.content = builtinForm.elements.content.value;
+      editingBuiltinPages.delete(pageId); unsavedBuiltinPages.delete(pageId); markWikiDraftSaved("wiki page saved in this browser"); return;
+    }
+    const form = event.target.closest("[data-custom-page-form]"); if (!form || !localDraft) return; event.preventDefault();
+    const [sectionId, pageId] = form.dataset.customPageForm.split(":"), section = wikiDocument.sections.find(entry => entry.id === sectionId), page = section?.pages.find(entry => entry.id === pageId);
+    if (!page) return; page.title = form.elements.title.value.trim(); page.content = form.elements.content.value; editingWikiPages.delete(pageId); unsavedWikiPages.delete(pageId); markWikiDraftSaved("wiki page saved in this browser");
+  });
+  $("#wikiContent").addEventListener("input", event => {
+    const builtinForm = event.target.closest("[data-builtin-form]");
+    if (builtinForm) { const preview = builtinForm.querySelector("[data-builtin-preview-box]"); if (!preview.hidden) preview.innerHTML = renderMarkdown(builtinForm.elements.content.value); return; }
+    const form = event.target.closest("[data-custom-page-form]"); if (!form) return;
+    const preview = form.querySelector("[data-page-preview-box]"); if (!preview.hidden) preview.innerHTML = renderMarkdown(form.elements.content.value);
+  });
+  $("#wikiContent").addEventListener("change", event => {
+    const input = event.target.closest("[id^='customWikiImages-'], [id^='builtinWikiImages-']"); if (!input || !localDraft) return;
+    const textarea = input.closest("form")?.querySelector('textarea[name="content"]');
+    if (textarea) insertWikiImages(input.files || [], textarea, "#wikiAuthorStatus"); input.value = "";
+  });
+  $("#wikiContent").addEventListener("change", async event => {
+    const input = event.target.closest("[data-section-icon-input]");
+    if (!input || !localDraft || !input.files?.[0]) return;
+    const status = $("#wikiAuthorStatus");
+    try {
+      status.textContent = "saving section icon locally…";
+      wikiDocument.sectionIcons ||= {};
+      wikiDocument.sectionIcons[input.dataset.sectionIconInput] = await sectionIconDataUrl(input.files[0]);
+      markWikiDraftSaved("section icon saved locally");
+    } catch (error) { status.textContent = error.message || "could not save section icon"; }
+    input.value = "";
+  });
+  $("#wikiContent").addEventListener("click", event => {
+    const button = event.target.closest("[data-preview-type]"); if (button) openWikiPreview(button.dataset.previewType, button.dataset.previewTarget);
+  });
+  $("#exportWiki").addEventListener("click", () => { if (localDraft) downloadWiki(); });
+  $("#importWiki").addEventListener("click", () => { if (localDraft) $("#wikiImportFile").click(); });
+  $("#wikiImportFile").addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    if (!file || !localDraft) return;
+    try {
+      wikiDocument = safeWikiFile(JSON.parse(await file.text()));
+      markWikiDraftSaved("wiki file imported and saved locally");
+    } catch (error) { $("#wikiAuthorStatus").textContent = error.message || "could not import wiki file"; }
+    event.target.value = "";
+  });
+  $("#publishWiki").addEventListener("click", async () => {
+    if (!localDraft) return;
+    if (!confirm("publish the saved wiki pages to github? this creates a commit and pushes wiki-content.json to the current branch")) return;
+    $("#wikiAuthorStatus").textContent = "publishing wiki pages to github…";
+    try {
+      const response = await fetch("/api/publish-wiki", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wiki: wikiDocument }) });
+      const result = await readApiJson(response);
+      if (!response.ok) throw new Error(result.error || "wiki publish failed");
+      $("#wikiAuthorStatus").textContent = result.message;
+    } catch (error) { $("#wikiAuthorStatus").textContent = error.message || "could not publish wiki"; }
+  });
   $("#wikiSearch").addEventListener("input", event => { search = event.target.value.trim().toLowerCase(); renderAll(); });
+  $("#wikiSearch").addEventListener("input", event => { $("#wikiTopSearch").value = event.target.value; });
+  $("#wikiTopSearch").addEventListener("input", event => {
+    $("#wikiSearch").value = event.target.value;
+    search = event.target.value.trim().toLowerCase();
+    renderAll();
+  });
   $("#syncProgress").addEventListener("click", syncProgress);
   $("#unmatchedUnlockHelp").addEventListener("click", () => {
     $("#unmatchedUnlockList").innerHTML = unmatchedUnlockIds.map(id => {
@@ -600,6 +1044,7 @@
   $("#badgeType").addEventListener("change", renderBadges);
   $("#backToItems").addEventListener("click", () => go("items"));
   $("#newWikiSubpage").addEventListener("click", () => {
+    if (!localDraft) return;
     activeSubpageId = "";
     $("#wikiSaveStatus").textContent = "";
     setMarkdownPreview(false);
@@ -629,9 +1074,71 @@
     openItemPage(button.dataset.previewOpenItem);
   });
   $("#closeWikiPreview").addEventListener("click", () => $("#wikiPreviewDialog").close());
+  $("#editQuestGuide").addEventListener("click", () => {
+    if (!localDraft) return;
+    $("#questGuideForm").hidden = false;
+    $("#questGuideMarkdown").value = readJson(questGuideKey, "") || "";
+    $("#questGuideSaveStatus").textContent = "saved in this browser only";
+    $("#questGuideMarkdown").focus();
+  });
+  $("#cancelQuestWikiEdit").addEventListener("click", () => {
+    $("#questGuideForm").hidden = true;
+    $("#questGuidePreview").hidden = true;
+    $("#questGuideMarkdown").hidden = false;
+    $("#toggleQuestWikiPreview").textContent = "preview";
+    $("#toggleQuestWikiPreview").setAttribute("aria-pressed", "false");
+  });
+  $("#toggleQuestWikiPreview").addEventListener("click", () => {
+    const preview = $("#questGuidePreview");
+    const show = preview.hidden;
+    preview.hidden = !show;
+    $("#questGuideMarkdown").hidden = show;
+    $("#toggleQuestWikiPreview").textContent = show ? "edit" : "preview";
+    $("#toggleQuestWikiPreview").setAttribute("aria-pressed", String(show));
+    if (show) preview.innerHTML = renderMarkdown($("#questGuideMarkdown").value);
+  });
+  $("#questGuideMarkdown").addEventListener("input", () => {
+    if (!$("#questGuidePreview").hidden) $("#questGuidePreview").innerHTML = renderMarkdown($("#questGuideMarkdown").value);
+  });
+  $("#chooseQuestWikiImages").addEventListener("click", () => $("#questWikiImageFiles").click());
+  $("#questWikiImageFiles").addEventListener("change", event => {
+    if (!localDraft) return;
+    insertWikiImages(event.target.files || [], "#questGuideMarkdown", "#questGuideSaveStatus");
+    event.target.value = "";
+  });
+  $("#questGuideForm").addEventListener("submit", event => {
+    event.preventDefault();
+    if (!localDraft) return;
+    try {
+      wikiDocument.questGuide = $("#questGuideMarkdown").value;
+      saveWikiDraft();
+      localStorage.setItem(questGuideKey, JSON.stringify(wikiDocument.questGuide));
+      $("#questGuideSaveStatus").textContent = "quest page saved in this browser";
+      $("#questGuideForm").hidden = true;
+      $("#questGuidePreview").hidden = true;
+      $("#questGuideMarkdown").hidden = false;
+      $("#toggleQuestWikiPreview").textContent = "preview";
+      $("#toggleQuestWikiPreview").setAttribute("aria-pressed", "false");
+      renderQuestGuide();
+    } catch {
+      $("#questGuideSaveStatus").textContent = "could not save this page in browser storage";
+    }
+  });
+  $("#questGuideContent").addEventListener("click", event => {
+    const button = event.target.closest("[data-preview-type]");
+    if (button) openWikiPreview(button.dataset.previewType, button.dataset.previewTarget);
+  });
+  $("#questGuidePreview").addEventListener("click", event => {
+    const button = event.target.closest("[data-preview-type]");
+    if (button) openWikiPreview(button.dataset.previewType, button.dataset.previewTarget);
+  });
+  window.addEventListener("storage", event => {
+    if (event.key === questGuideKey || event.key === null) renderQuestGuide();
+  });
   $("#toggleMarkdownPreview").addEventListener("click", () => setMarkdownPreview($("#wikiEditorPreview").hidden));
   $("#chooseWikiImages").addEventListener("click", () => $("#wikiImageFiles").click());
   $("#wikiImageFiles").addEventListener("change", event => {
+    if (!localDraft) return;
     insertWikiImages(event.target.files || []);
     event.target.value = "";
   });
@@ -640,6 +1147,7 @@
   });
   $("#wikiSubpageForm").addEventListener("submit", event => {
     event.preventDefault();
+    if (!localDraft) return;
     const item = items.find(entry => entry.name.trim().toLowerCase() === activeItemName.trim().toLowerCase());
     if (!item) return;
     const key = item.name.toLowerCase();
@@ -653,9 +1161,11 @@
     if (existingIndex >= 0) pages[existingIndex] = page;
     else pages.push(page);
     wikiPages = { ...wikiPages, [key]: pages };
+    wikiDocument.itemPages = wikiPages;
     activeSubpageId = page.id;
     try {
       localStorage.setItem(wikiPagesKey, JSON.stringify(wikiPages));
+      saveWikiDraft();
       $("#wikiSaveStatus").textContent = "page saved in this browser";
     } catch {
       $("#wikiSaveStatus").textContent = "could not save this page in browser storage";
@@ -665,11 +1175,15 @@
 
   Promise.all([
     fetch("items.csv", { cache: "no-store" }).then(response => response.ok ? response.text() : ""),
-    fetch("inv%20v3.html", { cache: "no-store" }).then(response => response.ok ? response.text() : "")
-  ]).then(([csvText, pageText]) => {
+    fetch("inv%20v3.html", { cache: "no-store" }).then(response => response.ok ? response.text() : ""),
+    fetch("wiki-content.json", { cache: "no-store" }).then(response => response.ok ? response.json() : {})
+  ]).then(([csvText, pageText, publicWiki]) => {
     const catalogItems = csvText ? parseCsv(csvText) : [];
     const baseItems = pageText ? parseBaseItems(pageText) : [];
     items = mergeItems(baseItems, catalogItems);
+    window.INVENTORY_WIKI_CONTENT = publicWiki;
+    loadWikiDocument();
+    renderCustomSections();
     $("#itemCount").textContent = items.length;
     $("#eventCount").textContent = (window.INVENTORY_EVENT_CATALOG || []).length;
     syncProgress();

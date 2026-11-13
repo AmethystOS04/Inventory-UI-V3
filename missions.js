@@ -35,15 +35,15 @@
     }
 
     const defaultQuestOptions = {
-        "inspect-5": { title: "loot scout", objective: "inspect 5 different items", tracker: "items", target: 5, noun: "items inspected", ap: 40, mp: 15 },
-        "inspect-8": { title: "deep sweep", objective: "inspect 8 different items", tracker: "items", target: 8, noun: "items inspected", ap: 40, mp: 15 },
-        "inspect-12": { title: "arsenal survey", objective: "inspect 12 different items", tracker: "items", target: 12, noun: "items inspected", ap: 40, mp: 15 },
-        "realities-3": { title: "reality hopper", objective: "visit 3 different realities", tracker: "realities", target: 3, noun: "realities visited", ap: 25, mp: 15 },
-        "realities-5": { title: "realm walker", objective: "visit 5 different realities", tracker: "realities", target: 5, noun: "realities visited", ap: 25, mp: 15 },
-        "realities-7": { title: "reality drifter", objective: "visit 7 different realities", tracker: "realities", target: 7, noun: "realities visited", ap: 25, mp: 15 },
-        "enchant-1": { title: "blacksmith's touch", objective: "apply 1 enchant", tracker: "enchants", target: 1, noun: "enchants applied", ap: 35, mp: 20 },
-        "enchant-2": { title: "rune crafter", objective: "apply 2 enchants", tracker: "enchants", target: 2, noun: "enchants applied", ap: 35, mp: 20 },
-        "enchant-3": { title: "master smith", objective: "apply 3 enchants", tracker: "enchants", target: 3, noun: "enchants applied", ap: 35, mp: 20 }
+        "inspect-5": { title: "loot scout", objective: "inspect 5 different items", tracker: "items", target: 5, noun: "items inspected", ap: 40, mp: 15, stardust: 1 },
+        "inspect-8": { title: "deep sweep", objective: "inspect 8 different items", tracker: "items", target: 8, noun: "items inspected", ap: 40, mp: 15, stardust: 1 },
+        "inspect-12": { title: "arsenal survey", objective: "inspect 12 different items", tracker: "items", target: 12, noun: "items inspected", ap: 40, mp: 15, stardust: 1 },
+        "realities-3": { title: "reality hopper", objective: "visit 3 different realities", tracker: "realities", target: 3, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
+        "realities-5": { title: "realm walker", objective: "visit 5 different realities", tracker: "realities", target: 5, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
+        "realities-7": { title: "reality drifter", objective: "visit 7 different realities", tracker: "realities", target: 7, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
+        "enchant-1": { title: "blacksmith's touch", objective: "apply 1 enchant", tracker: "enchants", target: 1, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 },
+        "enchant-2": { title: "rune crafter", objective: "apply 2 enchants", tracker: "enchants", target: 2, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 },
+        "enchant-3": { title: "master smith", objective: "apply 3 enchants", tracker: "enchants", target: 3, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 }
     };
 
     function readQuestCatalog() {
@@ -62,7 +62,7 @@
     const questOptions = { ...defaultQuestOptions };
     customCatalog.daily.forEach(quest => {
         if (quest?.id && ["items", "realities", "enchants"].includes(quest.tracker)) {
-            questOptions[quest.id] = quest;
+            questOptions[quest.id] = { ...quest, stardust: Number(quest.stardust ?? 1) || 0 };
         }
     });
 
@@ -265,7 +265,7 @@
             const reward = questOptions[state.quests[slot]];
             if (!reward) return;
             if (typeof window.awardCurrency !== "function") return;
-            window.awardCurrency(reward.ap, reward.mp);
+            window.awardCurrency(reward.ap, reward.mp, reward.stardust ?? 1);
             state.rewarded[slot] = true;
             changed = true;
         });
@@ -291,7 +291,7 @@
 
         card.querySelector("h4").textContent = quest.title;
         card.querySelector(".mission-objective").textContent = quest.objective;
-        card.querySelector(".mission-reward").textContent = `+${formatAmount(quest.ap)} ap · +${formatAmount(quest.mp)} mp`;
+        card.querySelector(".mission-reward").textContent = `+${formatAmount(quest.ap)} ap · +${formatAmount(quest.mp)} mp · +${formatAmount(quest.stardust ?? 1)} stardust`;
         card.querySelector(".mission-progress").textContent =
             `${progress} / ${quest.target} ${quest.noun}`;
         card.querySelector(".mission-meter span").style.width =
@@ -313,12 +313,12 @@
                 status.textContent = "reward unavailable · reload to claim";
                 return;
             }
-            window.awardCurrency(reward.ap, reward.mp);
+            window.awardCurrency(reward.ap, reward.mp, reward.stardust ?? 1);
             state.completed[id] = true;
             state.rewarded[id] = true;
             countDailyCompletion(id);
             save();
-            status.textContent = `earned +${formatAmount(reward.ap)} ap and +${formatAmount(reward.mp)} mp`;
+            status.textContent = `earned +${formatAmount(reward.ap)} ap, +${formatAmount(reward.mp)} mp, and +${formatAmount(reward.stardust ?? 1)} stardust`;
             status.classList.add("complete");
             card.classList.add("mission-complete");
             syncRefreshControls();
@@ -457,17 +457,17 @@
         "amethyst-vault": {
             title: "amethyst outbreak",
             objective: "survive the arena for 90 seconds as rift creatures swarm in",
-            goal: 2, seconds: 90, ap: 1000, mp: 500
+            goal: 2, seconds: 90, ap: 1000, mp: 500, stardust: 5
         },
         "deep-vault": {
             title: "deep rift siege",
             objective: "survive the arena for 75 seconds as rift creatures swarm in",
-            goal: 4, seconds: 75, ap: 1000, mp: 500
+            goal: 4, seconds: 75, ap: 1000, mp: 500, stardust: 5
         },
         "rift-vault": {
             title: "the long descent",
             objective: "survive the arena for 60 seconds as rift creatures swarm in",
-            goal: 6, seconds: 60, ap: 1000, mp: 500
+            goal: 6, seconds: 60, ap: 1000, mp: 500, stardust: 5
         }
     };
 
@@ -479,6 +479,7 @@
                 seconds: Number(challenge.seconds),
                 ap: Number(challenge.ap),
                 mp: Number(challenge.mp),
+                stardust: Number(challenge.stardust ?? 5) || 0,
                 objective: `survive ${Number(challenge.seconds)} seconds in the arena through escalating waves`
             };
         }
@@ -493,6 +494,7 @@
                 seconds: Number(challenge.seconds),
                 ap: Number(challenge.ap),
                 mp: Number(challenge.mp),
+                stardust: Number(challenge.stardust ?? 5) || 0,
                 objective: `survive ${Number(challenge.seconds)} seconds in the arena through escalating waves`
             };
             sharedEventWeeklyIds.add(challenge.id);
@@ -520,7 +522,7 @@
     function getWeekStart() {
         const date = new Date();
         date.setHours(0, 0, 0, 0);
-        date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+        date.setDate(date.getDate() - date.getDay());
         return dateKey(date);
     }
     let weekStart = getWeekStart();
@@ -900,7 +902,7 @@
     function settleUnpaidWeeklyReward() {
         if (!weeklyState.completed || weeklyState.rewarded || typeof window.awardCurrency !== "function") return;
         const challenge = currentWeeklyChallenge();
-        window.awardCurrency(challenge.ap, challenge.mp);
+        window.awardCurrency(challenge.ap, challenge.mp, challenge.stardust ?? 5);
         if (challenge.unlockItem) window.unlockItem(challenge.unlockItem);
         weeklyState.rewarded = true;
         saveWeekly();
@@ -915,13 +917,13 @@
             : challenge.objective;
         if (!activeEventQuest) gameTitle.textContent = challenge.title;
         if (!activeEventQuest && !running) timeLabel.textContent = currentRunChallenge().seconds;
-        weeklyReward.textContent = `reward: +${formatAmount(challenge.ap)} ap · +${formatAmount(challenge.mp)} mp${challenge.unlockItem ? ` · ${challenge.unlockItem} seasonal unlock` : ""}`;
+        weeklyReward.textContent = `reward: +${formatAmount(challenge.ap)} ap · +${formatAmount(challenge.mp)} mp · +${formatAmount(challenge.stardust ?? 5)} stardust${challenge.unlockItem ? ` · ${challenge.unlockItem} seasonal unlock` : ""}`;
         const mpBalance = getBalance("mp");
         weeklyRefreshButton.disabled = mpBalance < refreshCost;
         weeklyRefreshButton.title = mpBalance < refreshCost ? `need ${formatAmount(refreshCost - mpBalance)} more mp` : `spend ${formatAmount(refreshCost)} mp to get a new weekly challenge`;
         weeklyRefreshButton.textContent = `refresh weekly · ${formatAmount(refreshCost)} mp`;
         if (weeklyState.completed) {
-            weeklyStatus.textContent = `completed this week${challenge.unlockItem ? ` · ${challenge.unlockItem} unlocked` : ""}`;
+            weeklyStatus.textContent = `completed this week · resets in ${timeUntilNextWeek()}${challenge.unlockItem ? ` · ${challenge.unlockItem} unlocked` : ""}`;
             weeklyStatus.classList.add("complete");
             weeklyButton.textContent = "replay challenge";
             weeklyButton.disabled = false;
@@ -943,8 +945,8 @@
     function timeUntilNextWeek() {
         const next = new Date();
         next.setHours(0, 0, 0, 0);
-        const daysToMonday = (8 - next.getDay()) % 7 || 7;
-        next.setDate(next.getDate() + daysToMonday);
+        const daysUntilSunday = (7 - next.getDay()) % 7 || 7;
+        next.setDate(next.getDate() + daysUntilSunday);
         return formatTime(next - new Date());
     }
 
@@ -988,7 +990,7 @@
         }
 
         const currentWeek = getWeekStart();
-        if (weekStart !== currentWeek) {
+        if (weekStart !== currentWeek || weeklyState.week !== currentWeek) {
             if (running) finishRun(false, "the weekly challenge refreshed · start a new run");
             weekStart = currentWeek;
             weeklyState = { week: currentWeek, challenge: chooseWeeklyChallenge(), completed: false, rewarded: false };
@@ -1033,7 +1035,7 @@
                 return;
             }
             const challenge = currentWeeklyChallenge();
-            window.awardCurrency(challenge.ap, challenge.mp);
+            window.awardCurrency(challenge.ap, challenge.mp, challenge.stardust ?? 5);
             if (challenge.unlockItem) window.unlockItem(challenge.unlockItem);
             window.triggerBadgeAction?.("weekly-win", 1);
             countQuestForBadgePeek();
@@ -1310,7 +1312,8 @@
             "void+": 1.35,
             "void plus": 1.35
         }[rarity] || 1;
-        return baseDamage * multiplier;
+        const imbuedDamage = window.getItemImbueDamageBonus?.(selectedArenaItem, baseDamage) || 0;
+        return (baseDamage + imbuedDamage) * multiplier;
     }
 
     function selectedWeaponRarity() {
@@ -1391,7 +1394,8 @@
 
     function selectedArtifactDamage() {
         const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaArtifact || (item.getAttribute("onclick") || "").includes(selectedArenaArtifact));
-        return Math.max(0, Number(card?.dataset.artifactPower) || catalogItemDamage(selectedArenaArtifact));
+        const baseDamage = Math.max(0, Number(card?.dataset.artifactPower) || catalogItemDamage(selectedArenaArtifact));
+        return baseDamage + (window.getItemImbueDamageBonus?.(selectedArenaArtifact, baseDamage) || 0);
     }
 
     function isArenaBow() {
@@ -1912,10 +1916,12 @@
         refreshQuestPeriods();
         updateAll();
     });
-    window.setInterval(refreshQuestPeriods, 30000);
+    window.setInterval(refreshQuestPeriods, 10000);
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) refreshQuestPeriods();
     });
+    window.addEventListener("focus", refreshQuestPeriods);
+    window.addEventListener("pageshow", refreshQuestPeriods);
     window.addEventListener("storage", event => {
         if (event.key === eventCatalogStorageKey) {
             refreshQuestPeriods();

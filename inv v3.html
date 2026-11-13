@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#100b18">
 <meta name="color-scheme" content="dark">
 <title>Inventory UI V3</title>
-<link rel="icon" href="v3ico-sculk.png">
+<link rel="icon" href="project-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="events.css?v=20261031-event-presets1">
 <style>
 
@@ -387,6 +387,7 @@ html[data-reality="deepdark"] .info-panel::after {
     flex: 0 0 40px;
     object-fit: contain;
 }
+.item-imbue-panel{position:relative;z-index:3;margin:12px 0;padding:10px;border:1px solid #94622b;border-radius:10px;background:#21162a;color:#f0dcff;box-shadow:0 0 12px #bd7d2d30}.item-imbue-panel h3{margin:0 0 5px;color:#ffd77c;font-size:14px}.item-imbue-panel p{margin:5px 0;color:#d8cadf;font-size:12px}.item-imbue-panel button{width:100%;padding:7px;border:1px solid #d7a749;border-radius:7px;background:#311d36;color:#ffe59b;font:inherit;cursor:pointer}.item-imbue-panel button:disabled{opacity:.6;cursor:not-allowed}.item-imbue-panel[hidden]{display:none}
 .info-panel::before{
 
     content:"";
@@ -2488,6 +2489,12 @@ transition: filter .2s ease;
             <span class="soul-label">Soul Usage:</span>
             <span id="soulUsage"></span>
         </p>
+        <section id="itemImbuePanel" class="item-imbue-panel" aria-label="stardust imbuing" hidden>
+            <h3>stardust imbue</h3>
+            <p id="itemImbueLevel">select an item to view its imbue</p>
+            <button id="imbueSelectedItem" type="button">imbue item</button>
+            <p id="itemImbueStatus" aria-live="polite"></p>
+        </section>
 </div>
   
 
@@ -2654,7 +2661,7 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <p class="mission-objective">inspect different items</p>
         <p class="mission-progress"></p>
         <div class="mission-meter"><span></span></div>
-        <p class="mission-reward">+40 ap · +15 mp</p>
+        <p class="mission-reward">+40 ap · +15 mp · +1 stardust</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="inspect" type="button">refresh quest 1 · 100 ap</button>
         <button class="mission-refresh-button" data-event-quest="inspect" type="button" hidden>play event quest</button>
@@ -2665,7 +2672,7 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <p class="mission-objective">visit different realities</p>
         <p class="mission-progress"></p>
         <div class="mission-meter"><span></span></div>
-        <p class="mission-reward">+25 ap · +15 mp</p>
+        <p class="mission-reward">+25 ap · +15 mp · +1 stardust</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="realities" type="button">refresh quest 2 · 300 ap</button>
         <button class="mission-refresh-button" data-event-quest="realities" type="button" hidden>play event quest</button>
@@ -2676,7 +2683,7 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <p class="mission-objective">apply an enchant</p>
         <p class="mission-progress"></p>
         <div class="mission-meter"><span></span></div>
-        <p class="mission-reward">+35 ap · +20 mp</p>
+        <p class="mission-reward">+35 ap · +20 mp · +1 stardust</p>
         <p class="mission-status"></p>
         <button class="mission-refresh-button" data-refresh-quest="enchant" type="button">refresh quest 3 · 500 ap</button>
         <button class="mission-refresh-button" data-event-quest="enchant" type="button" hidden>play event quest</button>
@@ -2686,7 +2693,7 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <div>
             <h4>weekly challenge · <span id="weeklyChallengeTitle">amethyst outbreak</span></h4>
             <p id="weeklyChallengeObjective">survive the arena for 90 seconds as rift creatures swarm in</p>
-            <p class="weekly-reward" id="weeklyChallengeReward">reward: +1,000 ap · +500 mp · frost slayer seasonal unlock</p>
+            <p class="weekly-reward" id="weeklyChallengeReward">reward: +1,000 ap · +500 mp · +5 stardust · frost slayer seasonal unlock</p>
             <p id="weeklyChallengeStatus" aria-live="polite">one reward each week</p>
         </div>
         <div class="weekly-actions">
@@ -2732,6 +2739,7 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
   <script src="badge-catalog.js?v=20261031-what-ap-requirement1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
   <script src="unlocks.js?v=20261107-remember-item-filter1"></script>
+  <script src="item-imbuing.js?v=20261112-stardust-imbue2"></script>
   <script src="infopanelweaponicons.js"></script>
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
@@ -2739,6 +2747,6 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
       <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
   <script src="badge-system.js?v=20261107-settings-badge-view1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
-  <script src="save-tools.js?v=20261012-player-save1"></script>
+  <script src="save-tools.js?v=20261108-reset-save1"></script>
 <script src="admin-panel.js?v=20261107-arena-count-settings1"></script>
 <script src="settings-panel.js?v=20261107-wiki-button2"></script>

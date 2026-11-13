@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" fill="none">
+  <defs>
+    <filter id="boltGlow" x="-100%" y="-60%" width="300%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <!-- subtle impact field and thin arena-style ring -->
+  <circle cx="61" cy="92" r="54.5" fill="#32cfff" fill-opacity=".24"/>
+  <circle cx="61" cy="92" r="54.5" stroke="#c4e9ee" stroke-opacity=".82" stroke-width="2.5"/>
+
+  <!-- compact branching lightning bolt -->
+  <path d="M64 -4 54 43 70 68 61 91" stroke="#56f7ff" stroke-opacity=".75" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)"/>
+  <path d="M64 -4 54 43 70 68 61 91" stroke="#5afaff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#boltGlow)"/>
+  <path d="M64 -4 54 43 70 68 61 91" stroke="#d9ffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- short electrical forks around the impact -->
+  <path d="m57 58-13-6-6 3m27 3 12-7 11 4M62 75l-10-1-6 5m20-6 9 4 6-3" stroke="#75fbff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#boltGlow)"/>
+  <path d="m57 58-13-6-6 3m27 3 12-7 11 4M62 75l-10-1-6 5m20-6 9 4 6-3" stroke="#d8ffff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

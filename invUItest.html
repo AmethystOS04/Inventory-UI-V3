@@ -5,95 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory UI - UI test</title>
     <style>
+        * { box-sizing: border-box; }
+
         body {
-    margin: 0;
-    min-height: 100vh;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        .panel {
+            width: min(1352px, 100%);
+            min-height: 640px;
+            background: #1a1a24;
+            border-radius: 20px;
+            padding: 28px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            border: 1px solid #00f7ff;
+            box-shadow: 0 0 10px rgba(1, 247, 255, 0.5);
+        }
 
-    background: #000;
-    font-family: Arial, sans-serif;
-    color: #fff;
-}
+        .bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background:
+                url("waves_stroke.svg") top center / 100% auto no-repeat,
+                url("DLCMap/DLC_End_Stars.png") center / 100% auto no-repeat,
+                url("DLCMap/End_Whisp_All.png") center / 100% auto no-repeat,
+                url("waves_stroke.svg") bottom center / 100% auto no-repeat;
+        }
 
-/* panel */
-.panel {
-   
-    width: 1352px;
-    height: 640px;
-    background: #1a1a24;
-    border-radius: 20px;
-    padding: 20px;
-    display: flex;
-    gap: 20px;
-    border: 1px solid #00f7ff;
-    border-radius: 20px;
-    box-shadow: 0 0 10px rgba(1, 247, 255, 0.5);
-}
-.bg{
-    position:fixed;
-    inset:0;
-    pointer-events:none;
-    z-index:-1;
+        .login, .logout {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 10px 20px;
+            background: #063d3f;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #00f7ff;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-    background:
-        url("waves_stroke.svg") top center / 100% auto no-repeat,
-        url("DLCMap/DLC_End_Stars.png") center / 100% auto no-repeat,
-        url("DLCMap/End_Whisp_All.png") center / 100% auto no-repeat,
-        url("waves_stroke.svg") bottom center / 100% auto no-repeat;
-}
-.ui-icon{
-    width: 64px;
-    height: 64px;
-}
-.h3{
-    font-size: 15px;
-    font-weight: bold;
-    color: #f700ff;
-    text-shadow: 0 0 5px #f700ff;
-}
-.login{
-    width: 50px;
-    height: 14px;
-    padding: 10px 20px;
-    background: #063d3f;
-    color: #ffffff;
-    text-decoration: none;
-    border-radius: 5px;
-    border: 1px solid #00f7ff;
-}
-.pfp{
-    width: 64px;
-    height: 64px;
-}
-.pfp-holder{
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 1px solid #00f7ff;
-    background: #000;
-}
-.login img{
-    width:28px;
-    height:28px;
-}
+        .login:hover, .logout:hover {
+            background: #07565a;
+            box-shadow: 0 0 10px rgba(0, 247, 255, 0.35);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .pfp-holder {
+            width: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid #00f7ff;
+            background: #000;
+        }
+
+        .pfp {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            margin: 0 0 6px;
+            color: #f700ff;
+            text-shadow: 0 0 5px #f700ff;
+        }
+
+        .profile-id, .status {
+            color: #b9b9c8;
+            font-size: 13px;
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        [hidden] { display: none !important; }
     </style>
 </head>
 <body>
     <div class="bg"></div>
-<div class="panel">
-   <a href="https://discord.com/oauth2/authorize?client_id=1503119981997592798&response_type=code&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2FinvUItest.html&scope=identify"
-   class="login">
 
-    <img src="icons-ui/discord.svg" alt="Discord">
+    <main class="panel">
+        <section id="loggedOut">
+            <a class="login" href="/auth/discord">Login with Discord</a>
+            <p class="status" id="status">Not logged in</p>
+        </section>
 
-</a>
+        <section id="loggedIn" class="profile" hidden>
+            <div class="pfp-holder">
+                <img class="pfp" id="avatar" alt="Discord profile picture">
+            </div>
+            <div class="profile-actions">
+                <div>
+                    <h2 class="profile-name" id="username"></h2>
+                    <div class="profile-id" id="discordUsername"></div>
+                </div>
+                <button class="logout" id="logoutButton" type="button">Log out</button>
+                <div class="status" id="profileStatus"></div>
+            </div>
+        </section>
+    </main>
 
-</div>
     <script>
+        const loggedOut = document.getElementById("loggedOut");
+        const loggedIn = document.getElementById("loggedIn");
+        const status = document.getElementById("status");
+
+        async function loadProfile() {
+            try {
+                const response = await fetch("/api/auth/me", {
+                    credentials: "same-origin",
+                    cache: "no-store"
+                });
+                if (!response.ok) throw new Error("Could not check login status");
+
+                const data = await response.json();
+                if (!data.authenticated || !data.profile) {
+                    loggedOut.hidden = false;
+                    loggedIn.hidden = true;
+                    return;
+                }
+
+                document.getElementById("avatar").src = data.profile.avatar;
+                document.getElementById("username").textContent = data.profile.username;
+                document.getElementById("discordUsername").textContent =
+                    "@" + data.profile.discord_username;
+                loggedOut.hidden = true;
+                loggedIn.hidden = false;
+            } catch (error) {
+                status.textContent = "Could not connect to the local server";
+                console.error(error);
+            }
+        }
+
+        document.getElementById("logoutButton").addEventListener("click", async () => {
+            await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+            await loadProfile();
+        });
+
+        loadProfile();
     </script>
 </body>
 </html>

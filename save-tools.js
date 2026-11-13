@@ -4,7 +4,7 @@
 
     const style = document.createElement("style");
     style.textContent = `
-        #openSaveDataPanel, #closeSaveDataPanel, #exportPlayerSave, #importPlayerSaveLabel {
+        #openSaveDataPanel, #closeSaveDataPanel, #exportPlayerSave, #importPlayerSaveLabel, #resetPlayerSave {
             display:inline-flex; align-items:center; justify-content:center; gap:6px;
             border:1px solid color-mix(in srgb, var(--reality-border, #00f7ff) 65%, transparent);
             border-radius:9px; padding:8px 12px; background:color-mix(in srgb, var(--reality-panel, #1a1a24) 82%, #000 18%);
@@ -20,6 +20,17 @@
         .save-export-note { margin:14px 0 8px; padding:12px; border:1px solid color-mix(in srgb,var(--reality-accent,#ff00ff) 45%,transparent); border-radius:10px; background:color-mix(in srgb,var(--reality-accent,#ff00ff) 9%,transparent); color:var(--reality-text,#fff) !important; text-align:center; }
         .save-export-actions { display:flex; justify-content:center; }
         #importPlayerSaveInput { display:none; }
+        #resetPlayerSave {
+            border:1px solid #ff557d;
+            border-radius:9px;
+            padding:8px 12px;
+            background:rgba(120,18,48,.28);
+            color:#ff9ab2;
+            font:inherit;
+            cursor:pointer;
+        }
+        #resetPlayerSave:hover { background:rgba(160,24,62,.42); }
+        #resetPlayerSave:focus-visible { outline:2px solid #ff9ab2; outline-offset:3px; }
         #saveDataStatus { min-height:20px; color:var(--reality-accent-2,#70eaff); }
         @media(max-width:600px) { #openSaveDataPanel { right:194px; } }
     `;
@@ -39,6 +50,7 @@
         <div class="save-data-actions">
             <label id="importPlayerSaveLabel" for="importPlayerSaveInput">import save</label>
             <input id="importPlayerSaveInput" type="file" accept="application/json,.json">
+            <button id="resetPlayerSave" type="button">reset save</button>
         </div>
         <p class="save-export-note">if you want your save edited dm amethystos04 on discord OR if uou cant use discord gmail me at amethystos04mc@gmail.com</p>
         <div class="save-export-actions"><button id="exportPlayerSave" type="button">export save</button></div>
@@ -49,6 +61,28 @@
     openButton.addEventListener("click", () => dialog.showModal());
     document.getElementById("closeSaveDataPanel").addEventListener("click", () => dialog.close());
     dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+    document.getElementById("resetPlayerSave").addEventListener("click", () => {
+        const confirmation = window.prompt(
+            "This will permanently reset all player progress stored in this save. Export a backup first if you may want to restore it later.\n\nType RESET to confirm"
+        );
+
+        if (confirmation !== "RESET") {
+            document.getElementById("saveDataStatus").textContent = "save reset cancelled";
+            return;
+        }
+
+        try {
+            for (const key of window.InventorySaveFormat.storageKeys) {
+                localStorage.removeItem(key);
+            }
+
+            document.getElementById("saveDataStatus").textContent = "save reset · reloading the inventory";
+            window.setTimeout(() => location.reload(), 500);
+        } catch (error) {
+            document.getElementById("saveDataStatus").textContent = error.message || "could not reset the save";
+        }
+    });
+
     document.getElementById("exportPlayerSave").addEventListener("click", () => {
         const save = window.InventorySaveFormat.capture();
         const link = document.createElement("a");
