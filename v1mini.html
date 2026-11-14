@@ -56,21 +56,36 @@ body {
     border-radius: 10px;
     padding: 10px;
 }
+.cover {
+    background: black;
+    width: 100%;
+    height: 100%;
+}
+.coverh3 {
+    color: white;
+    text-align: center;
+    margin-top: 50px;
+}
+
 </style>
 </head>
 
 <body>
+<div class="cover">
+    <h3 class="coverh3">unfinished, come back later. or wait for a commit to be pushed unlocking this v1 version</h3>
+</div>
 
 <div class="panel">
 
     <!-- items -->
-    <div class="items">
+    <!-- unfinished, come back later. or wait for a commit to be pushed unlocking this v1 version
+     <div class="items">
         <div class="item" onclick="showItem('Flame Sword', 25, 'Epic')"></div>
         <div class="item" onclick="showItem('Bow', 15, 'Common')"></div>
         <div class="item" onclick="showItem('Axe', 30, 'Rare')"></div>
-    </div>
+    </div> 
 
-    <!-- info -->
+    info panel 
     <div class="info-panel">
         <h3 id="name">Select item</h3>
         <p id="damage"></p>
@@ -86,6 +101,6 @@ function showItem(name, damage, rarity) {
     document.getElementById("rarity").textContent = "Rarity: " + rarity;
 }
 </script>
-
+-->
 </body>
 </html>
