@@ -20,6 +20,39 @@
   let wikiDocument = { version: 1, sections: [], sectionPages: {}, sectionIcons: {}, removedBuiltinSections: [], itemPages: {}, questGuide: "" };
   const progressKeys = new Set(["inventoryBadgeCatalogV1", "inventoryPrivateBadgeCatalogV1", "inventoryBadgesUnlockedV1", "ownedItemsV2"]);
 
+  const wikiImageViewer = $("#wikiImageViewer");
+  const wikiImageViewerImage = $("#wikiImageViewerImage");
+  const wikiImageViewerCaption = $("#wikiImageViewerCaption");
+  const wikiImageDownload = $("#wikiImageDownload");
+  document.addEventListener("click", event => {
+    const image = event.target.closest(".wiki-prose figure.wiki-image img");
+    if (image && !event.target.closest("a")) {
+      const source = image.currentSrc || image.src;
+      const caption = image.alt || image.title || "wiki image";
+      let filename = "wiki-image";
+      if (!source.startsWith("data:")) {
+        try { filename = decodeURIComponent(new URL(source, location.href).pathname.split("/").pop()) || filename; } catch {}
+      }
+      wikiImageViewerImage.src = source;
+      wikiImageViewerImage.alt = caption;
+      wikiImageViewerImage.style.width = `${image.naturalWidth || 1}px`;
+      wikiImageViewerImage.style.height = `${image.naturalHeight || 1}px`;
+      wikiImageViewerCaption.textContent = caption;
+      wikiImageDownload.href = source;
+      wikiImageDownload.download = filename;
+      wikiImageViewer.showModal();
+      return;
+    }
+    if (event.target.closest("#closeWikiImageViewer")) wikiImageViewer.close();
+    else if (event.target === wikiImageViewer) wikiImageViewer.close();
+  });
+  wikiImageViewer.addEventListener("close", () => {
+    wikiImageViewerImage.removeAttribute("src");
+    wikiImageViewerImage.style.removeProperty("width");
+    wikiImageViewerImage.style.removeProperty("height");
+    wikiImageDownload.removeAttribute("href");
+  });
+
   function readJson(key, fallback) {
     try {
       const value = JSON.parse(localStorage.getItem(key));

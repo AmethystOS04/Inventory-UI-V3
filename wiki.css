@@ -143,3 +143,13 @@ html:not([data-local-wiki="true"]) .local-only{display:none!important}html:not([
 
 .wiki-section[hidden],#wikiNav .nav-button[hidden],[data-go][hidden]{display:none!important}
 .wiki-image-banner{display:flex;align-items:center;gap:10px;width:fit-content;max-width:100%;min-height:54px;margin:12px 0;padding:6px 10px;border:1px solid #626772;border-left:4px solid #a9c9f5;background:#22242a;color:#e6e8ed}.wiki-image-banner-placeholder{border-left-color:#e1b64b}.wiki-image-banner-not-updated{border-left-color:#a78bfa}.wiki-image-banner-label{flex:none;padding:4px 7px;border:1px solid currentColor;border-radius:2px;color:#e1b64b;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.wiki-image-banner-not-updated .wiki-image-banner-label{color:#c4a7ff}.wiki-image-banner .wiki-image{display:block;flex:0 1 220px;width:220px;max-width:55vw;margin:0;padding:0;border:0;background:transparent}.wiki-image-banner .wiki-image img{display:block;width:100%;height:48px;object-fit:cover;border:0;background:transparent}.wiki-image-banner .wiki-image figcaption{display:none}.wiki-image-banner .wiki-image-row{display:contents}
+.wiki-prose figure.wiki-image img{cursor:zoom-in}
+.wiki-image-viewer{width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:16px 22px 24px;border:0;background:transparent;color:#f0eff8;overflow:hidden}
+.wiki-image-viewer::backdrop{background:#05060bb8;backdrop-filter:blur(12px) saturate(.65)}
+.wiki-image-viewer-bar{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:44px;margin:0 auto 8px;max-width:1400px;color:#ececf0}
+.wiki-image-viewer-bar>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wiki-image-viewer-bar>div{display:flex;align-items:center;gap:8px;flex:none}
+.wiki-image-viewer-bar a,.wiki-image-viewer-bar button{padding:8px 12px;border:1px solid #626772;border-radius:3px;background:#24262c;color:#a9c9f5;font:inherit;text-decoration:none;cursor:pointer}
+.wiki-image-viewer-bar a:hover,.wiki-image-viewer-bar button:hover{border-color:#9bcaff;background:#30323a}
+.wiki-image-viewer>img{display:block;width:auto;height:auto;max-width:100%;max-height:calc(100% - 54px);margin:0 auto;object-fit:contain;border:0;background:transparent;cursor:zoom-out}
+@media(max-width:600px){.wiki-image-viewer{padding:10px}.wiki-image-viewer-bar{align-items:flex-start}.wiki-image-viewer-bar a,.wiki-image-viewer-bar button{padding:7px 9px;font-size:13px}.wiki-image-viewer>img{max-height:calc(100% - 58px)}}

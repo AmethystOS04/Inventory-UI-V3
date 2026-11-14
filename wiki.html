@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>inventory wiki</title>
-  <link rel="stylesheet" href="wiki.css?v=20261112-image-icons-api1">
+  <link rel="stylesheet" href="wiki.css?v=20261114-image-viewer2">
 <link rel="icon" href="project-icon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -63,8 +63,9 @@
 
   <dialog id="unmatchedUnlockDialog" class="wiki-preview-dialog" aria-labelledby="unmatchedUnlockTitle"><div class="preview-dialog-head"><div><span class="card-kicker">save check</span><h2 id="unmatchedUnlockTitle">unmatched badge unlocks</h2></div><button type="button" id="closeUnmatchedUnlocks" aria-label="close unmatched unlock details">close</button></div><p>these badge ids are saved as unlocked, but they do not match a badge in the current catalog, so they are not included in the matched unlocked total</p><p>this usually means a badge was removed or its id changed</p><ul id="unmatchedUnlockList" class="unmatched-unlock-list"></ul></dialog>
   <dialog id="wikiPreviewDialog" class="wiki-preview-dialog" aria-labelledby="wikiPreviewTitle"><div class="preview-dialog-head"><div><span class="card-kicker" id="wikiPreviewKind">wiki preview</span><h2 id="wikiPreviewTitle">preview</h2></div><button type="button" id="closeWikiPreview" aria-label="close preview">close</button></div><div id="wikiPreviewBody"></div><div id="wikiPreviewActions" class="preview-dialog-actions"></div></dialog>
+  <dialog id="wikiImageViewer" class="wiki-image-viewer" aria-label="image viewer"><div class="wiki-image-viewer-bar"><span id="wikiImageViewerCaption"></span><div><a id="wikiImageDownload" download>download image</a><button id="closeWikiImageViewer" type="button" aria-label="close image viewer">close</button></div></div><img id="wikiImageViewerImage" alt=""></dialog>
   <script src="event-catalog.js"></script>
   <script src="badge-catalog.js"></script>
-<script src="wiki.js?v=20261112-image-banners1"></script>
+<script src="wiki.js?v=20261114-image-viewer2"></script>
 </body>
 </html>
