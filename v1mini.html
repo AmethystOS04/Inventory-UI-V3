@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Inventory Test</title>
+<title>Inventory UI V1 Mini</title>
 
 <style>
 body {
@@ -16,46 +16,7 @@ body {
     font-family: Arial;
 }
 
-/* panel */
-.panel {
-    width: 500px;
-    height: 300px;
-    background: #1a1a24;
-    border-radius: 16px;
-    padding: 15px;
 
-    display: flex;
-    gap: 20px;
-}
-
-/* item grid */
-.items {
-    display: grid;
-    grid-template-columns: repeat(3, 60px);
-    gap: 10px;
-}
-
-/* item slots */
-.item {
-    width: 60px;
-    height: 60px;
-    background: #2a2a3a;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.item:hover {
-    background: #3a3a55;
-}
-
-/* info panel */
-.info-panel {
-    flex: 1;
-    background: #14141c;
-    border-radius: 10px;
-    padding: 10px;
-}
 .cover {
     background: black;
     width: 100%;
@@ -93,33 +54,6 @@ body {
     <div class="covertext">f12 devtools wont make this work because the rest of the code is marked out</div>
 
 </div>
-<!--
-<div class="panel">
 
-    
- unfinished, come back later. or wait for a commit to be pushed unlocking this v1 version
-     <div class="items">
-        <div class="item" onclick="showItem('Flame Sword', 25, 'Epic')"></div>
-        <div class="item" onclick="showItem('Bow', 15, 'Common')"></div>
-        <div class="item" onclick="showItem('Axe', 30, 'Rare')"></div>
-    </div> 
-
-    info panel 
-    <div class="info-panel">
-        <h3 id="name">Select item</h3>
-        <p id="damage"></p>
-        <p id="rarity"></p>
-    </div>
-
-</div>
-
-<script>
-function showItem(name, damage, rarity) {
-    document.getElementById("name").textContent = name;
-    document.getElementById("damage").textContent = "Damage: " + damage;
-    document.getElementById("rarity").textContent = "Rarity: " + rarity;
-}
-</script>
--->
 </body>
 </html>
