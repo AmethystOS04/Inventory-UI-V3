@@ -23,17 +23,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "voiding-age-mv5qf9kt",
-        "name": "voiding age",
-        "start": "2027-01-06T21:55:00.000Z",
-        "end": "2027-01-14T21:55:00.000Z",
-        "items": [
-            "Crucible",
-            "The Starless Night",
-            "Void Stabilizer"
-        ]
-    },
-    {
         "id": "staring-space-mv5qh7oy",
         "name": "starring space",
         "start": "2027-02-28T21:57:00.000Z",
@@ -73,8 +62,8 @@ window.INVENTORY_EVENT_CATALOG = [
         "id": "amethyst-clustering-mv5r2h27",
         "name": "amethyst clustering",
         "theme": "amethyst",
-        "themeColor": "#4c00ff",
-        "start": "2026-11-07T19:42:00.000Z",
+        "themeColor": "#5900ff",
+        "start": "2026-11-06T22:13:00.000Z",
         "end": "2026-11-09T22:14:00.000Z",
         "items": [
             "Huge Amethyst Cluster",
@@ -83,34 +72,19 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "lightning-mvxbu24r",
-        "name": "Lightning",
-        "theme": "lightning",
-        "themeColor": "#ffbb00",
-        "start": "2026-11-26T05:23:00.000Z",
-        "end": "2026-11-28T11:23:00.000Z",
-        "items": [
-            "Electric Hammer V1",
-            "Electric Hammer V2",
-            "Lightning Rod (MCDII)",
-            "Stormlander",
-            "Stormlander V2",
-            "Thundering Quiver"
-        ]
-    },
-    {
         "id": "deep-dark-mv5q9qqp",
         "name": "deep dark",
-        "theme": "auto",
-        "themeColor": "",
-        "start": "2026-11-02T21:50:00.000Z",
-        "end": "2026-11-05T01:50:00.000Z",
+        "theme": "deepdarkv2",
+        "themeColor": "#0011ff",
+        "start": "2026-11-01T18:50:00.000Z",
+        "end": "2026-11-06T01:50:00.000Z",
         "items": [
             "Awesomeaxe",
             "Blue Crucible",
             "Corrupted Beacon (MCDII)",
             "Firework Arrow (MCDII)",
             "Lightning Rod (MCDII)",
+            "Lullaby Blade",
             "Lunar Sickle",
             "Pride of the Plains",
             "Sculker Claws",
@@ -120,43 +94,32 @@ window.INVENTORY_EVENT_CATALOG = [
             "Soul Reaper",
             "Twilight Dagger"
         ]
+    },
+    {
+        "id": "voiding-age-mv5qf9kt",
+        "name": "voiding age",
+        "theme": "auto",
+        "themeColor": "",
+        "start": "2027-01-06T21:55:00.000Z",
+        "end": "2027-01-14T21:55:00.000Z",
+        "items": [
+            "Crucible",
+            "The End Crystal's Beam",
+            "The Starless Night",
+            "Void Stabilizer"
+        ]
     }
 ];
 window.INVENTORY_EVENT_PRESETS = [
     {
         "id": "amethyst",
         "name": "amethyst",
-        "color": "#4c00ff"
+        "color": "#5900ff"
     },
     {
-        "id": "aura",
-        "name": "aura",
-        "color": "#fff700"
-    },
-    {
-        "id": "golden-hour",
-        "name": "golden hour",
-        "color": "#cda618"
-    },
-    {
-        "id": "lightning",
-        "name": "lightning",
-        "color": "#ffbb00"
-    },
-    {
-        "id": "moon",
-        "name": "moon",
-        "color": "#172a8c"
-    },
-    {
-        "id": "ransom",
-        "name": "ransom",
-        "color": "#cd1818"
-    },
-    {
-        "id": "twilight",
-        "name": "twilight",
-        "color": "#17548c"
+        "id": "deepdarkv2",
+        "name": "deepdarkv2",
+        "color": "#0011ff"
     },
     {
         "id": "ultimated",
