@@ -669,7 +669,7 @@
             bolts.push({ x: player.x, y: player.y, vx: Math.cos(shotAngle) * speed, vy: Math.sin(shotAngle) * speed, damage, rarity, life, kind, sprite, radius });
         }
     }
-    const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)"]);
+    const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)", "firework arrow (mcd i)", "fireworks arrow (mcd i)"]);
     const cooldownsDisabled = () => localStorage.getItem(artifactCooldownDisabledKey) === "true";
     const setAbilityCooldown = seconds => {
         const imbue = itemImbueLevel(selectedArenaArtifact);
@@ -688,6 +688,7 @@
     });
     let attackEffects = [];
     let weaponCombo = 0;
+    let whirlwindHitCount = 0;
     let souls = 100;
     let facing = { x: 1, y: 0 };
     let corruption = 0;
@@ -818,6 +819,8 @@
         selectedArenaItem = arenaItemPicker.value;
         localStorage.setItem(arenaItemStorageKey, selectedArenaItem);
         bolts = [];
+        weaponCombo = 0;
+        whirlwindHitCount = 0;
         updateWeaponDisplay();
         updateArenaAbilityControl();
         gameStatus.textContent = selectedArenaItem ? `equipped ${selectedArenaItem} · orb projectiles disabled` : "amethyst orb selected";
@@ -905,7 +908,7 @@
                 });
             }
             setAbilityCooldown(8);
-        } else if (item === "firework arrow (mcdii)") {
+        } else if (["firework arrow (mcdii)", "firework arrow (mcd i)", "fireworks arrow (mcd i)"].includes(item)) {
             const dx = (aimTarget?.x ?? player.x + facing.x) - player.x;
             const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
             const distance = Math.hypot(dx, dy) || 1;
@@ -1307,10 +1310,17 @@
             ctx.arc(bolt.x, bolt.y, 5, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
         });
         attackEffects.forEach(effect => {
-            const progress = 1 - effect.life / .34;
-            ctx.globalAlpha = Math.max(0, effect.life / .34);
+            const duration = effect.duration || .34;
+            const progress = 1 - effect.life / duration;
+            ctx.globalAlpha = Math.max(0, effect.life / duration);
             ctx.strokeStyle = effect.color; ctx.shadowColor = effect.color; ctx.shadowBlur = 18; ctx.lineWidth = effect.type === "slam" ? 8 : 6;
-            if (effect.type === "slam") {
+            if (effect.type === "shockwave") {
+                const radius = 12 + progress * effect.radius;
+                ctx.lineWidth = 7 * (1 - progress * .55);
+                ctx.beginPath(); ctx.arc(effect.x, effect.y, radius, 0, Math.PI * 2); ctx.stroke();
+                ctx.globalAlpha *= .55;
+                ctx.beginPath(); ctx.arc(effect.x, effect.y, radius * .72, 0, Math.PI * 2); ctx.stroke();
+            } else if (effect.type === "slam") {
                 ctx.beginPath(); ctx.arc(effect.x, effect.y, 18 + progress * effect.radius, 0, Math.PI * 2); ctx.stroke();
             } else {
                 ctx.beginPath(); ctx.arc(effect.x, effect.y, 34 + progress * 18, effect.angle - 1.25, effect.angle + 1.25); ctx.stroke();
@@ -1593,6 +1603,7 @@
         facing = { x: Math.cos(angle), y: Math.sin(angle) };
         const frostHeart = weapon === "frost slayer" || weapon === "heartstealer";
         const starless = weapon === "the starless night";
+        const whirlwind = weapon === "whirlwind (mcd i)";
         const comboIndex = weaponCombo++ % (frostHeart ? 3 : starless ? 2 : 1);
         const slam = frostHeart ? comboIndex === 2 : starless ? comboIndex === 1 : ["hammer of gravity", "stormlander", "stormlander v2", "electric hammer v2", "great hammer"].includes(weapon);
         const color = weapon === "flame sword" ? "#ff7438" : frostHeart ? "#68dfff" : weapon.includes("crucible") || weapon === "awesomeaxe" ? "#ff572e" : rarityHitColor(rarity);
@@ -1603,6 +1614,27 @@
         const hitDamage = damage;
         damageEnemy(target, hitDamage, color);
         applyRarityImpact(target, rarity, hitDamage, true);
+        if (whirlwind && ++whirlwindHitCount % 3 === 0) {
+            const center = { x: target.x, y: target.y };
+            const waveRadius = 126;
+            const waveDamage = hitDamage * 1.5;
+            const waveColor = "#8cfaff";
+            attackEffects.push({ x: center.x, y: center.y, life: .46, duration: .46, type: "shockwave", radius: waveRadius, color: waveColor });
+            sparks.push({ x: center.x, y: center.y, life: .9, color: waveColor });
+            enemies.slice().filter(enemy => Math.hypot(enemy.x - center.x, enemy.y - center.y) <= waveRadius).forEach(enemy => {
+                const dx = enemy.x - center.x;
+                const dy = enemy.y - center.y;
+                const distance = Math.hypot(dx, dy);
+                const pushX = distance > 0 ? dx / distance : Math.cos(angle);
+                const pushY = distance > 0 ? dy / distance : Math.sin(angle);
+                const force = 30 + (1 - distance / waveRadius) * 82;
+                enemy.x = Math.max(enemy.radius, Math.min(arena.width - enemy.radius, enemy.x + pushX * force));
+                enemy.y = Math.max(enemy.radius, Math.min(arena.height - enemy.radius, enemy.y + pushY * force));
+                enemy.stunned = Math.max(enemy.stunned || 0, .22);
+                damageEnemy(enemy, waveDamage, waveColor);
+                applyRarityImpact(enemy, rarity, waveDamage, false);
+            });
+        }
         if (impactRadius > 0) {
             if (weapon === "hammer of gravity") {
                 enemies.forEach(enemy => {
@@ -1848,11 +1880,11 @@
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
                 bolts.push({ x: player.x + facing.x * 20, y: player.y + facing.y * 20, vx: facing.x * 390, vy: facing.y * 390, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2, kind: terror ? "terror" : "dominance", radius: terror ? 44 : 132 });
                 player.fireDelay = terror ? 1.05 : .82;
-            } else if (normalizedItemName(selectedArenaItem) === "firework arrow (mcdii)") {
+            } else if (["firework arrow (mcdii)", "fireworks arrow (mcd i)"].includes(normalizedItemName(selectedArenaItem))) {
                 const dx = (aimTarget?.x ?? target.x) - player.x;
                 const dy = (aimTarget?.y ?? target.y) - player.y;
                 const distance = Math.hypot(dx, dy) || 1;
-                const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === "firework arrow (mcdii)");
+                const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem);
                 facing = { x: dx / distance, y: dy / distance };
                 fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178, itemName: selectedArenaItem });
                 player.fireDelay = 1.05;
@@ -2005,7 +2037,7 @@
         bossSpawnClock = .2;
         const challenge = currentRunChallenge();
         player.x = arena.width / 2; player.y = arena.height / 2; player.maxHealth = 100 + arenaUpgrades.health * 10; player.health = player.maxHealth; player.invulnerable = 0; player.fireDelay = .25;
-        enemies = []; bolts = []; sparks = []; lightningEffects = []; attackEffects = []; playerTrail = []; elapsed = 0; spawnClock = .5; kills = 0; previousFrame = 0; weaponCombo = 0;
+        enemies = []; bolts = []; sparks = []; lightningEffects = []; attackEffects = []; playerTrail = []; elapsed = 0; spawnClock = .5; kills = 0; previousFrame = 0; weaponCombo = 0; whirlwindHitCount = 0;
         souls = 100; corruption = 0; ghostTime = 0; abilityCooldown = 0; beaconActive = false; facing = { x: 1, y: 0 };
         keys.clear(); moveTarget = null;
         updatePlayerHealth(); waveLabel.textContent = "1"; killsLabel.textContent = "0"; timeLabel.textContent = activeRunEndless ? "∞" : challenge.seconds;

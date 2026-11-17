@@ -59,19 +59,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "amethyst-clustering-mv5r2h27",
-        "name": "amethyst clustering",
-        "theme": "amethyst",
-        "themeColor": "#5900ff",
-        "start": "2026-11-06T22:13:00.000Z",
-        "end": "2026-11-09T22:14:00.000Z",
-        "items": [
-            "Huge Amethyst Cluster",
-            "Medium Amethyst Bud",
-            "Smol Amethyst Shard"
-        ]
-    },
-    {
         "id": "deep-dark-mv5q9qqp",
         "name": "deep dark",
         "theme": "deepdarkv2",
@@ -108,6 +95,67 @@ window.INVENTORY_EVENT_CATALOG = [
             "The Starless Night",
             "Void Stabilizer"
         ]
+    },
+    {
+        "id": "amethyst-clustering-mv5r2h27",
+        "name": "amethyst clustering",
+        "theme": "amethyst",
+        "themeColor": "#5900ff",
+        "start": "2026-11-06T22:13:00.000Z",
+        "end": "2026-11-09T22:14:00.000Z",
+        "items": [
+            "Amethyst Spear",
+            "Huge Amethyst Cluster",
+            "Medium Amethyst Bud",
+            "Smol Amethyst Shard"
+        ]
+    },
+    {
+        "id": "mcd-i-throwback-mwh6tn7a",
+        "name": "MCD I Throwback",
+        "theme": "auto",
+        "themeColor": "",
+        "start": "2027-09-28T13:29:00.000Z",
+        "end": "2027-10-07T13:28:00.000Z",
+        "items": [
+            "Axe",
+            "Bow",
+            "Cursed Axe",
+            "Daggers",
+            "Dark Katana",
+            "Flaming Quiver",
+            "Frost Slayer",
+            "Ghost Cloak",
+            "Gold Crown",
+            "Great Hammer",
+            "Hammer of Gravity",
+            "Heartstealer",
+            "Iron Sword",
+            "Orb of Dominance",
+            "Shivering Bow",
+            "Sparkler",
+            "Stormlander",
+            "Stormlander V2",
+            "Thundering Quiver",
+            "Updraft Tome",
+            "Vine Whip",
+            "Whirlwind (MCD I)",
+            "Winter's Touch"
+        ]
+    },
+    {
+        "id": "ass-mwk0aplx",
+        "name": "ASS",
+        "theme": "ass",
+        "themeColor": "#9900ff",
+        "start": "2027-02-24T01:20:00.000Z",
+        "end": "2027-03-03T01:21:00.000Z",
+        "items": [
+            "Amethyst Spear (ASS)",
+            "Corrupted Beacon (MCDII)",
+            "Log Stick (ASS)",
+            "The End Crystal's Beam (ASS)"
+        ]
     }
 ];
 window.INVENTORY_EVENT_PRESETS = [
@@ -115,6 +163,11 @@ window.INVENTORY_EVENT_PRESETS = [
         "id": "amethyst",
         "name": "amethyst",
         "color": "#5900ff"
+    },
+    {
+        "id": "ass",
+        "name": "ass",
+        "color": "#9900ff"
     },
     {
         "id": "deepdarkv2",
