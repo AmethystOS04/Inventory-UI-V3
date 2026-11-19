@@ -82,7 +82,27 @@
     --event-panel: #0b2d2d;
     --event-muted: #a5e8e2;
 }
-
+#dailyMissions[data-event-theme="winter"] {
+    --event-accent: #befbff;
+    --event-glow: rgba(44, 121, 223, 0.3);
+    --event-border: #2f77b2;
+    --event-panel: #154d4a;
+    --event-muted: #00ff9d;
+}
+#dailyMissions[data-event-theme="v1"] {
+    --event-accent: #ff00d4;
+    --event-glow: rgba(255, 132, 214, 0.3);
+    --event-border: #7f1bb9;
+    --event-panel: #151d4d;
+    --event-muted: #dda5e8;
+}
+#dailyMissions[data-event-theme="v2"] {
+    --event-accent: #0004ff;
+    --event-glow: rgba(132, 0, 255, 0.3);
+    --event-border: #b22f96;
+    --event-panel: #0b162d;
+    --event-muted: #e8a5e5;
+}
 #dailyMissions[data-event-theme] > h3,
 #dailyMissions[data-event-theme] .mission-card h4,
 #dailyMissions[data-event-theme] .mission-reward {

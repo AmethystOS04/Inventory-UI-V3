@@ -233,5 +233,20 @@ window.INVENTORY_EVENT_PRESETS = [
         "id": "ultimated",
         "name": "ultimated",
         "color": "#ff0000"
+    },
+    {
+        "id": "v1",
+        "name": "v1",
+        "color": "#e854b2"
+    },
+    {
+        "id": "v2",
+        "name": "v2",
+        "color": "#7454e8"
+    },
+    {
+        "id": "winter",
+        "name": "winter",
+        "color": "#b8fff1"
     }
 ];
