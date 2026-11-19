@@ -111,10 +111,24 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
+        "id": "ass-mwk0aplx",
+        "name": "ASS",
+        "theme": "ass",
+        "themeColor": "#9900ff",
+        "start": "2027-02-24T01:20:00.000Z",
+        "end": "2027-03-03T01:21:00.000Z",
+        "items": [
+            "Amethyst Spear (ASS)",
+            "Corrupted Blade (ASS)",
+            "Log Stick (ASS)",
+            "The End Crystal's Beam (ASS)"
+        ]
+    },
+    {
         "id": "mcd-i-throwback-mwh6tn7a",
         "name": "MCD I Throwback",
-        "theme": "auto",
-        "themeColor": "",
+        "theme": "mcdi",
+        "themeColor": "#ff0000",
         "start": "2027-09-28T13:29:00.000Z",
         "end": "2027-10-07T13:28:00.000Z",
         "items": [
@@ -123,6 +137,7 @@ window.INVENTORY_EVENT_CATALOG = [
             "Cursed Axe",
             "Daggers",
             "Dark Katana",
+            "Fireworks Arrow (MCD I)",
             "Flaming Quiver",
             "Frost Slayer",
             "Ghost Cloak",
@@ -144,17 +159,42 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "ass-mwk0aplx",
-        "name": "ASS",
-        "theme": "ass",
-        "themeColor": "#9900ff",
-        "start": "2027-02-24T01:20:00.000Z",
-        "end": "2027-03-03T01:21:00.000Z",
+        "id": "mcd-ii-mwmrcw78",
+        "name": "MCD II",
+        "theme": "mcdii",
+        "themeColor": "#00bfff",
+        "start": "2027-01-29T23:32:00.000Z",
+        "end": "2027-02-02T23:32:00.000Z",
         "items": [
-            "Amethyst Spear (ASS)",
+            "Awesomeaxe",
+            "Axe",
+            "Bow",
             "Corrupted Beacon (MCDII)",
-            "Log Stick (ASS)",
-            "The End Crystal's Beam (ASS)"
+            "Firework Arrow (MCDII)",
+            "Lightning Rod (MCDII)",
+            "Lunar Sickle",
+            "Pride of the Plains",
+            "Sculker Claws",
+            "Sculker's Bane",
+            "Sift Sickles",
+            "Slaymore",
+            "Soul Reaper",
+            "Twilight Dagger"
+        ]
+    },
+    {
+        "id": "thundering-skies-mwmrf910",
+        "name": "Thundering Skies",
+        "theme": "thunder",
+        "themeColor": "#0084ff",
+        "start": "2027-07-01T22:35:00.000Z",
+        "end": "2027-07-31T22:35:00.000Z",
+        "items": [
+            "Electric Hammer V1",
+            "Electric Hammer V2",
+            "Lightning Rod (MCDII)",
+            "Stormlander",
+            "Stormlander V2"
         ]
     }
 ];
@@ -173,6 +213,21 @@ window.INVENTORY_EVENT_PRESETS = [
         "id": "deepdarkv2",
         "name": "deepdarkv2",
         "color": "#0011ff"
+    },
+    {
+        "id": "mcdi",
+        "name": "mcdi",
+        "color": "#ff0000"
+    },
+    {
+        "id": "mcdii",
+        "name": "mcdii",
+        "color": "#00bfff"
+    },
+    {
+        "id": "thunder",
+        "name": "thunder",
+        "color": "#0084ff"
     },
     {
         "id": "ultimated",
