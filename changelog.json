@@ -3,6 +3,22 @@
   "project": "Inventory UI",
   "versions": [
     {
+      "version": "3.5.2",
+      "date": "2026-11-22",
+      "title": "V3.5.2",
+      "status": "published",
+      "summary": "updated changelog and wiki",
+      "sections": []
+    },
+    {
+      "version": "3.5.1",
+      "date": "2026-11-22",
+      "title": "V3.5.1",
+      "status": "published",
+      "summary": "3.5.1 - added previous update changelog (3.4.4) and update wiki to include new section on changelogs",
+      "sections": []
+    },
+    {
       "version": "3.5.0",
       "date": null,
       "title": "V3.5.0",
