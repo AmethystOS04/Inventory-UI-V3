@@ -92,6 +92,43 @@
           "status": "ready"
         }
       ]
+    },
+    {
+      "version": "3.4.3",
+      "date": "2026-11-16",
+      "title": "3.4.3",
+      "status": "published",
+      "summary": "add new items, 2 new events, and wiki update",
+      "sections": [
+        {
+          "id": "items",
+          "type": "added",
+          "title": "items",
+          "description": "whirlwind\nfireworks arrow (mcd i)\ncorrupted blade\nlog stick\namethyst spear",
+          "status": "ready"
+        },
+        {
+          "id": "wiki-update",
+          "type": "changed",
+          "title": "wiki update",
+          "description": "changed stardust imbuing\nquest player\nass\n",
+          "status": "draft"
+        },
+        {
+          "id": "events",
+          "type": "added",
+          "title": "events",
+          "description": "mcd i throwback\nass",
+          "status": "draft"
+        },
+        {
+          "id": "rarities",
+          "type": "added",
+          "title": "rarities",
+          "description": "dark rarity color changed",
+          "status": "draft"
+        }
+      ]
     }
   ]
 }
