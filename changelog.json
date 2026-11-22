@@ -1,21 +1,4 @@
 {
-<<<<<<< HEAD
-  "versions": [
-    {
-      "version": "3.5.0",
-      "title": "What's new",
-      "changes": [
-        "Changelogs",
-        "New music system update",
-        "More songs",
-        "New reality: Moonlight's Guide",
-        "New reality alt: Starlight's Curiousity",
-        "More items"
-      ]
-    }
-  ]
-}
-=======
   "schemaVersion": 1,
   "project": "Inventory UI",
   "versions": [
@@ -55,7 +38,36 @@
           "status": "ready"
         }
       ]
+    },
+    {
+      "version": "3.4.4",
+      "date": "2026-11-18",
+      "title": "previous version - add more events and updated wiki",
+      "status": "published",
+      "summary": "added 2 new event presets for future events\nnote: this changelog update for 3.4.4 merged all commits into one",
+      "sections": [
+        {
+          "id": "events-css",
+          "type": "changed",
+          "title": "events.css",
+          "description": "added 2 new events",
+          "status": "ready"
+        },
+        {
+          "id": "wiki-update",
+          "type": "changed",
+          "title": "wiki update",
+          "description": "ASS wiki page",
+          "status": "ready"
+        },
+        {
+          "id": "new-events",
+          "type": "added",
+          "title": "new events",
+          "description": "ASS event\nmcd i throwback\nmcd ii\nthundering skies",
+          "status": "ready"
+        }
+      ]
     }
   ]
 }
->>>>>>> 8cbd39c (3.5.0 - added changelogs, 2 new themes, fixed 1 reality, changed how music system works)
