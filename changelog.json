@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "versions": [
     {
       "version": "3.5.0",
@@ -14,3 +15,47 @@
     }
   ]
 }
+=======
+  "schemaVersion": 1,
+  "project": "Inventory UI",
+  "versions": [
+    {
+      "version": "3.5.0",
+      "date": null,
+      "title": "V3.5.0",
+      "status": "published",
+      "summary": "2 new realities\n1 reality changed\nnew song system\nchangelogs",
+      "sections": [
+        {
+          "id": "realities",
+          "type": "added",
+          "title": "realities",
+          "description": "- moonlight's guide\n- starlight's curiousity",
+          "status": "ready"
+        },
+        {
+          "id": "realities-changed",
+          "type": "changed",
+          "title": "realities changed",
+          "description": "- pitch black not following what its name is",
+          "status": "ready"
+        },
+        {
+          "id": "improved-song-system",
+          "type": "changed",
+          "title": "improved song system",
+          "description": "changed from using 'Inventory Theme x' to displaying the actual name of the song\nalso added some more songs cuz the ones existing are boring",
+          "status": "ready"
+        },
+        {
+          "id": "changelogs",
+          "type": "added",
+          "title": "changelogs",
+          "description": "added changelogs which you can scroll down to see the full thing or look at previous versions",
+          "status": "ready"
+        }
+      ]
+    }
+  ]
+}
+>>>>>>> 8cbd39c (3.5.0 - added changelogs, 2 new themes, fixed 1 reality, changed how music system works)

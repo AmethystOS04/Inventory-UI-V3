@@ -1,0 +1,16 @@
+/* Add these styles to the V3 stylesheet */
+#changelog-panel{min-width:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+.changelog-shell{display:flex;flex-direction:column;gap:18px;color:var(--text,#f4efff)}
+.changelog-version{padding:16px;border:1px solid var(--border-color,#393047);border-radius:14px;background:var(--panel-bg,#1b1728)}
+.changelog-version-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.changelog-version-heading h2{margin:4px 0 8px;font-size:1.25rem}
+.changelog-kicker,.changelog-entry-type{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#aaa0bd)}
+.changelog-version-number{white-space:nowrap;padding:5px 9px;border-radius:20px;background:#39264b;color:#e6c7ff}
+.changelog-summary{color:var(--muted,#aaa0bd)}
+.changelog-entry{padding:12px 0;border-top:1px solid var(--border-color,#393047)}
+.changelog-entry h3{margin:4px 0 8px;font-size:1rem}
+.changelog-entry-description p{margin:7px 0}
+.changelog-entry-description code{padding:2px 5px;border-radius:4px;background:#30283c}
+.changelog-entry-description pre{overflow:auto;padding:12px;border-radius:8px;background:#100d17}
+.changelog-entry-description blockquote{margin:8px 0;padding-left:12px;border-left:3px solid var(--accent,#c56cff);color:var(--muted,#aaa0bd)}
+.changelog-history{display:flex;flex-direction:column;gap:14px}

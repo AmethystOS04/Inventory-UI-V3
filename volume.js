@@ -2,22 +2,46 @@ const songs = [
 
     {
         file: "inv-music001.mp3",
-        name: "Inventory Theme 1"
+        name: "Inventory Music 1 - MCD I soundtrack"
     },
 
     {
         file: "inv-music002.mp3",
-        name: "Inventory Theme 2"
+        name: "Inventory Music 2 - MCD I soundtrack"
     },
 
     {
         file: "inv-music003.mp3",
-        name: "Inventory Theme 3"
+        name: "Inventory Music 3 - MCD I soundtrack"
     },
 
      {
         file: "inv-music004.mp3",
-        name: "Inventory Theme 4"
+        name: "Inventory Music 4 - MCD I soundtrack"
+    },
+    {
+        file: "fromthestart.mp3",
+        name: "From the Start - Good Kid"
+    },
+    {
+        file: "wall.mp3",
+        name: "Wall - Good Kid"
+    },
+    {
+        file: "notimetoexplain.mp3",
+        name: "No Time to Explain - Good Kid"
+    },
+    {
+        file: "tellmeyouknow.mp3",
+        name: "Tell Me You Know - Good Kid"
+    },
+    {
+        file: "quietplease.mp3",
+        name: "Quiet Please! - Dan Bull"
+    },
+    {
+        file: "everlastingfun.mp3",
+        name: "Everlasting Fun (KinitoPET Song) - LongestSoloEver"
     }
 
 

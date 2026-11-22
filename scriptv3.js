@@ -193,34 +193,76 @@ const randomMessage =
     if(localStorage.getItem("starterClaimed")){
 
         overlay.innerHTML = `
-            <div class="starter-popup welcome-layout">
-
-    <div class="welcome-main">
-
-        <h1>Welcome Back</h1>
-
-        <p class="welcome-message">
-            ${randomMessage}
-        </p>
-
-        <button id="continueBtn">
-            Continue
-        </button>
-
-    </div>
-
-    <div class="welcome-selector">
-
-        <h2>Welcome Text</h2>
-
-        <select id="welcomeSelect"></select>
-
-        
-
-    </div>
-
-</div>
+            <div class="welcome-changelog-layout">
+              <div class="starter-popup welcome-layout">
+                <div class="welcome-main">
+                  <h1>Welcome Back</h1>
+                  <p class="welcome-message">${randomMessage}</p>
+                  <button id="continueBtn">Continue</button>
+                </div>
+                <div class="welcome-selector">
+                  <h2>Welcome Text</h2>
+                  <select id="welcomeSelect"></select>
+                </div>
+              </div>
+              <aside id="changelog-panel" aria-label="Changelog">
+                <h2 class="changelog-panel-title">Changelog</h2>
+                <div class="changelog-loading">Loading changelog...</div>
+              </aside>
+            </div>
         `;
+
+        // Keep the changelog beside the existing welcome popup without changing the inventory layout
+        if (!document.getElementById("welcomeChangelogStyles")) {
+            const style = document.createElement("style");
+            style.id = "welcomeChangelogStyles";
+            style.textContent = `
+              #starterOverlay { overflow-y:auto; }
+              .welcome-changelog-layout { display:flex; align-items:flex-start; justify-content:center; gap:22px; width:min( min(96vw, 1320px), 100%); max-height:88vh; margin:auto; }
+              .welcome-changelog-layout > .starter-popup { flex:0 1 700px; align-self:flex-start; min-width:0; margin:0; }
+              #changelog-panel { flex:0 0 340px; align-self:flex-start; height:auto; max-height:60vh; min-height:0; min-width:260px; max-width:360px; overflow-y:auto; box-sizing:border-box; padding:20px; border:2px solid #d000ff; border-radius:20px; background:rgba(12,5,20,.97); color:#f4efff; box-shadow:0 0 24px #d000ff; text-align:left; }
+              .changelog-panel-title { margin:0 0 14px; color:#ed00ff; text-align:center; }
+              .changelog-shell { display:flex; flex-direction:column; gap:14px; }
+              .changelog-version { padding:12px; border:1px solid #493052; border-radius:12px; background:#1b1728; }
+              .changelog-version-heading { display:flex; justify-content:space-between; gap:8px; }
+              .changelog-version-heading h2 { margin:4px 0 8px; font-size:1.05rem; }
+              .changelog-kicker,.changelog-entry-type { font-size:.7rem; color:#c5afd5; }
+              .changelog-version-number { white-space:nowrap; }
+              .changelog-entry { padding:10px 0; border-top:1px solid #493052; }
+              .changelog-entry h3 { margin:4px 0; font-size:.95rem; }
+              .changelog-entry-description p { margin:6px 0; }
+              .changelog-loading { color:#c5afd5; text-align:center; }
+              @media(max-width:850px) { .welcome-changelog-layout { flex-direction:column; align-items:center; width:min(96vw,700px); max-height:none; } .welcome-changelog-layout > .starter-popup { flex:0 0 auto; align-self:stretch; width:100%; } #changelog-panel { flex:0 0 auto; align-self:stretch; width:100%; height:auto; max-height:35vh; min-height:0; max-width:none; min-width:0; } }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const changelogPanel = document.getElementById("changelog-panel");
+        const loadChangelog = () => {
+            if (!window.InventoryChangelog) {
+                changelogPanel.textContent = "Unable to load changelog renderer";
+                return;
+            }
+            window.InventoryChangelog.load("changelog.json", changelogPanel).catch(error => {
+                console.error("Failed to load changelog:", error);
+                changelogPanel.textContent = "Unable to load changelog";
+            });
+        };
+        if (window.InventoryChangelog) {
+            loadChangelog();
+        } else {
+            const renderer = document.createElement("script");
+            renderer.src = "changelog.js";
+            renderer.onload = loadChangelog;
+            renderer.onerror = () => { changelogPanel.textContent = "Unable to load changelog renderer"; };
+            document.head.appendChild(renderer);
+        }
+        window.addEventListener("focus", () => {
+            if (window.InventoryChangelog) loadChangelog();
+        });
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden && window.InventoryChangelog) loadChangelog();
+        });
 
 
 const select = document.getElementById("welcomeSelect");

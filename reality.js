@@ -208,12 +208,12 @@ const realities = {
         name: "Pitch Black",
         panel: "#000000",
         infoPanel: "#000000",
-        border: "#ff00ff",
-        borderGlow: "rgba(255, 0, 255, 0.5)",
-        accent: "#ff00e2",
-        accent2: "#5c1082",
+        border: "#000000",
+        borderGlow: "rgba(0, 0, 0, 0.5)",
+        accent: "#000000",
+        accent2: "#000000",
         text: "#ffffff",
-        muted: "#8d7d99"
+        muted: "#363636"
     },
 
     lightsout: {
@@ -293,7 +293,29 @@ accent: "#FF6A00",
 accent2: "#FFD21F",
 text: "#FFF1D6",
 muted: "#8F7460"
-    }
+    },
+    moonlightsguide: {
+        name: "Moonlight's Guide",
+        panel: "#18183a",
+        infoPanel: "#181849",
+        border: "#00FFCC",
+        borderGlow: "rgba(0, 255, 204, 0.5)",
+        accent: "#00CCFF",
+        accent2: "#0066FF",
+        text: "#FFFFFF",
+        muted: "#7D9999"
+    },
+    starlightscuriousity: {
+        name: "Starlight's Curiousity",
+        panel: "#1f1b0d",
+        infoPanel: "#38200c",
+        border: "#ffee00",
+        borderGlow: "rgba(255, 255, 0, 0.5)",
+        accent: "#ffbb00",
+        accent2: "#ffd900",
+        text: "#FFFFFF",
+        muted: "#aaa899"
+    }   
 };
 function applyReality(realityName) {
     const reality = realities[realityName];
