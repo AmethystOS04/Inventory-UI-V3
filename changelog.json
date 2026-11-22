@@ -3,6 +3,14 @@
   "project": "Inventory UI",
   "versions": [
     {
+      "version": "3.5.3",
+      "date": "2026-11-22",
+      "title": "item update and event update",
+      "status": "published",
+      "summary": "updated item catalog and the ASS event",
+      "sections": []
+    },
+    {
       "version": "3.5.2",
       "date": "2026-11-22",
       "title": "V3.5.2",

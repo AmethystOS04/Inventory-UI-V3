@@ -14,13 +14,15 @@ Firework Arrow (MCDII),150px-MCD2_Firework_Arrow_screenshot.webp,5553,Special,0,
 Stormlander V2,Stormlander V2.png,666,Electric,670,0,0,True,3,strikes your enemies with thunder causing a chain reaction,,0
 Electric Hammer V1,electrichammer.png,5553,Electric,5559,0,0,True,2,"ah, the old days",,0
 Sift Sickles,64px-MCD2_Render_Sift_Sickles_Icon.webp,775,Seasonal,776,0,0,True,2,the sickles are sifting,deep dark,0
-The End Crystal's Beam (ASS),The End Crystals Beam.png,500,Void+,502,0,0,False,0,first void+ item for a while.. striking hits wasnt enough? how about deleting your enemies with a striking crystal beam?,,4
+The End Crystal's Beam (ASS),The End Crystals Beam.png,500,Void+,502,0,0,True,1,first void+ item for a while.. striking hits wasnt enough? how about deleting your enemies with a striking crystal beam?,,4
 Amethyst Spear (ASS),Amethyst Spear.png,300,Special,302,0,0,True,1,amethyst,,0
 Whirlwind (MCD I),Whirlwind.png,60,Unique,62,0,0,False,0,swirls your enemies around and releases a shockwave at the end,,0
 Fireworks Arrow (MCD I),MCD_Fireworks_Arrow.webp,66,Rare,67,0,500,True,3,"explodes when hitting something and starts a firework show!
 grab some popcorn, sit back and enjoy!",,0
-Log Stick (ASS),Log Stick.png,4,Special,5,0,0,False,0,"hits like a stick
+Log Stick (ASS),Log Stick.png,4,Special,5,0,0,True,2,"hits like a stick
 does minimal damage
 came directly from my mod.. rendered in blender",,0
-Corrupted Blade (ASS),Corrupted Blade.png,58,Dark,59,0,0,False,0,"corrupts and strikes
+Corrupted Blade (ASS),Corrupted Blade.png,58,Dark,59,0,0,True,2,"corrupts and strikes
 defeats most mobs in a single hit.. the saying cant be said for bosses....",,0
+Energizer of Souls (ASS),energizer_of_souls.png,66,Unique,68,0,0,True,3,"energizes your souls and strikes and souly hit
+item icon is just placeholder",,0
