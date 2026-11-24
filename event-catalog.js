@@ -11,18 +11,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "frosting-winter-mv5qedff",
-        "name": "frosting winter",
-        "start": "2026-12-21T21:54:00.000Z",
-        "end": "2026-12-24T05:00:00.000Z",
-        "items": [
-            "Blue Crucible",
-            "Frost Slayer",
-            "Shivering Bow",
-            "Winter's Touch"
-        ]
-    },
-    {
         "id": "staring-space-mv5qh7oy",
         "name": "starring space",
         "start": "2027-02-28T21:57:00.000Z",
@@ -111,20 +99,6 @@ window.INVENTORY_EVENT_CATALOG = [
         ]
     },
     {
-        "id": "ass-mwk0aplx",
-        "name": "ASS",
-        "theme": "ass",
-        "themeColor": "#9900ff",
-        "start": "2027-02-24T01:20:00.000Z",
-        "end": "2027-03-03T01:21:00.000Z",
-        "items": [
-            "Amethyst Spear (ASS)",
-            "Corrupted Blade (ASS)",
-            "Log Stick (ASS)",
-            "The End Crystal's Beam (ASS)"
-        ]
-    },
-    {
         "id": "mcd-i-throwback-mwh6tn7a",
         "name": "MCD I Throwback",
         "theme": "mcdi",
@@ -195,6 +169,35 @@ window.INVENTORY_EVENT_CATALOG = [
             "Lightning Rod (MCDII)",
             "Stormlander",
             "Stormlander V2"
+        ]
+    },
+    {
+        "id": "frosting-winter-mv5qedff",
+        "name": "frosting winter",
+        "theme": "winter",
+        "themeColor": "#b8fff1",
+        "start": "2026-12-10T21:54:00.000Z",
+        "end": "2026-12-16T05:00:00.000Z",
+        "items": [
+            "Blue Crucible",
+            "Frost Slayer",
+            "Shivering Bow",
+            "Winter's Touch"
+        ]
+    },
+    {
+        "id": "ass-mwk0aplx",
+        "name": "ASS",
+        "theme": "ass",
+        "themeColor": "#9900ff",
+        "start": "2027-02-24T01:20:00.000Z",
+        "end": "2027-03-03T01:21:00.000Z",
+        "items": [
+            "Amethyst Spear (ASS)",
+            "Corrupted Blade (ASS)",
+            "Energizer of Souls",
+            "Log Stick (ASS)",
+            "The End Crystal's Beam (ASS)"
         ]
     }
 ];
