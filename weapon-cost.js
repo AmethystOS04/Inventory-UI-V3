@@ -23,13 +23,13 @@
         none: 0.5
     };
 
-    window.estimateWeaponCost = function (damage, rarity, power, protection, artifactPower) {
+    window.estimateWeaponCost = function (damage, rarity, power, resilience, artifactPower) {
         const damageNum = parseInt(damage) || 0;
         const powerNum = parseInt(power) || 0;
-        const protNum = parseInt(protection) || 0;
+        const resilienceNum = parseInt(resilience) || 0;
         const artNum = parseInt(artifactPower) || 0;
         const multiplier = rarityMultiplier[String(rarity).toLowerCase()] || 1;
-        const baseCost = (damageNum * 2 + powerNum * 0.5 + protNum * 3 + artNum * 2) * multiplier;
+        const baseCost = (damageNum * 2 + powerNum * 0.5 + resilienceNum * 3 + artNum * 2) * multiplier;
 
         return {
             ap: Math.ceil(baseCost * 1.2),

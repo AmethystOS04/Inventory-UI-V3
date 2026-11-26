@@ -41,9 +41,9 @@
         "realities-3": { title: "reality hopper", objective: "visit 3 different realities", tracker: "realities", target: 3, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
         "realities-5": { title: "realm walker", objective: "visit 5 different realities", tracker: "realities", target: 5, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
         "realities-7": { title: "reality drifter", objective: "visit 7 different realities", tracker: "realities", target: 7, noun: "realities visited", ap: 25, mp: 15, stardust: 1 },
-        "enchant-1": { title: "blacksmith's touch", objective: "apply 1 enchant", tracker: "enchants", target: 1, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 },
-        "enchant-2": { title: "rune crafter", objective: "apply 2 enchants", tracker: "enchants", target: 2, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 },
-        "enchant-3": { title: "master smith", objective: "apply 3 enchants", tracker: "enchants", target: 3, noun: "enchants applied", ap: 35, mp: 20, stardust: 1 }
+        "arena-kills-5": { title: "rift hunter", objective: "defeat 5 enemies in the rift arena", tracker: "arena-kills", target: 5, noun: "arena enemies defeated", ap: 35, mp: 20, stardust: 1 },
+        "arena-kills-10": { title: "rift sweeper", objective: "defeat 10 enemies in the rift arena", tracker: "arena-kills", target: 10, noun: "arena enemies defeated", ap: 35, mp: 20, stardust: 1 },
+        "arena-kills-15": { title: "rift breaker", objective: "defeat 15 enemies in the rift arena", tracker: "arena-kills", target: 15, noun: "arena enemies defeated", ap: 35, mp: 20, stardust: 1 }
     };
 
     function readQuestCatalog() {
@@ -61,13 +61,13 @@
     const customCatalog = readQuestCatalog();
     const questOptions = { ...defaultQuestOptions };
     customCatalog.daily.forEach(quest => {
-        if (quest?.id && ["items", "realities", "enchants"].includes(quest.tracker)) {
+        if (quest?.id && ["items", "realities"].includes(quest.tracker)) {
             questOptions[quest.id] = { ...quest, stardust: Number(quest.stardust ?? 1) || 0 };
         }
     });
 
-    const questSlots = ["inspect", "realities", "enchant"];
-    const slotTrackers = { inspect: "items", realities: "realities", enchant: "enchants" };
+    const questSlots = ["inspect", "realities", "arena"];
+    const slotTrackers = { inspect: "items", realities: "realities", arena: "arena-kills" };
     function randomChoice(values) {
         return values[Math.floor(Math.random() * values.length)];
     }
@@ -95,7 +95,7 @@
             progress: {
                 inspect: { count: 0, seen: [] },
                 realities: { count: 0, seen: [] },
-                enchant: { count: 0 }
+                arena: { count: 0 }
             },
             completed: {},
             rewarded: {},
@@ -250,7 +250,7 @@
             const current = state.quests[slot];
             if (questOptions[current]?.tracker !== slotTrackers[slot]) {
                 state.quests[slot] = randomChoice(questChoices(slot, used));
-                state.progress[slot] = slot === "enchant" ? { count: 0 } : { count: 0, seen: [] };
+                state.progress[slot] = { count: 0, seen: [] };
                 delete state.completed[slot];
                 delete state.rewarded[slot];
             }
@@ -325,7 +325,7 @@
         }
     }
 
-    const refreshCosts = { inspect: 100, realities: 300, enchant: 500 };
+    const refreshCosts = { inspect: 100, realities: 300, arena: 500 };
 
     function syncRefreshControls() {
         const balance = getBalance("ap");
@@ -388,9 +388,7 @@
                 .map(otherSlot => state.quests[otherSlot]);
             const choices = questChoices(slot, [state.quests[slot], ...otherQuests]);
             state.quests[slot] = randomChoice(choices);
-            state.progress[slot] = state.quests[slot].startsWith("enchant-")
-                ? { count: 0 }
-                : { count: 0, seen: [] };
+            state.progress[slot] = { count: 0, seen: [] };
             delete state.completed[slot];
             delete state.rewarded[slot];
             delete state.counted[slot];
@@ -436,22 +434,6 @@
         });
         save();
     });
-
-    const originalApplyEnchant = window.applyEnchant;
-    window.applyEnchant = function (...args) {
-        const result = originalApplyEnchant.apply(this, args);
-        const select = document.getElementById("enchantSelect");
-        if (select.selectedIndex > 0) {
-            questSlots.forEach(slot => {
-                const quest = questOptions[state.quests[slot]];
-                if (quest.tracker !== "enchants") return;
-                state.progress[slot].count += 1;
-                updateMission(slot);
-            });
-            save();
-        }
-        return result;
-    };
 
     const weeklyOptions = {
         "amethyst-vault": {
@@ -656,24 +638,29 @@
     function itemImbueLevel(name) {
         return Math.max(0, Math.min(10, Math.floor(Number(window.getItemImbueLevel?.(name)) || 0)));
     }
+    function itemPerk(name, rarity) {
+        return window.InventoryItemEffects?.getPerk(name, rarity) || null;
+    }
     function imbuedProjectileCount(name) {
         const configured = arenaConfiguredCount(arenaProjectileCountStorageKey, 1);
         const level = itemImbueLevel(name);
         return level ? Math.max(configured, Math.ceil(level / 2)) : configured;
     }
-    function fireProjectileVolley({ angle, speed, damage, life, kind, rarity, sprite, radius, itemName = selectedArenaItem }) {
+    function fireProjectileVolley({ angle, speed, damage, life, kind, rarity, sprite, radius, itemName = selectedArenaItem, sourceName = selectedArenaItem }) {
         const count = imbuedProjectileCount(itemName);
         const spread = 0.07;
         for (let index = 0; index < count; index++) {
             const shotAngle = angle + (index - (count - 1) / 2) * spread;
-            bolts.push({ x: player.x, y: player.y, vx: Math.cos(shotAngle) * speed, vy: Math.sin(shotAngle) * speed, damage, rarity, life, kind, sprite, radius });
+            bolts.push({ x: player.x, y: player.y, vx: Math.cos(shotAngle) * speed, vy: Math.sin(shotAngle) * speed, damage, rarity, life, kind, sprite, radius, weaponName: sourceName });
         }
     }
-    const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)", "firework arrow (mcd i)", "fireworks arrow (mcd i)"]);
+    const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "firework arrow (mcdii)", "firework arrow (mcd i)", "fireworks arrow (mcd i)"]);
     const cooldownsDisabled = () => localStorage.getItem(artifactCooldownDisabledKey) === "true";
     const setAbilityCooldown = seconds => {
         const imbue = itemImbueLevel(selectedArenaArtifact);
-        const reduced = Math.max(2, seconds * (1 - imbue * .03));
+        const perk = itemPerk(selectedArenaArtifact, selectedArtifactRarity());
+        const perkReduction = perk?.id === "cooldown" ? perk.value / 100 : 0;
+        const reduced = Math.max(2, seconds * (1 - imbue * .03) * (1 - perkReduction));
         abilityCooldown = cooldownsDisabled() ? 0 : reduced;
     };
     let selectedArenaItem = "";
@@ -749,14 +736,15 @@
         updateArenaAbilityControl();
     }
     function selectedArtifact() { return normalizedItemName(selectedArenaArtifact); }
-    function selectedArtifactProtection() {
-        const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === selectedArtifact());
-        const catalogProtection = Math.max(0, Number(card?.dataset.protection) || 0);
-        return selectedArtifact() === "golden crown" ? Math.max(4, catalogProtection) + itemImbueLevel(selectedArenaArtifact) * .5 : catalogProtection;
+    function selectedResilience() {
+        const selectedNames = [selectedArenaItem, selectedArenaArtifact].filter(Boolean).map(normalizedItemName);
+        return Math.max(0, ...selectedNames.map(name => {
+            const card = arenaItemCards().find(item => normalizedItemName(item.dataset.itemName) === name);
+            return Number(card?.dataset.resilience ?? card?.dataset.protection) || 0;
+        }));
     }
-    function selectedWeaponProtection() {
-        const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem);
-        return Math.max(0, Number(card?.dataset.protection) || 0);
+    function incomingDamageMultiplier() {
+        return 1 - Math.min(75, selectedResilience()) / 100;
     }
     function getArenaSprite(image, size, preserveAspect = false) {
         if (!image?.complete || !image.naturalWidth || !image.naturalHeight) return null;
@@ -800,7 +788,7 @@
         selectedArtifactImage = arenaArtifactPreview;
     }
     function updateArenaAbilityControl() {
-        const passive = ["golden crown", "void stabilizer", "flaming quiver", "thundering quiver"].includes(selectedArtifact());
+        const passive = ["void stabilizer", "flaming quiver", "thundering quiver"].includes(selectedArtifact());
         const weaponDamage = selectedArenaItem ? selectedWeaponDamage() : 14 + arenaUpgrades.damage * 3;
         const compact = value => value === Infinity ? "∞" : window.formatInventoryNumber ? window.formatInventoryNumber(value) : String(value);
         if (arenaWeaponDamageLabel) arenaWeaponDamageLabel.textContent = `weapon damage: ${compact(weaponDamage)}`;
@@ -863,7 +851,7 @@
             const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
             const distance = Math.hypot(dx, dy) || 1;
             facing = { x: dx / distance, y: dy / distance };
-            bolts.push({ x: player.x + facing.x * 26, y: player.y + facing.y * 26, vx: facing.x * 560, vy: facing.y * 560, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.4, kind: "stormlander-throw", sprite: selectedWeaponImage, returning: false, bouncesRemaining: stormlanderBounceCount() });
+            bolts.push({ x: player.x + facing.x * 26, y: player.y + facing.y * 26, vx: facing.x * 560, vy: facing.y * 560, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.4, kind: "stormlander-throw", sprite: selectedWeaponImage, weaponName: selectedArenaItem, returning: false, bouncesRemaining: stormlanderBounceCount() });
             setAbilityCooldown(3.5);
             gameStatus.textContent = "stormlander thrown · big lightning strike on impact";
             updateArenaAbilityControl();
@@ -913,14 +901,14 @@
             const dy = (aimTarget?.y ?? player.y + facing.y) - player.y;
             const distance = Math.hypot(dx, dy) || 1;
             facing = { x: dx / distance, y: dy / distance };
-            fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178, itemName: item });
+            fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedArtifactDamage(), life: 2.2, kind: "firework", sprite: selectedArtifactImage, radius: 178, itemName: item, sourceName: item });
             setAbilityCooldown(4);
         }
         updateArenaAbilityControl();
         drawArena();
     }
     function artifactCanRepeat() {
-        return !!selectedArtifact() && !selectedArtifact().startsWith("corrupted beacon") && !["golden crown", "void stabilizer", "flaming quiver", "thundering quiver"].includes(selectedArtifact());
+        return !!selectedArtifact() && !selectedArtifact().startsWith("corrupted beacon") && !["void stabilizer", "flaming quiver", "thundering quiver"].includes(selectedArtifact());
     }
     window.addEventListener("inventory-catalog-updated", refreshArenaItemPicker);
 
@@ -1390,12 +1378,10 @@
         const artifactSprite = selectedArenaArtifact ? getArenaSprite(selectedArtifactImage, 48) : null;
         if (artifactSprite) {
             ctx.save();
-            if (selectedArtifact() === "golden crown" && !selectedArenaItem) ctx.translate(player.x, player.y - 18);
-            else ctx.translate(player.x - facing.x * 31, player.y - facing.y * 31);
+            ctx.translate(player.x - facing.x * 31, player.y - facing.y * 31);
             ctx.globalAlpha = ghostTime > 0 ? .45 : .9;
             ctx.shadowColor = "#45d9ff"; ctx.shadowBlur = 12;
-            const artifactSize = selectedArtifact() === "golden crown" ? 60 : 48;
-            ctx.drawImage(artifactSprite, -artifactSize / 2, -artifactSize / 2, artifactSize, artifactSize);
+            ctx.drawImage(artifactSprite, -24, -24, 48, 48);
             ctx.restore();
         }
         ctx.globalAlpha = 1;
@@ -1466,6 +1452,7 @@
     }
 
     function catalogItemDamage(name) {
+        if (normalizedItemName(name) === "orb of dominance") return Infinity;
         const card = arenaItemCards().find(item => item.dataset.itemName === name || (item.getAttribute("onclick") || "").includes(name));
         if (!card) return 0;
         const storedDamage = Number(card.dataset.damage);
@@ -1474,6 +1461,84 @@
         if (match?.[1] === "∞") return Infinity;
         const parsedDamage = Number(match?.[1]);
         return Number.isFinite(parsedDamage) ? Math.max(0, parsedDamage) : 0;
+    }
+
+    function readShowItemArgs(card) {
+        const source = card?.getAttribute("onclick") || "";
+        const match = source.match(/showItem\s*\(([^)]*)\)/i);
+        if (!match) return [];
+        const raw = match[1];
+        const values = [];
+        let value = "";
+        let quote = "";
+        let escaped = false;
+        for (const char of raw) {
+            if (escaped) { value += char; escaped = false; continue; }
+            if (char === "\\" && quote) { value += char; escaped = true; continue; }
+            if (quote) {
+                value += char;
+                if (char === quote) quote = "";
+            } else if (char === "'" || char === '"') {
+                quote = char;
+                value += char;
+            } else if (char === ",") {
+                values.push(value.trim());
+                value = "";
+            } else value += char;
+        }
+        values.push(value.trim());
+        return values.map(entry => {
+            const trimmed = entry.trim();
+            if ((trimmed.startsWith("'") && trimmed.endsWith("'")) || (trimmed.startsWith('"') && trimmed.endsWith('"'))) return trimmed.slice(1, -1).replace(/\\([\\'"\\])/g, "$1");
+            return trimmed;
+        });
+    }
+
+    function catalogItemArtifactPower(name) {
+        const card = arenaItemCards().find(item => item.dataset.itemName === name || (item.getAttribute("onclick") || "").includes(name));
+        if (!card) return 0;
+        if (card.dataset.artifactPower !== undefined) return Math.max(0, Number(card.dataset.artifactPower) || 0);
+        return Math.max(0, Number(readShowItemArgs(card)[5]) || 0);
+    }
+
+    function catalogItemRarity(name) {
+        const card = arenaItemCards().find(item => item.dataset.itemName === name || (item.getAttribute("onclick") || "").includes(name));
+        return String(card?.dataset.rarity || readShowItemArgs(card)[2] || "").trim().toLowerCase().replace(/\s+/g, " ").replace(/\s*\+\s*/g, "+");
+    }
+
+    function weaponFireDelay(seconds) {
+        const perk = itemPerk(selectedArenaItem, selectedWeaponRarity());
+        player.fireDelay = seconds * (perk?.id === "reload" ? 1 - perk.value / 100 : 1);
+    }
+
+    function applyWeaponHitPerk(enemy, amount, itemName, rarity) {
+        const perk = itemPerk(itemName, rarity);
+        if (!enemy || !perk) return amount;
+        let damage = amount;
+        if (perk.id === "bounty" && enemy.hp < enemy.maxHp) damage *= 1 + perk.value / 100;
+        if ((perk.id === "critical" || perk.id === "aim") && Math.random() < perk.value / 100) {
+            damage *= 2;
+            sparks.push({ x: enemy.x, y: enemy.y, life: .7, color: "#fff18a" });
+        }
+        return damage;
+    }
+
+    function applyWeaponPerkKnockback(enemy, itemName, rarity, origin = player) {
+        const perk = itemPerk(itemName, rarity);
+        if (!enemy || perk?.id !== "knockback") return;
+        const dx = enemy.x - origin.x;
+        const dy = enemy.y - origin.y;
+        const distance = Math.hypot(dx, dy) || 1;
+        const force = 14 + perk.value;
+        enemy.x = Math.max(enemy.radius, Math.min(arena.width - enemy.radius, enemy.x + dx / distance * force));
+        enemy.y = Math.max(enemy.radius, Math.min(arena.height - enemy.radius, enemy.y + dy / distance * force));
+    }
+
+    function damageWithWeaponPerk(enemy, amount, color, itemName, rarity, origin = player) {
+        const damage = applyWeaponHitPerk(enemy, amount, itemName, rarity);
+        damageEnemy(enemy, damage, color);
+        applyWeaponPerkKnockback(enemy, itemName, rarity, origin);
+        return damage;
     }
 
     function selectedWeaponDamage() {
@@ -1497,12 +1562,13 @@
             "void plus": 1.35
         }[rarity] || 1;
         const imbuedDamage = window.getItemImbueDamageBonus?.(selectedArenaItem, baseDamage) || 0;
-        return (baseDamage + imbuedDamage) * multiplier;
+        const perk = itemPerk(selectedArenaItem, rarity);
+        const perkMultiplier = perk?.id === "impact" ? 1 + perk.value / 100 : 1;
+        return (baseDamage + imbuedDamage) * multiplier * perkMultiplier;
     }
 
     function selectedWeaponRarity() {
-        const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem || (item.getAttribute("onclick") || "").includes(selectedArenaItem));
-        return String(card?.dataset.rarity || "").trim().toLowerCase().replace(/\s+/g, " ").replace(/\s*\+\s*/g, "+");
+        return catalogItemRarity(selectedArenaItem);
     }
 
     function applyRarityEffect(enemy, rarity, damage) {
@@ -1577,9 +1643,14 @@
     }
 
     function selectedArtifactDamage() {
-        const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaArtifact || (item.getAttribute("onclick") || "").includes(selectedArenaArtifact));
-        const baseDamage = Math.max(0, Number(card?.dataset.artifactPower) || catalogItemDamage(selectedArenaArtifact));
-        return baseDamage + (window.getItemImbueDamageBonus?.(selectedArenaArtifact, baseDamage) || 0);
+        const basePower = catalogItemArtifactPower(selectedArenaArtifact);
+        const imbuedPower = basePower + (window.getItemImbueDamageBonus?.(selectedArenaArtifact, basePower) || 0);
+        const perk = itemPerk(selectedArenaArtifact, selectedArtifactRarity());
+        return imbuedPower * (perk?.id === "artifact-damage" ? 1 + perk.value / 100 : 1);
+    }
+
+    function selectedArtifactRarity() {
+        return catalogItemRarity(selectedArenaArtifact);
     }
 
     function isArenaBow() {
@@ -1611,7 +1682,7 @@
         const attackType = slam ? "slam" : frostHeart ? ["swing", "stab"][comboIndex] : starless ? "swing" : "swing";
         attackEffects.push({ x: player.x, y: player.y, angle, life: .34, type: slam ? "slam" : "swing", stab: attackType === "stab", radius: impactRadius || 62, color });
 
-        const hitDamage = damage;
+        const hitDamage = applyWeaponHitPerk(target, damage, selectedArenaItem, rarity);
         damageEnemy(target, hitDamage, color);
         applyRarityImpact(target, rarity, hitDamage, true);
         if (whirlwind && ++whirlwindHitCount % 3 === 0) {
@@ -1669,6 +1740,7 @@
             player.health = Math.min(player.maxHealth, player.health + Math.max(2, hitDamage * .28));
             updatePlayerHealth();
         }
+        applyWeaponPerkKnockback(target, selectedArenaItem, rarity);
         gameStatus.textContent = `${selectedArenaItem} · ${attackType}${frostHeart ? " · freezing" : ""}${weapon === "heartstealer" ? " · leeching" : ""}`;
     }
 
@@ -1682,6 +1754,12 @@
             killsLabel.textContent = kills;
             souls += 10;
             window.triggerBadgeAction?.("arena-kill", 1);
+            const dailyArenaQuest = questOptions[state.quests.arena];
+            if (dailyArenaQuest?.tracker === "arena-kills" && !state.completed.arena) {
+                state.progress.arena.count += 1;
+                updateMission("arena");
+                save();
+            }
             if (activeRunMode === "soul-rush") riftShards.push({ x: enemy.x, y: enemy.y, life: 16, phase: Math.random() * Math.PI * 2 });
             if (enemy.boss && activeRunMode === "boss-hunt") {
                 bossesDefeated += 1;
@@ -1731,7 +1809,7 @@
         if (corruption >= 100) {
             corruption = 35;
             if (player.invulnerable <= 0) {
-                player.health -= 1;
+                player.health -= incomingDamageMultiplier();
                 player.invulnerable = 1.15 + arenaUpgrades.resistance * .35;
                 updatePlayerHealth();
                 if (player.health <= 0) finishRun(false, "void corruption consumed you · try again");
@@ -1858,7 +1936,7 @@
             const contactY = player.y - enemy.y;
             const contactDistance = Math.hypot(contactX, contactY) || 1;
             if (!(enemy.air > 0) && contactDistance < player.radius + enemy.radius && player.invulnerable <= 0) {
-                player.health -= Math.max(1, 10 - selectedArtifactProtection()) * difficultySettings().damage; player.invulnerable = 1.15 + arenaUpgrades.resistance * .35;
+                player.health -= 10 * incomingDamageMultiplier() * difficultySettings().damage; player.invulnerable = 1.15 + arenaUpgrades.resistance * .35;
                 player.x = Math.max(player.radius, Math.min(arena.width - player.radius, player.x + contactX / contactDistance * 36));
                 player.y = Math.max(player.radius, Math.min(arena.height - player.radius, player.y + contactY / contactDistance * 36));
                 updatePlayerHealth();
@@ -1879,7 +1957,7 @@
                 const terror = normalizedItemName(selectedArenaItem) === "staff of terror";
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
                 bolts.push({ x: player.x + facing.x * 20, y: player.y + facing.y * 20, vx: facing.x * 390, vy: facing.y * 390, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2, kind: terror ? "terror" : "dominance", radius: terror ? 44 : 132 });
-                player.fireDelay = terror ? 1.05 : .82;
+                weaponFireDelay(terror ? 1.05 : .82);
             } else if (["firework arrow (mcdii)", "fireworks arrow (mcd i)"].includes(normalizedItemName(selectedArenaItem))) {
                 const dx = (aimTarget?.x ?? target.x) - player.x;
                 const dy = (aimTarget?.y ?? target.y) - player.y;
@@ -1887,7 +1965,7 @@
                 const card = arenaItemCards().find(item => item.dataset.itemName === selectedArenaItem);
                 facing = { x: dx / distance, y: dy / distance };
                 fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 360, damage: selectedWeaponDamage(), rarity: selectedWeaponRarity(), life: 2.2, kind: "firework", sprite: card?.querySelector("img") || null, radius: 178, itemName: selectedArenaItem });
-                player.fireDelay = 1.05;
+                weaponFireDelay(1.05);
             } else if (isArenaBow()) {
                 const distance = Math.hypot(target.x - player.x, target.y - player.y) || 1;
                 const artifact = selectedArtifact();
@@ -1895,15 +1973,18 @@
                 const flaming = compatibleBow && artifact === "flaming quiver";
                 const electric = compatibleBow && artifact === "thundering quiver";
                 facing = { x: (target.x - player.x) / distance, y: (target.y - player.y) / distance };
-                const quiverBonus = flaming || electric ? window.getItemImbueDamageBonus?.(artifact, catalogItemDamage(artifact)) || 0 : 0;
+                const quiverPower = catalogItemArtifactPower(artifact);
+                const quiverImbue = flaming || electric ? window.getItemImbueDamageBonus?.(artifact, quiverPower) || 0 : 0;
+                const quiverPerk = itemPerk(artifact, selectedArtifactRarity());
+                const quiverBonus = quiverImbue * (quiverPerk?.id === "artifact-damage" ? 1 + quiverPerk.value / 100 : 1);
                 fireProjectileVolley({ angle: Math.atan2(facing.y, facing.x), speed: 430, damage: selectedWeaponDamage() + quiverBonus, rarity: selectedWeaponRarity(), life: 1.8, kind: flaming ? "fire" : electric ? "electric" : "arrow", itemName: flaming || electric ? artifact : selectedArenaItem });
-                player.fireDelay = .7;
+                weaponFireDelay(.7);
             } else if (selectedArenaItem && !artifactNames.has(normalizedItemName(selectedArenaItem))) {
                 const range = normalizedItemName(selectedArenaItem) === "the starless night" ? 112 : 92;
                 const distance = Math.hypot(target.x - player.x, target.y - player.y);
                 if (distance <= range) {
                     attackWithWeapon(target);
-                    player.fireDelay = normalizedItemName(selectedArenaItem) === "frost slayer" || normalizedItemName(selectedArenaItem) === "heartstealer" ? .58 : .72;
+                    weaponFireDelay(normalizedItemName(selectedArenaItem) === "frost slayer" || normalizedItemName(selectedArenaItem) === "heartstealer" ? .58 : .72);
                 } else player.fireDelay = .12;
             }
         }
@@ -1944,9 +2025,10 @@
                     const strikeY = hit ? hit.y : Math.max(0, Math.min(arena.height, bolt.y));
                     const radius = 150;
                     const strikeDamage = bolt.damage * 2;
+                    const sourceName = bolt.weaponName || selectedArenaItem;
                     lightningEffects.push({ x: strikeX, y: strikeY, life: 1.05, wait: 0, rodStrike: true, damageApplied: true, damage: strikeDamage, areaRadius: radius, boltWidth: 38 });
                     enemies.slice().filter(enemy => Math.hypot(enemy.x - strikeX, enemy.y - strikeY) <= radius).forEach(enemy => {
-                        damageEnemy(enemy, strikeDamage, "#63edff");
+                        damageWithWeaponPerk(enemy, strikeDamage, "#63edff", sourceName, bolt.rarity, { x: strikeX, y: strikeY });
                         applyRarityImpact(enemy, bolt.rarity, strikeDamage, true);
                     });
                     sparks.push({ x: strikeX, y: strikeY, life: 1.1, color: "#63edff" });
@@ -1965,41 +2047,43 @@
                 const blastX = hit ? hit.x : Math.max(0, Math.min(arena.width, bolt.x));
                 const blastY = hit ? hit.y : Math.max(0, Math.min(arena.height, bolt.y));
                 const blastRadius = bolt.radius || 178;
+                const sourceName = bolt.weaponName || selectedArenaItem;
                 lightningEffects.push({ x: blastX, y: blastY, life: .8, fire: true, radius: blastRadius });
                 enemies.slice().filter(enemy => Math.hypot(enemy.x - blastX, enemy.y - blastY) <= blastRadius).forEach(enemy => {
-                    damageEnemy(enemy, bolt.damage, "#ff7b32");
+                    damageWithWeaponPerk(enemy, bolt.damage, "#ff7b32", sourceName, bolt.rarity, { x: blastX, y: blastY });
                     applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
                 });
             } else if (hit) {
                 bolt.life = 0;
+                const sourceName = bolt.weaponName || selectedArenaItem;
                 if (bolt.kind === "dominance") {
                     const radius = bolt.radius || 132;
                     enemies.slice().filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= radius).forEach(enemy => {
-                        damageEnemy(enemy, bolt.damage, "#ff75ed");
+                        damageWithWeaponPerk(enemy, bolt.damage, "#ff75ed", sourceName, bolt.rarity, hit);
                         applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
                     });
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .65, fire: true, radius, color: "#ed55ff" });
                 } else if (bolt.kind === "terror") {
-                    damageEnemy(hit, bolt.damage, "#aaff63");
+                    damageWithWeaponPerk(hit, bolt.damage, "#aaff63", sourceName, bolt.rarity);
                     applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
                     hit.stunned = 2;
                     hit.fleeAt = elapsed + 2;
                     hit.despawnAt = elapsed + 3.5;
                 } else if (bolt.kind === "fire") {
                     enemies.filter(enemy => Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= 78).slice().forEach(enemy => {
-                        damageEnemy(enemy, bolt.damage, "#ff7b32");
+                        damageWithWeaponPerk(enemy, bolt.damage, "#ff7b32", sourceName, bolt.rarity, hit);
                         applyRarityImpact(enemy, bolt.rarity, bolt.damage, false);
                     });
                     sparks.push({ x: hit.x, y: hit.y, life: .8, color: "#ff7b32" });
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .2, fire: true });
                 } else if (bolt.kind === "electric") {
-                    damageEnemy(hit, bolt.damage, "#65eaff");
+                    damageWithWeaponPerk(hit, bolt.damage, "#65eaff", sourceName, bolt.rarity);
                     const chains = enemies.filter(enemy => enemy !== hit && Math.hypot(enemy.x - hit.x, enemy.y - hit.y) <= 120).slice(0, 2);
                     lightningEffects.push({ x: hit.x, y: hit.y, life: .35, chains: chains.map(enemy => ({ x: enemy.x, y: enemy.y })) });
-                    chains.forEach(enemy => damageEnemy(enemy, bolt.damage, "#65eaff"));
+                    chains.forEach(enemy => damageWithWeaponPerk(enemy, bolt.damage, "#65eaff", sourceName, bolt.rarity, hit));
                     applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
                 } else {
-                    damageEnemy(hit, bolt.damage);
+                    damageWithWeaponPerk(hit, bolt.damage, "#65eaff", sourceName, bolt.rarity);
                     applyRarityImpact(hit, bolt.rarity, bolt.damage, true);
                 }
             }

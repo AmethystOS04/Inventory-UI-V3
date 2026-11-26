@@ -817,9 +817,9 @@
     let selectedItem = null;
 
     function showOffer(args) {
-        const [name, damage, rarity, power, protection = 0, artifactPower = 0] = args;
+        const [name, damage, rarity, power, resilience = 0, artifactPower = 0] = args;
         const seasonal = args[6] === true || args[6] === "true";
-        const cost = window.estimateWeaponCost(damage, rarity, power, protection, artifactPower);
+        const cost = window.estimateWeaponCost(damage, rarity, power, resilience, artifactPower);
         selectedItem = { args, name, cost, seasonal };
 
         document.getElementById("unlockTitle").textContent = `${name} is locked`;

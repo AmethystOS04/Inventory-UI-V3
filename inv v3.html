@@ -389,6 +389,7 @@ html[data-reality="deepdark"] .info-panel::after {
     object-fit: contain;
 }
 .item-imbue-panel{position:relative;z-index:3;margin:12px 0;padding:10px;border:1px solid #94622b;border-radius:10px;background:#21162a;color:#f0dcff;box-shadow:0 0 12px #bd7d2d30}.item-imbue-panel h3{margin:0 0 5px;color:#ffd77c;font-size:14px}.item-imbue-panel p{margin:5px 0;color:#d8cadf;font-size:12px}.item-imbue-panel button{width:100%;padding:7px;border:1px solid #d7a749;border-radius:7px;background:#311d36;color:#ffe59b;font:inherit;cursor:pointer}.item-imbue-panel button:disabled{opacity:.6;cursor:not-allowed}.item-imbue-panel[hidden]{display:none}
+.item-effects-panel{position:relative;z-index:3;margin:10px 0;padding:8px;border:1px solid #4b455b;border-radius:8px;background:#0d121bcc;color:#edf1f8}.item-effects-panel h3{margin:0 0 5px;color:#d7e7ff;font-size:14px;letter-spacing:.04em;text-transform:uppercase}.item-effects-panel[hidden]{display:none!important}.item-effect-row{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:start;gap:8px;margin:7px 0}.item-effect-icon{display:block;width:28px;height:28px;object-fit:contain;image-rendering:pixelated;border:1px solid #4f9db2;border-radius:4px;background:#09202a}.item-effect-text{display:grid;gap:2px;min-width:0;font-size:12px;line-height:1.4;overflow-wrap:anywhere}.item-effect-text strong{color:#b8ecff;font-size:12px}.item-effect-text>span{color:#c6cbd6}
 .info-panel::before{
 
     content:"";
@@ -453,76 +454,6 @@ html[data-reality="deepdark"] .info-panel::after {
     padding-right: 90px !important;
 }
 
-/* enchant box */
-.enchant-box {
-    margin-top: 45px;
-    display: flex;
-    gap: 10px;
-}
-
-.enchant-box select {
-    background: #2b071f;
-    color: rgb(255, 0, 93);
-    text-shadow: #a3148d 0 0 10px;
-    border: none;
-    padding: 6px;
-    border-radius: 6px;
-}
-
-.enchant-box button {
-   background: linear-gradient(135deg, #190a11, #29001e);
-    color: rgb(166, 0, 255);
-    text-shadow: #4d0e48 0 0 10px;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-/* enchant display */
-#enchantDisplay {
-    margin-top: 23px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-#enchantIcon {
-    width: 60px;
-    height: 60px;
-}
-#enchantDescBox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-#enchantDesc {
-    opacity: 0.8;
-    text-align: center;
-}
-
-#enchantTitle {
-    font-weight: bold;
-
-}
-
-#enchantdescbox-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    z-index: -1;
-}
-.enchant-box {
-    margin-top: 21px;
-    display: flex;
-    justify-content: center; /* 👈 centers it */
-    gap: 10px;
-}
-
 .portal-panel{
     margin-top:24px;
     padding:18px;
@@ -544,16 +475,6 @@ html[data-reality="deepdark"] .info-panel::after {
     grid-template-columns:repeat(3, minmax(0, 1fr));
     gap:10px;
     z-index:2;
-}
-
-.enchant-box {
-    position:absolute;
-    left:80px;
-    top:390px;
-    width:260px;
-    margin-top:0;
-    justify-content:flex-start;
-    z-index:1;
 }
 
 #dailyMissions h3 {
@@ -806,40 +727,6 @@ html[data-reality="deepdark"] .info-panel::after {
     font-weight:bold;
 }
 
-.enchant-flash{
-
-    position:absolute;
-
-    inset:0;
-
-    pointer-events:none;
-
-    opacity:0;
-
-    z-index:100;
-
-    background:none;
-}
-
-.enchant-flash.active{
-    animation:mcdFlash .45s ease-out;
-}
-
-@keyframes mcdFlash{
-    0%{
-        left:-120%;
-        opacity:0;
-    }
-
-    20%{
-        opacity:1;
-    }
-
-    100%{
-        left:120%;
-        opacity:0;
-    }
-}
 .ap-panel,
 .mp-panel,
 .stardust-panel{
@@ -1507,9 +1394,9 @@ border-radius:12px;
     text-shadow:0 0 8px #26ff00;
    
 }
-.prot-label{
-    color:#0dfffb;
-    text-shadow:0 0 8px #0dfffb;
+.resilience-label{
+    color:#323297;
+    text-shadow:0 0 8px #323297;
    
 }
 .aeffect-label{
@@ -2030,15 +1917,6 @@ transition: filter .2s ease;
         min-height: 42px;
     }
 
-    .enchant-box {
-        position: static;
-        width: auto;
-        margin: 14px 0 0;
-        flex-wrap: wrap;
-    }
-
-    .enchant-box select,
-    .enchant-box button,
     #skipSongBtn {
         min-height: 42px;
     }
@@ -2283,151 +2161,7 @@ transition: filter .2s ease;
             </select>
             <button id="refreshItemGrid" class="item-grid-refresh" type="button" title="reload items from the spreadsheet">refresh</button>
         </div>
-        <div class="item" onclick="showItem('Flame Sword', 60, 'Magma', 150, 0, 0, false, 0, 'still fresh from the forge')">
-            <img src="flame.png">
-        </div>
-   <div class="item" onclick="showItem('Iron Sword', 10, 'Rare', 27, 0, 0, false, 0, 'basic but reliable')">
-            <img src="Iron-Sword.png">
-        </div>
-   <div class="item" onclick="showItem('Bow', 25, 'Common', 90, 0, 0, false, 0, 'used by starters')">
-            <img src="bow.png">
-        </div>
 
-        <div class="item" onclick="showItem('Axe', 40, 'Rare', 120, 0, 0, false, 0, 'a sturdy axe')">
-            <img src="axe.png">
-        </div>
-
-     
-        <div class="item" onclick="showItem('Daggers', 30, 'Rare', 90, 0, 0, false, 0, 'sharp and deadly')">
-            <img src="dagger.png">
-        </div>
-
-         <div class="item" onclick="showItem('Staff of Terror', 100, 'Terror', 200, 0, 0, false, 0, 'used by the greatest')">
-            <img src="staff.png">
-        </div>
-
-          <div class="item" onclick="showItem('Orb of Dominance', '∞', 'Dominance', '∞', 0, 0, false, 0, 'used by the arch illiager')">
-            <img src="orb-of-dominance.gif">
-        </div>
-
-            <div class="item" onclick="showItem('Gold Crown', 56, 'Unique', 53, 40, 0, false, 0, 'worn by the arch illiager')">
-                <img src="crown.png">
-
-        </div>
-
-        <div class="item" onclick="showItem('Cursed Axe', 59, 'Unique', 200, 0, 0, false, 0, 'dark and sharp')">
-            <img src="cursedaxe.png">
-        </div>
-          <div class="item" onclick="showItem('Dark Katana', 100, 'Dark', 200, 0, 0, false, 0, 'shadowed and made in the dark for some reason')">
-            <img src="dark-katana.png">
-        </div>
-     <div class="item" onclick="showItem('Electric Hammer V2', 300, 'Electric', 344, 0, 0, false, 0, 'bzzzzzzz')">
-    <img src="elechammerv2.png">
-    </div>
-    <div class="item" onclick="showItem('Great Hammer', 50, 'Rare', 120, 0, 0, false, 0, '*CLANG* bro what the hell was that sound')">
-    <img src="great-hammer.png">
-    </div>
-     <div class="item" onclick="showItem('Hammer of Gravity', 150, 'Gravity', 800, 0, 0, false, 0, 'uhhhhh where tf did gravity go- AHHHHHHHHHHH')">
-    <img src="hammer-of-gravity.png">
-     </div>
-  <div class="item" onclick="showItem('Stormlander', 299, 'Electric', 800, 0, 0, false, 0, '*electric crackle* uhh idk if i wanna use th- *BZZZZZZZZ* OWWWWWWWWWWWWW')">
-    <img src="stormlander.png">
-     </div>
-
-    
-
-<div class="item" onclick="showItem('Void Stabilizer', 0, 'Void+', '∞', 0, 0, false, 0, 'stabilizes the void')">
-    <img src="void-stabilizer-v2.png">
-</div>
-<div class="item" onclick="showItem('Pixel Diamond Pickaxe', 40, 'Pixel', '50', 0, 0, false, 0, 'bro why is this pixelated')">
-    <img src="diamond-pick.png">
-</div>
-<div class="item" onclick="showItem('Forgotten Beacon', 0, 'Forgotten', '0', 0, 0, false, 0, 'uhh what is this')">
-    <img src="forgotten-beacon.gif">
-</div>
-
-<div class="item"
-     onclick="showItem('Winter\'s Touch', 300, 'Frozen', 600, 0, 0, false, 0, 'the coldest of the bows')">
-    <img src="winterstouch.png">
-</div>
-
-<div class="item"
-     onclick="showItem('Flaming Quiver', 0, 'Flamed', 888, 0, 22, false, 0, 'makes your arrows catch aflame')">
-    <img src="flaming-quiver.png">
-</div>
-<div class="item"
-     onclick="showItem('Ghost Cloak', 0, 'Shadow', 653, 0, 43, false, 0, 'I AM SPEED ITSELF')">
-    <img src="ghost-cloak.png">
-</div>
-<div class="item"
-     onclick="showItem('Thundering Quiver', 0, 'Electric', 600, 0, 60, false, 0, 'arrows are now electric i... BZZZZZZZZZZZZZZZZ AHH SHI-')">
-    <img src="thundering-quiver.png">
-</div>
-<div class="item"
-     onclick="showItem('Updraft Tome', 0, 'Rare', 600, 0, 353, false, 0, 'r/whoosh')">
-    <img src="updraft-tome.png">
-</div>
-
-<div class="item"
-     onclick="showItem('Vine Whip', 44, 'Unique', 777, 0, 0, false, 0, 'NATURE WHIP ATTACKKKKKKKKK')">
-    <img src="vine-whip.png">
-</div>
-<div class="item" onclick="showItem('Frost Slayer', 196, 'Seasonal', 500, 0, 0, true, 2, 'cold, cold, cold, cold... co-..')">
-    <img src="frost-slayer.png">
-</div>
-<!-- prime example of a seasonal item (frost slayer)-->
- <div class="item" onclick="showItem('The Starless Night', 1555, 'Void', 304, 0, 0, false, 0, 'GREEN IS EVERYTHING AAAAAA')">
-    <img src="thestarlessnight.png">
-</div>
- <div class="item" onclick="showItem('Heartstealer', 400, 'Unique', 304, 0, 0, false, 0, 'it steals hearts.. and it will steal whoever decides to somehow duel wield it..')">
-    <img src="heartstealer.png">
-</div>
-<div class="item" onclick="showItem('Outline Axe', 0, 'Common', 0, 0, 0, false, 0, 'just a outline..')">
-    <img src="outline axe.png">
-</div>
-
-<div class="item" onclick="showItem('Crucible', 42132, 'Magma', 5555555, 0, 0, false, 0, 'RIP AND TEAR UNTIL IT IS DONE!')">
-    <img src="totem_of_undying.png">
-</div>
-<div class="item" onclick="showItem('Blue Crucible', 42132, 'Frozen', 5555555, 0, 0, false, 0, 'RIP AND TEAR (blue version)')">
-    <img src="diamond_sword.png">
-</div>
-<div class="item" onclick="showItem('Brown Crucible', 42132, 'Forgotten', 5555555, 0, 0, false, 0, 'looks like shit but somehow strong')">
-    <img src="wooden_sword.png">
-</div>
-<div class="item" onclick="showItem('Yellow Crucible', 42132, 'Divine', 5555555, 0, 0, false, 0, 'looks like a morning piss')">
-    <img src="gold_sword.png">
-</div>
-<div class="item" onclick="showItem('White Crucible', 42132, 'Dominance', 5555555, 0, 0, false, 0, 'is that the heavens?')">
-    <img src="iron_sword.png">
-</div>
-<div class="item" onclick="showItem('Gray Crucible', 42132, 'Gravity', 5555555, 0, 0, false, 0, 'is it gray or grey?')">
-    <img src="stone_sword.png">
-</div>
-<div class="item" onclick="showItem('Smol Amethyst Shard', 0.5, 'Seasonal', 0.8, 0, 0, true, 1, 'smol 🥺')">
-    <img src="smolamethyst.png">
-</div>
-<div class="item" onclick="showItem('Medium Amethyst Bud', 1.5, 'Seasonal', 4, 0, 0, true, 1, 'it may be cute but it is somewhat sharp')">
-    <img src="separate_amethyst.png">
-</div>
-<div class="item" onclick="showItem('Huge Amethyst Cluster', 30.8, 'Seasonal', 90, 0, 0, true, 3, 'you sure you wanna mess with me now?')">
-    <img src="hugeamethyst.png">
-</div>
-<div class="item" onclick="showItem('Sculker Claws', 50, 'Unique', 60, 0, 0, true, 3, 'Minecraft Dungeons II weapon..exclusive to the Deep Dark event..')">
-    <img src="Sculker Claws.png">
-</div>
-<div class="item" onclick="showItem('Twilight Dagger', 32, 'Unique', 56, 0, 0, true, 2, 'Obtained during the Deep Dark event..')">
-    <img src="Twilight Dagger.png">
-</div>
-<div class="item" onclick="showItem('Sculker\'s Bane', 70, 'Unique', 43, 0, 0, true, 3, 'Obtained from the Deep Dark event.. unique variant of the Twilight Dagger')">
-    <img src="Sculkers Bane.png">
-</div>
-<div class="item" onclick="showItem('Lunar Sickle', 54, 'Unique', 76, 0, 0, true, 2, 'Obtained from the Deep Dark event')">
-    <img src="Lunar Sickle.png">
-</div>
-<div class="item" onclick="showItem('Sparkler', 12, 'Unique', 15, 0, 0, true, 1, 'Obtained during a birthday event..')">
-    <img src="Sparkler.png">
-</div>
 </div>
        
     
@@ -2462,9 +2196,9 @@ transition: filter .2s ease;
         </p>
 
         <p>
-            <img class="stat-icon" src="protection.png">
-            <span class="prot-label">Protection:</span>
-            <span id="prot"></span>
+            <img class="stat-icon" src="resilience.png" title="reduces arena damage by one percent per point, up to 75 percent">
+            <span class="resilience-label" title="reduces arena damage by one percent per point, up to 75 percent">Resilience:</span>
+            <span id="resilience"></span>
         </p>
 
          <p>
@@ -2491,6 +2225,10 @@ transition: filter .2s ease;
             <span class="soul-label">Soul Usage:</span>
             <span id="soulUsage"></span>
         </p>
+        <section id="itemEffectsPanel" class="item-effects-panel" aria-label="item effects" hidden>
+            <h3>effects</h3>
+            <div id="itemEffectsList"></div>
+        </section>
         <section id="itemImbuePanel" class="item-imbue-panel" aria-label="stardust imbuing" hidden>
             <h3>stardust imbue</h3>
             <p id="itemImbueLevel">select an item to view its imbue</p>
@@ -2605,39 +2343,6 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <option value="starlightscuriousity">Starlight's Curiousity</option>
     </select>
 </div>
-        <!-- ENCHANT DISPLAY -->
-        <div id="enchantDisplay">
-            <img id="enchantIcon" src="enchantv2.png">
-            <span id="enchantName"></span>
-        </div>
-        
-        <p id="enchantDescBox">
-    <span id="enchantTitle"></span>
-    <span id="enchantDesc"></span>
-
- 
-</p>
-
-  <!-- ENCHANT SELECT -->
-        <div class="enchant-box">
-            <select id="enchantSelect">
-                <option value="na">Select Enchant</option>
-                <option value="5">Frost (+5)</option>
-                <option value="1">+1</option>
-                <option value="10">Fire (+10)</option>
-                <option value="15">Shock (+15)</option>
-                <option value="loot">Loot+</option>
-                <option value="4">Exploding (+4)</option>
-                <option value="10">Smiting (+10)</option>
-                <option value="7">Piercing (+7)</option>
-                <option value="5">Unbreaking (+5)</option>
-                 <option value="5">Mending (+5)</option>
-                 <option value="66">Sharpness (+66)</option>
-            </select>
-
-            <button onclick="applyEnchant()">Apply</button>
-        </div>
-
           <div class="volume-slider-container">
     <p>Volume:</p>
 <input type="range" id="volumeSlider"
@@ -2682,15 +2387,15 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
         <button class="mission-refresh-button" data-event-quest="realities" type="button" hidden>play event quest</button>
         <p class="mission-refresh-message" aria-live="polite"></p>
     </article>
-    <article class="mission-card" data-mission="enchant">
-        <h4>blacksmith's touch</h4>
-        <p class="mission-objective">apply an enchant</p>
+    <article class="mission-card" data-mission="arena">
+        <h4>rift hunter</h4>
+        <p class="mission-objective">defeat enemies in the rift arena</p>
         <p class="mission-progress"></p>
         <div class="mission-meter"><span></span></div>
         <p class="mission-reward">+35 ap · +20 mp · +1 stardust</p>
         <p class="mission-status"></p>
-        <button class="mission-refresh-button" data-refresh-quest="enchant" type="button">refresh quest 3 · 500 ap</button>
-        <button class="mission-refresh-button" data-event-quest="enchant" type="button" hidden>play event quest</button>
+        <button class="mission-refresh-button" data-refresh-quest="arena" type="button">refresh quest 3 · 500 ap</button>
+        <button class="mission-refresh-button" data-event-quest="arena" type="button" hidden>play event quest</button>
         <p class="mission-refresh-message" aria-live="polite"></p>
     </article>
     <article class="weekly-challenge" id="weeklyChallenge">
@@ -2737,19 +2442,20 @@ onclick="window.triggerBadgeAction?.('portal:amethyst-stupid-stuff', 1); window.
 </div>
 
   <script src="weapon-cost.js"></script>
-  <script src="scriptv3.js?v=20261107-stormlander-v2-icon-size1"></script>
-  <script src="event-catalog.js?v=20261031-event-countdown1"></script>
+  <script src="item-effects.js?v=20261126-resilience1"></script>
+  <script src="scriptv3.js?v=20261126-resilience1"></script>
+  <script src="event-catalog.js?v=20261126-no-crown1"></script>
   <script src="event-countdown.js?v=20261031-event-countdown1"></script>
   <script src="badge-catalog.js?v=20261031-what-ap-requirement1"></script>
   <script src="event-weeklies.js?v=20261012-shared-weeklies1"></script>
-  <script src="unlocks.js?v=20261107-remember-item-filter1"></script>
-  <script src="item-imbuing.js?v=20261112-stardust-imbue3"></script>
-  <script src="infopanelweaponicons.js"></script>
+  <script src="unlocks.js?v=20261126-resilience1"></script>
+  <script src="item-imbuing.js?v=20261126-infinite-orb-damage1"></script>
+  <script src="infopanelweaponicons.js?v=20261126-no-crown1"></script>
       <script src="volume.js?v=20261012-volume-save2"></script>
       <script src="reality.js"></script>
-  <script src="missions.js?v=20261114-whirlwind-shockwave1"></script>
-      <script src="item-sheet.js?v=20261031-arena-artifacts-firework1"></script>
-  <script src="badge-system.js?v=20261107-settings-badge-view1"></script>
+  <script src="missions.js?v=20261126-resilience1"></script>
+      <script src="item-sheet.js?v=20261126-hardcoded-csv1"></script>
+  <script src="badge-system.js?v=20261126-cleanup1"></script>
   <script src="save-format.js?v=20261012-player-save1"></script>
   <script src="save-tools.js?v=20261108-reset-save1"></script>
 <script src="admin-panel.js?v=20261112-stormlander-bounces1"></script>

@@ -35,7 +35,6 @@ const welcomeMessages = [
 
     "time to collect more loot",
 
-    "the enchant table is humming again",
 
     "another day another inventory redesign",
 
@@ -58,7 +57,6 @@ const welcomeMessages = [
 
 "totally not held together by localStorage",
 
-"the enchant table smells like burning",
 
 "your daggers are arguing again",
 
@@ -333,7 +331,7 @@ function showItem(
     damage,
     rarity,
     maxLvl,
-    protection = 0,
+    resilience = 0,
     artifactEffectPower = 0,
     seasonalEvent = false,
     seasonalLevel = 0,
@@ -358,6 +356,9 @@ function showItem(
         document.querySelectorAll(".items .item.selected").forEach(card => card.classList.remove("selected"));
         selectedCard.dataset.itemName = name;
         selectedCard.dataset.rarity = rarity;
+        selectedCard.dataset.damage = String(damage);
+        selectedCard.dataset.resilience = String(resilience);
+        selectedCard.dataset.artifactPower = String(Number(artifactEffectPower) || 0);
         selectedCard.style.setProperty("--item-selection-color", raritySelectionColors[String(rarity).trim().toLowerCase()] || "#ffffff");
         selectedCard.classList.add("selected");
     }
@@ -372,7 +373,7 @@ iconEl.dataset.itemName = name;
     let nameEl = document.getElementById("name");
     let dmgEl = document.getElementById("damage");
     let rarityEl = document.getElementById("rarity");
-    let protEl = document.getElementById("prot");
+    let resilienceEl = document.getElementById("resilience");
     let artifactEffectPowerEl = document.getElementById("artifactEffectPower");
     let seasonalEventEl = document.getElementById("seasonalEvent");
     let seasonalLevelEl = document.getElementById("seasonalLevel");
@@ -381,12 +382,13 @@ iconEl.dataset.itemName = name;
     nameEl.textContent = name;
     dmgEl.textContent = damage;
     rarityEl.textContent = rarity;
-    protEl.textContent = protection;
+    resilienceEl.textContent = resilience;
     artifactEffectPowerEl.textContent = artifactEffectPower;
     seasonalEventEl.textContent = seasonalEvent;
     seasonalLevelEl.textContent = seasonalLevel;
     soulUsageEl.textContent = soulUsage;
     document.getElementById("soulUsageRow").hidden = !String(soulUsage).trim();
+    window.InventoryItemEffects?.render(name, rarity);
 
     document.getElementById("max power lvl").textContent = maxLvl;
    const quoteEl = document.getElementById("itemQuote");
@@ -414,22 +416,21 @@ else {
     dmgEl.style.textShadow = "0 0 10px #ff9a00";
 }
 
- let protEL = document.getElementById("prot");
-if (parseInt(protEl.textContent) < 15) {
-    protEl.style.color = "#aaaaaa";
-    protEl.style.textShadow = "0 0 4px #888";
+if (parseInt(resilienceEl.textContent) < 15) {
+    resilienceEl.style.color = "#aaaaaa";
+    resilienceEl.style.textShadow = "0 0 4px #888";
 }
-else if (parseInt(protEl.textContent) < 30) {
-    protEl.style.color = "#ff3ab7";
-    protEl.style.textShadow = "0 0 6px #ff3ab7";
+else if (parseInt(resilienceEl.textContent) < 30) {
+    resilienceEl.style.color = "#ff3ab7";
+    resilienceEl.style.textShadow = "0 0 6px #ff3ab7";
 }
-else if (parseInt(protEl.textContent) < 50) {
-    protEl.style.color = "#a335ee";
-    protEl.style.textShadow = "0 0 8px #a335ee";
+else if (parseInt(resilienceEl.textContent) < 50) {
+    resilienceEl.style.color = "#a335ee";
+    resilienceEl.style.textShadow = "0 0 8px #a335ee";
 }
 else {
-    protEl.style.color = "#00bfff";
-    protEl.style.textShadow = "0 0 10px #00bfff";
+    resilienceEl.style.color = "#00bfff";
+    resilienceEl.style.textShadow = "0 0 10px #00bfff";
 }
 
 
@@ -553,148 +554,7 @@ rarityEl.style.textShadow = "0 0 10px " + color;
     nameEl.style.color = rarityEl.style.color;
     nameEl.style.textShadow = rarityEl.style.textShadow;
 }
-function flashInfoPanel(color){
-
-    const panel = document.querySelector(".info-panel");
-
-    if(!panel) return;
-
-    panel.style.setProperty(
-        "--flash-color",
-        color
-    );
-
-    panel.classList.remove("flash-active");
-
-    void panel.offsetWidth;
-
-    panel.classList.add("flash-active");
-}
-//! Enchant !//
-
-function applyEnchant() {
-
-    let select = document.getElementById("enchantSelect");
-    let enchantName = document.getElementById("enchantName");
-    let title = document.getElementById("enchantTitle");
-    let desc = document.getElementById("enchantDesc");
-    let icon = document.getElementById("enchantIcon");
-
-    let value = parseInt(select.value);
-    let text = select.options[select.selectedIndex].text;
-
-    // ✅ DO NOT BLOCK value 0 (Loot+)
-    if (value === null || value === undefined) return;
-
-    // ✅ ONLY apply damage if value > 0
-    if (value > 0) {
-        document.getElementById("damage").textContent = baseDamage + value;
-    }
-
-    
-
-    // ✅ KEEP YOUR +1 SYSTEM
-    enchantName.textContent = "+" + value;
-
-    // reset
-    title.textContent = "NA";
-    desc.textContent = "No enchant selected Select a enchant to see what it does";
-    icon.src = "na.png";
-    enchantName.style.color = "#B900D1";
-
-  
-
-    // enchant logic
-
-    if (text.includes("Select Enchant")) {
-        title.textContent = "NA";
-        desc.textContent = "No enchant";
-        icon.src = "na.png";
-        enchantName.style.color = "#7B2828";
-    }
-    if (text.includes("Frost")) {
-        title.textContent = "Frost";
-        desc.textContent = "Slows enemies";
-        icon.src = "frost.png";
-        enchantName.style.color = "#3aa0ff";
-    }
-    else if (text.includes("Fire")) {
-        title.textContent = "Fire";
-        desc.textContent = "Burns enemies";
-        icon.src = "fire.png";
-        enchantName.style.color = "#ff6600";
-    }
-    else if (text.includes("Shock")) {
-        title.textContent = "Shock";
-        desc.textContent = "Chains lightning";
-        icon.src = "shock.png";
-        enchantName.style.color = "#ffff00";
-    }
-    else if (text.includes("Smiting")) {
-        title.textContent = "Smiting";
-        desc.textContent = "Deals extra damage to undead";
-        icon.src = "smiting.png";
-        enchantName.style.color = "#b5d100";
-        console.log("Matched Smiting");
-    }
-    else if (text.includes("Exploding")) {
-        title.textContent = "Exploding";
-        desc.textContent = "Explodes ememys on death";
-        icon.src = "exploding.png";
-        enchantName.style.color = "#d10069";
-    }
-     else if (text.includes("Unbreaking")) {
-        title.textContent = "Unbreaking";
-        desc.textContent = "whats a durability?";
-        icon.src = "icons/default.png";
-        enchantName.style.color = "#e610db";
-    }
-    else if (text.includes("Piercing")) {
-        title.textContent = "Piercing";
-        desc.textContent = "Passes through multiple enemies";
-        icon.src = "piercing.png";
-        enchantName.style.color = "#00ff00";
-        
-    }
-    else if (text.includes("Mending")) {
-        title.textContent = "Mending";
-        desc.textContent = "tf you mean your tool broke? mine hasnt even broke since 7 years";
-        icon.src = "mending.png";
-        enchantName.style.color = "#00ff00";
-        
-    }
-    else if (text.includes("Sharpness")) {
-        title.textContent = "Sharpness";
-        desc.textContent = "man i wish this redstone golem died oh wait i have sharpness on my sword";
-        icon.src = "sharpness.png";
-        enchantName.style.color = "#00fffb";
-        
-    }
-    else if (text.includes("Loot+")) {
-        title.textContent = "Loot+";
-        desc.textContent = "+25% emeralds, +15% food";
-        icon.src = "lootupg.png";
-        enchantName.style.color = "#8AFF9D";
-    }
-    else if (text.includes("+1")) {
-        title.textContent = "+1 Boost";
-        desc.textContent = "Minor power increase";
-        icon.src = "plusone.png";
-        enchantName.style.color = "#00D1C0";
-    }
-    // glow
-    enchantName.style.textShadow = "0 0 6px " + enchantName.style.color;
-    desc.style.color = enchantName.style.color;
-    desc.style.textShadow = "0 0 6px " + enchantName.style.color;
-    flashInfoPanel(enchantName.style.color);
-
-text.includes("Smiting")
-    console.log("enchant applied:", title.textContent, desc.textContent, enchantName.textContent);
-}
-
-    
 window.showItem = showItem;
-window.applyEnchant = applyEnchant;
 
 document.querySelectorAll(".item").forEach(item => {
     item.addEventListener("click", function () {
@@ -743,5 +603,3 @@ special: "#007BFF",
         });
     });
 });
-
-

@@ -156,7 +156,6 @@
             "event-quest": `complete ${amount} event quests`,
             "weekly-win": `win ${amount} weekly challenges`,
             "arena-kill": `defeat ${amount} arena enemies`,
-            enchant: `apply ${amount} enchants`,
             "reality-visit": `change realities ${amount} times`
         };
         if (condition.type === "editor-action") return `do ${condition.actionKey || "an editor action"} ${amount} times`;
@@ -313,7 +312,7 @@
             const balance = window.getInventoryBalance ? Number(window.getInventoryBalance(condition.type)) : Number(localStorage.getItem(condition.type)) || 0;
             return { value: balance, target, label: `${window.formatInventoryNumber ? window.formatInventoryNumber(balance) : balance} / ${window.formatInventoryNumber ? window.formatInventoryNumber(target) : target} ${condition.type}` };
         }
-        if (["action", "editor-action", "item-unlock", "event-item-unlock", "event-quest", "weekly-win", "arena-kill", "enchant", "reality-visit"].includes(condition.type)) {
+        if (["action", "editor-action", "item-unlock", "event-item-unlock", "event-quest", "weekly-win", "arena-kill", "reality-visit"].includes(condition.type)) {
             const key = condition.type === "action" || condition.type === "editor-action" ? String(condition.actionKey || "").trim().toLowerCase() : condition.type;
             const value = Number(readActionProgress()[key]) || 0;
             const label = condition.type === "action"
@@ -751,15 +750,6 @@
     window.triggerBadgeAction = trackAction;
     window.triggerbadgeaction = trackAction;
 
-    const originalApplyEnchant = window.applyEnchant;
-    if (typeof originalApplyEnchant === "function") {
-        window.applyEnchant = function (...args) {
-            const select = document.getElementById("enchantSelect");
-            const result = originalApplyEnchant.apply(this, args);
-            if (select?.selectedIndex > 0) trackAction("enchant", 1);
-            return result;
-        };
-    }
     document.getElementById("realitySelect")?.addEventListener("change", () => trackAction("reality-visit", 1));
 
     let closingTimer;

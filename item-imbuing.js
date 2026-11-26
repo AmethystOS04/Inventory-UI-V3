@@ -9,6 +9,7 @@
 
     let selectedName = "";
     let selectedBaseDamage = 0;
+    let selectedIsArtifact = false;
     let imbues = readImbues();
 
     function readImbues() {
@@ -29,6 +30,10 @@
         return Number.isFinite(level) ? Math.max(0, Math.min(maxLevel, Math.floor(level))) : 0;
     }
 
+    function isArtifact(name) {
+        return window.InventoryItemEffects?.classify(name).type === "artifact";
+    }
+
     window.getItemImbueLevel = name => levelFor(name);
     window.getItemImbueMultiplier = name => 1 + levelFor(name) * 0.05;
     window.getItemImbueDamageBonus = (name, damage) => {
@@ -38,6 +43,7 @@
     };
 
     function format(value) {
+        if (value === Infinity) return "∞";
         return window.formatInventoryNumber ? window.formatInventoryNumber(value) : String(Number(value.toFixed(2)));
     }
 
@@ -60,11 +66,11 @@
         const bonus = window.getItemImbueDamageBonus(selectedName, selectedBaseDamage);
         const cost = (level + 1) * 10;
         const owned = typeof window.isItemUnlocked === "function" ? window.isItemUnlocked(selectedName) : false;
-        details.textContent = `level ${level}/${maxLevel} · +${format(bonus)} damage · ${effectDescription(selectedName)} · ${level < maxLevel ? `next level costs ${cost} stardust` : "maximum level"}`;
+        details.textContent = `level ${level}/${maxLevel} · +${format(bonus)} ${selectedIsArtifact ? "artifact power" : "damage"} · ${effectDescription(selectedName)} · ${level < maxLevel ? `next level costs ${cost} stardust` : "maximum level"}`;
         button.disabled = !owned || level >= maxLevel;
         button.textContent = level >= maxLevel ? "maximum imbue reached" : owned ? `imbue · ${cost} stardust` : "unlock this item to imbue it";
-        const damage = document.getElementById("damage");
-        if (damage && Number.isFinite(selectedBaseDamage)) damage.textContent = format(selectedBaseDamage + bonus);
+        const value = document.getElementById(selectedIsArtifact ? "artifactEffectPower" : "damage");
+        if (value && Number.isFinite(selectedBaseDamage)) value.textContent = format(selectedBaseDamage + bonus);
     }
 
     const originalShowItem = window.showItem;
@@ -72,9 +78,13 @@
         window.showItem = function (...args) {
             const result = originalShowItem.apply(this, args);
             selectedName = String(args[0] || "");
-            selectedBaseDamage = Number(args[1]);
-            if (!Number.isFinite(selectedBaseDamage)) selectedBaseDamage = 0;
-            status.textContent = `each level adds five percent of catalog damage · ${effectDescription(selectedName)}`;
+            selectedIsArtifact = isArtifact(selectedName);
+            const rawBaseDamage = selectedIsArtifact ? args[5] : args[1];
+            selectedBaseDamage = rawBaseDamage === "∞" || String(selectedName).trim().toLowerCase() === "orb of dominance"
+                ? Infinity
+                : Number(rawBaseDamage);
+            if (Number.isNaN(selectedBaseDamage)) selectedBaseDamage = 0;
+            status.textContent = `each level adds five percent of catalog ${selectedIsArtifact ? "artifact power" : "damage"} · ${effectDescription(selectedName)}`;
             render();
             return result;
         };

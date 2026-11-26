@@ -672,7 +672,7 @@
     const itemPages = Array.isArray(wikiPages[item.name.toLowerCase()]) ? wikiPages[item.name.toLowerCase()] : [];
     const activeSubpage = itemPages.find(page => page.id === activeSubpageId);
     const displayName = family ? family.id === "crucibles" ? "Crucible" : family.id === "electric-hammer" ? "Electric Hammer" : "Stormlander" : item.name;
-    const itemFacts = [["variant", item.name], ["rarity", item.rarity || "unrated"], ["damage", item.damage || "0"], ["maximum level", item.max_level || "0"], ["protection", item.protection || "0"], ...(item.artifact_power && item.artifact_power !== "0" ? [["artifact power", item.artifact_power]] : []), ...(item.event ? [["event", item.event]] : [])];
+    const itemFacts = [["variant", item.name], ["rarity", item.rarity || "unrated"], ["damage", item.damage || "0"], ["maximum level", item.max_level || "0"], ["resilience", item.resilience ?? "0"], ...(item.artifact_power && item.artifact_power !== "0" ? [["artifact power", item.artifact_power]] : []), ...(item.event ? [["event", item.event]] : [])];
     $("#itemArticle").innerHTML = `<h1 class="article-title">${esc(displayName)}</h1><article class="item-article"><aside class="item-infobox"><h2>${esc(displayName)}</h2>${images}<table>${itemFacts.map(([label, value]) => `<tr><th>${esc(label)}</th><td>${esc(value)}</td></tr>`).join("")}<tr><th>v3 status</th><td>${owned ? "unlocked" : "locked"}</td></tr></table></aside><div class="item-article-head"><p class="article-lead">${esc(item.description || "no description in the catalog")}</p></div></article>`;
     $("#wikiSubpageList").innerHTML = itemPages.length ? itemPages.map(page => `<button type="button" class="subpage-link ${page.id === activeSubpageId ? "active" : ""}" data-open-subpage="${esc(page.id)}">${esc(page.title)}</button>`).join("") : `<p class="muted">no pages for this item yet</p>`;
     $("#wikiSubpageContent").innerHTML = activeSubpage ? `<article class="article-card"><span class="card-kicker">${esc(item.name)} wiki page</span><h2>${esc(activeSubpage.title)}</h2><div class="wiki-prose">${renderMarkdown(activeSubpage.content)}</div></article>` : `<p class="muted">choose a page or add one for this item</p>`;
@@ -729,7 +729,7 @@
       if (args.length < 9) return null;
       return {
         name: args[0], image: card.querySelector("img")?.getAttribute("src") || "",
-        damage: args[1], rarity: args[2], max_level: args[3], protection: args[4],
+        damage: args[1], rarity: args[2], max_level: args[3], resilience: args[4],
         artifact_power: args[5], seasonal: args[6], seasonal_level: args[7],
         description: args[8], event: "", soul_usage: ""
       };
@@ -760,7 +760,7 @@
     return artifactNames.has(String(item.name).trim().toLowerCase());
   }
 
-  const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "golden crown", "firework arrow (mcdii)"]);
+  const artifactNames = new Set(["corrupted beacon", "corrupted beacon (mcdii)", "void stabilizer", "ghost cloak", "updraft tome", "thundering quiver", "flaming quiver", "lightning rod", "lightning rod (mcdii)", "firework arrow (mcdii)"]);
 
   function renderItemCard(variants, selectedName) {
     const item = variants.find(entry => entry.name.trim().toLowerCase() === String(selectedName).trim().toLowerCase()) || variants[0];
@@ -768,7 +768,7 @@
     const family = familyFor(item);
     const heading = family ? ({ crucibles: "Crucible", "electric-hammer": "Electric Hammer", stormlander: "Stormlander" })[family.id] : item.name;
     const owned = unlockedItems.has(item.name.toLowerCase());
-    return `<article class="item-card"><div class="item-top"><img src="${esc(item.image)}" alt="" loading="lazy"><div><h2>${esc(heading)}</h2><p>${esc(item.rarity || "unrated")}${/true|yes|1/i.test(item.seasonal) ? " · seasonal" : ""}</p></div></div>${selector}<p class="item-description">${esc(item.description || "no description in the catalog")}</p><div class="tag-row"><span class="tag">${owned ? "unlocked in v3" : "not unlocked"}</span><span class="tag">damage ${esc(item.damage || "0")}</span><span class="tag">max level ${esc(item.max_level || "0")}</span><span class="tag">protection ${esc(item.protection || "0")}</span>${item.artifact_power && item.artifact_power !== "0" ? `<span class="tag">artifact power ${esc(item.artifact_power)}</span>` : ""}${item.soul_usage && item.soul_usage !== "None" ? `<span class="tag">souls ${esc(item.soul_usage)}</span>` : ""}${item.event ? `<span class="tag">event ${esc(item.event)}</span>` : ""}</div><button class="open-item-page" type="button" data-open-item="${esc(item.name)}">open item wiki</button></article>`;
+    return `<article class="item-card"><div class="item-top"><img src="${esc(item.image)}" alt="" loading="lazy"><div><h2>${esc(heading)}</h2><p>${esc(item.rarity || "unrated")}${/true|yes|1/i.test(item.seasonal) ? " · seasonal" : ""}</p></div></div>${selector}<p class="item-description">${esc(item.description || "no description in the catalog")}</p><div class="tag-row"><span class="tag">${owned ? "unlocked in v3" : "not unlocked"}</span><span class="tag">damage ${esc(item.damage || "0")}</span><span class="tag">max level ${esc(item.max_level || "0")}</span><span class="tag">resilience ${esc(item.resilience ?? "0")}</span>${item.artifact_power && item.artifact_power !== "0" ? `<span class="tag">artifact power ${esc(item.artifact_power)}</span>` : ""}${item.soul_usage && item.soul_usage !== "None" ? `<span class="tag">souls ${esc(item.soul_usage)}</span>` : ""}${item.event ? `<span class="tag">event ${esc(item.event)}</span>` : ""}</div><button class="open-item-page" type="button" data-open-item="${esc(item.name)}">open item wiki</button></article>`;
   }
 
   function rarityEntries() {
@@ -809,7 +809,6 @@
       "all-badges": "complete the other badges",
       "badges-unlocked": `unlock ${amount} badges`,
       "reality-visit": `change realities ${amount} times`,
-      enchant: `apply ${amount} enchants`,
       ap: `reach ${amount} ap`,
       mp: `reach ${amount} mp`,
       seasonal: `unlock ${amount} seasonal items`,
@@ -1339,12 +1338,14 @@
 
   Promise.all([
     fetch("items.csv", { cache: "no-store" }).then(response => response.ok ? response.text() : ""),
+    fetch("hardcoded-items.csv", { cache: "no-store" }).then(response => response.ok ? response.text() : ""),
     fetch("inv%20v3.html", { cache: "no-store" }).then(response => response.ok ? response.text() : ""),
     fetch("wiki-content.json", { cache: "no-store" }).then(response => response.ok ? response.json() : {})
-  ]).then(([csvText, pageText, publicWiki]) => {
+  ]).then(([csvText, hardcodedCsvText, pageText, publicWiki]) => {
     const catalogItems = csvText ? parseCsv(csvText) : [];
+    const hardcodedItems = hardcodedCsvText ? parseCsv(hardcodedCsvText) : [];
     const baseItems = pageText ? parseBaseItems(pageText) : [];
-    items = mergeItems(baseItems, catalogItems);
+    items = mergeItems(baseItems, [...hardcodedItems, ...catalogItems]);
     window.INVENTORY_WIKI_CONTENT = publicWiki;
     loadWikiDocument();
     applyRemovedBuiltinSections();

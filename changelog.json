@@ -3,6 +3,87 @@
   "project": "Inventory UI",
   "versions": [
     {
+      "version": "3.5.7",
+      "date": null,
+      "title": "the massive content update",
+      "status": "published",
+      "summary": "wiki update\neffects\nresilience\ngold crown deleted\nenchantments replaced by effects\nnew quest type\nprotection deleted to be replaced with resilience",
+      "sections": [
+        {
+          "id": "effects",
+          "type": "added",
+          "title": "effects",
+          "description": "effects are a improved system of enchantments\nthey have a select pool for all items and effects are picked randomly\nrarities still have their own effects",
+          "status": "ready"
+        },
+        {
+          "id": "enchantments",
+          "type": "removed",
+          "title": "enchantments",
+          "description": "removed enchantments from v3 as they were unused and only a display",
+          "status": "ready"
+        },
+        {
+          "id": "orb-of-dominance",
+          "type": "changed",
+          "title": "orb of dominance",
+          "description": "changed damage to be infinity instead of 0 causing it to deal 0 damage",
+          "status": "ready"
+        },
+        {
+          "id": "wiki",
+          "type": "changed",
+          "title": "wiki",
+          "description": "changed enchantments page in quest types to be removed\nadded new page for the new quest type\ndidnt update the changelogs section\nadded page for resilience\nchanged the protection labels to be resilience ",
+          "status": "ready"
+        },
+        {
+          "id": "quests",
+          "type": "changed",
+          "title": "quests",
+          "description": "changed items enchanted quests to be the rift arena enemy defeated quests\n- rift hunter — defeat 5 enemies in the rift arena — reward: 35 ap, 20 mp, 1 stardust\n- rift sweeper — defeat 10 enemies in the rift arena — reward: 35 ap, 20 mp, 1 stardust\n- rift breaker — defeat 15 enemies in the rift arena — reward: 35 ap, 20 mp, 1 stardust",
+          "status": "ready"
+        },
+        {
+          "id": "stats",
+          "type": "changed",
+          "title": "stats",
+          "description": "protection is now **Resilience**\nwelcome, resilience\nbye protection, thank you for your useless service",
+          "status": "ready"
+        },
+        {
+          "id": "resilience",
+          "type": "added",
+          "title": "resilience",
+          "description": "resilience is a replacement for protection\nit decreases damaged dealt by enemies by 1% per level\nit has a cap of 75%",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "version": "3.5.6",
+      "date": "2026-11-24",
+      "title": "patch",
+      "status": "published",
+      "summary": "new item catalog and separated frosting winter event and mscm ultimated event from overlapping",
+      "sections": [
+        {
+          "id": "items",
+          "type": "changed",
+          "title": "items",
+          "description": "energizer of souls description changed\nprevious:,\"energizes your souls and strikes and souly hit item icon is just placeholder\"\nnew:,\"energizes your souls and strikes a souly hit item icon is just placeholder\"",
+          "status": "ready"
+        },
+        {
+          "id": "events",
+          "type": "changed",
+          "title": "events",
+          "description": "changed frosting winter from starting dec 21 to dec 10 to prevent overlapping events",
+          "status": "ready"
+        }
+      ]
+    },
+    {
       "version": "3.5.3",
       "date": "2026-11-22",
       "title": "item update and event update",

@@ -1,4 +1,4 @@
-name,image,damage,rarity,max_level,protection,artifact_power,seasonal,seasonal_level,description,event,soul_usage
+name,image,damage,rarity,max_level,resilience,artifact_power,seasonal,seasonal_level,description,event,soul_usage
 Soul Reaper,Soul Reaper.png,77,Unique,79,0,0,True,3,From MCD II..,deep dark,
 Emerald Hammer,emerald_hammer.png,55,Unique,55,0,0,True,2,from mcd ii..,sifting,
 Sifting Hammer,Sifting Hammer.png,150,Seasonal,152,0,0,True,3,custom made mcd ii inspired weapon,sifting,

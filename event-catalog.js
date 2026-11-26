@@ -115,7 +115,6 @@ window.INVENTORY_EVENT_CATALOG = [
             "Flaming Quiver",
             "Frost Slayer",
             "Ghost Cloak",
-            "Gold Crown",
             "Great Hammer",
             "Hammer of Gravity",
             "Heartstealer",

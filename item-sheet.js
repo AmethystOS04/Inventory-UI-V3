@@ -1,5 +1,5 @@
 (() => {
-    const sheetUrl = "items.csv";
+    const sheetUrls = ["hardcoded-items.csv", "items.csv"];
     const refreshEveryMs = 2500;
     const inventory = document.querySelector(".items");
     const itemCards = new Map();
@@ -79,6 +79,10 @@
         return Number.isFinite(number) ? number : fallback;
     }
 
+    function statValue(value, fallback = 0) {
+        return String(value ?? "").trim() === "∞" ? "∞" : numberValue(value, fallback);
+    }
+
     function parseBoolean(value) {
         return ["true", "yes", "1"].includes(String(value || "").trim().toLowerCase());
     }
@@ -89,10 +93,10 @@
         const seasonal = parseBoolean(item.seasonal);
         const args = [
             item.name,
-            numberValue(item.damage),
+            statValue(item.damage),
             item.rarity || "common",
-            numberValue(item.max_level),
-            numberValue(item.protection),
+            statValue(item.max_level),
+            numberValue(item.resilience ?? item.protection),
             numberValue(item.artifact_power),
             seasonal,
             seasonal ? numberValue(item.seasonal_level, 1) : 0,
@@ -112,9 +116,9 @@
         card.dataset.itemName = item.name;
         card.dataset.seasonal = String(seasonal);
         card.dataset.rarity = item.rarity || "common";
-        card.dataset.damage = String(numberValue(item.damage));
+        card.dataset.damage = String(statValue(item.damage));
         card.dataset.artifactPower = String(numberValue(item.artifact_power));
-        card.dataset.protection = String(numberValue(item.protection));
+        card.dataset.resilience = String(numberValue(item.resilience ?? item.protection));
         if (item.event) card.dataset.catalogEvent = item.event.trim().toLowerCase();
         card.dataset.originalOrder = String(inventory.querySelectorAll(".item").length);
         card.setAttribute("aria-label", item.name);
@@ -130,27 +134,39 @@
         card.onclick = () => window.showItem(...args);
 
         icons[item.name] = item.image;
-        if (window.refreshUnlockCards) window.refreshUnlockCards();
         return created;
     }
 
+    let loadedSignature = "";
     async function loadSheet() {
         try {
-            const response = await fetch(`${sheetUrl}?updated=${Date.now()}`, { cache: "no-store" });
-            if (!response.ok) throw new Error(`sheet returned ${response.status}`);
+            const catalogs = await Promise.all(sheetUrls.map(async url => {
+                const response = await fetch(`${url}?updated=${Date.now()}`, { cache: "no-store" });
+                if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+                return { url, text: await response.text() };
+            }));
+            const signature = catalogs.map(catalog => `${catalog.url}:${catalog.text}`).join("\n");
+            if (signature === loadedSignature) return;
 
-            const rows = parseCsv(await response.text());
-            if (!rows.length) return;
-            const headers = rows.shift().map((header, index) =>
-                (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
-            );
-
-            let addedItems = false;
-            for (const values of rows) {
-                const item = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
-                addedItems = addItem(item) || addedItems;
+            const selectedName = inventory.querySelector(".item.selected")?.dataset.itemName || "";
+            inventory.querySelectorAll(":scope > .item").forEach(card => card.remove());
+            itemCards.clear();
+            for (const catalog of catalogs) {
+                const rows = parseCsv(catalog.text);
+                if (!rows.length) continue;
+                const headers = rows.shift().map((header, index) =>
+                    (index === 0 ? header.replace(/^\uFEFF/, "") : header).trim().toLowerCase()
+                );
+                for (const values of rows) {
+                    const item = Object.fromEntries(headers.map((header, index) => [header, values[index] || ""]));
+                    addItem(item);
+                }
             }
-            if (addedItems) window.dispatchEvent(new Event("inventory-catalog-updated"));
+            loadedSignature = signature;
+            const selectedCard = itemCards.get(selectedName);
+            if (selectedCard) selectedCard.classList.add("selected");
+            if (window.refreshUnlockCards) window.refreshUnlockCards();
+            window.dispatchEvent(new Event("inventory-catalog-updated"));
         } catch (error) {
             console.warn("item sheet could not be loaded", error);
         }

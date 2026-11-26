@@ -20,7 +20,6 @@ const icons = {
     "Stormlander": "stormlander.png",
 "Iron Sword": "Iron-Sword.png",
 "Orb of Dominance": "orb-of-dominace.png",
-"Gold Crown": "crown.png",
 "Thundering Quiver": "thundering-quiver.png",
 "Ghost Cloak": "ghost-cloak.png",
 "Flaming Quiver": "flaming-quiver.png",

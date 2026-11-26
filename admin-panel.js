@@ -293,7 +293,7 @@
     async function loadItems() {
         const names = new Set(Array.from(document.querySelectorAll('.items .item')).map(card => card.dataset.itemName).filter(Boolean));
         try {
-            const [pageResponse, csvResponse] = await Promise.all([fetch('inv%20v3.html', { cache: 'no-store' }), fetch('items.csv', { cache: 'no-store' })]);
+            const [pageResponse, csvResponse, hardcodedCsvResponse] = await Promise.all([fetch('inv%20v3.html', { cache: 'no-store' }), fetch('items.csv', { cache: 'no-store' }), fetch('hardcoded-items.csv', { cache: 'no-store' })]);
             if (pageResponse.ok) {
                 const doc = new DOMParser().parseFromString(await pageResponse.text(), 'text/html');
                 doc.querySelectorAll('.items .item').forEach(card => {
@@ -304,6 +304,14 @@
             }
             if (csvResponse.ok) {
                 const lines = (await csvResponse.text()).split(/\r?\n/).slice(1);
+                lines.forEach(line => {
+                    const match = line.match(/^\s*(?:"((?:[^"]|"")*)"|([^,]*))/);
+                    const name = (match?.[1] ?? match?.[2] ?? '').replaceAll('""', '"').trim();
+                    if (name) names.add(name);
+                });
+            }
+            if (hardcodedCsvResponse.ok) {
+                const lines = (await hardcodedCsvResponse.text()).split(/\r?\n/).slice(1);
                 lines.forEach(line => {
                     const match = line.match(/^\s*(?:"((?:[^"]|"")*)"|([^,]*))/);
                     const name = (match?.[1] ?? match?.[2] ?? '').replaceAll('""', '"').trim();
